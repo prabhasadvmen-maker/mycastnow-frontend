@@ -17,7 +17,7 @@ const AdminCreators = () => {
 
   const fetchCreators = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/admin/creators');
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/admin/creators`);
       setCreators(res.data);
     } catch (err) {
       console.error('Failed to fetch creators', err);
@@ -29,7 +29,7 @@ const AdminCreators = () => {
     if (!window.confirm("Are you sure you want to permanently delete this creator account?")) return;
     
     try {
-      await axios.delete(`http://localhost:5000/api/admin/creators/${creatorId}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/admin/creators/${creatorId}`);
       setCreators(prev => prev.filter(c => c._id !== creatorId));
     } catch (err) {
       alert('Failed to delete account');
@@ -38,7 +38,7 @@ const AdminCreators = () => {
 
   const handleActiveToggle = async (creatorId, isActive) => {
     try {
-      await axios.put(`http://localhost:5000/api/admin/creators/${creatorId}/active`, { isActive });
+      await axios.put(`${import.meta.env.VITE_API_URL}/admin/creators/${creatorId}/active`, { isActive });
       setCreators(prev => prev.map(c => c._id === creatorId ? { ...c, isActive } : c));
       if (selectedCreator && selectedCreator._id === creatorId) {
         setSelectedCreator(prev => ({ ...prev, isActive }));
@@ -51,7 +51,7 @@ const AdminCreators = () => {
   const handleStatusUpdate = async (creatorId, newStatus) => {
     setStatusLoading(true);
     try {
-      await axios.put(`http://localhost:5000/api/admin/creators/${creatorId}/status`, { status: newStatus });
+      await axios.put(`${import.meta.env.VITE_API_URL}/admin/creators/${creatorId}/status`, { status: newStatus });
       // Update local state
       setCreators(prev => prev.map(c => c._id === creatorId ? { ...c, status: newStatus, isApproved: newStatus === 'approved' } : c));
       

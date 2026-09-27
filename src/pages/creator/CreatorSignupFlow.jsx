@@ -100,7 +100,7 @@ const CreatorSignupFlow = () => {
           });
           
           try {
-            const uploadRes = await axios.post(`http://localhost:5000/api/upload/portfolio`, formData, {
+            const uploadRes = await axios.post(`${import.meta.env.VITE_API_URL}/upload/portfolio`, formData, {
               headers: { 'Content-Type': 'multipart/form-data' }
             });
             
@@ -244,7 +244,7 @@ const CreatorSignupFlow = () => {
                             const formData = new FormData();
                             formData.append('files', file);
                             try {
-                              const res = await axios.post('http://localhost:5000/api/upload/portfolio', formData, {
+                              const res = await axios.post(`${import.meta.env.VITE_API_URL}/upload/portfolio`, formData, {
                                 headers: { 'Content-Type': 'multipart/form-data' }
                               });
                               if (res.data.success) {
