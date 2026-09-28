@@ -11,15 +11,41 @@ import ComingSoon from './pages/ComingSoon';
 import CompanyLogin from './pages/company/CompanyLogin';
 import CompanySignup from './pages/company/CompanySignup';
 import CompanyLayout from './layouts/CompanyLayout';
+import CompanyOverview from './pages/company/CompanyOverview';
+import CompanyFindTalent from './pages/company/CompanyFindTalent';
+import CompanyCasting from './pages/company/CompanyCasting';
+import CompanyTalentCart from './pages/company/CompanyTalentCart';
+import CompanyHires from './pages/company/CompanyHires';
+import CompanyInbox from './pages/company/CompanyInbox';
+import CompanyWallet from './pages/company/CompanyWallet';
+import CompanySubscription from './pages/company/CompanySubscription';
+import CompanyProfile from './pages/company/CompanyProfile';
 
 import CreatorLogin from './pages/creator/CreatorLogin';
 import CreatorSignupFlow from './pages/creator/CreatorSignupFlow';
 import CreatorLayout from './layouts/CreatorLayout';
 import CreatorDashboard from './pages/creator/CreatorDashboard';
+import CreatorPortfolio from './pages/creator/CreatorPortfolio';
+import CreatorCasting from './pages/creator/CreatorCasting';
+import CreatorApplications from './pages/creator/CreatorApplications';
+import CreatorBookings from './pages/creator/CreatorBookings';
+import CreatorInbox from './pages/creator/CreatorInbox';
+import CreatorWallet from './pages/creator/CreatorWallet';
+import CreatorEarnings from './pages/creator/CreatorEarnings';
+import CreatorSubscription from './pages/creator/CreatorSubscription';
+import CreatorProfile from './pages/creator/CreatorProfile';
+import CreatorSettings from './pages/creator/CreatorSettings';
+import CreatorHelp from './pages/creator/CreatorHelp';
 import AdminCreators from './pages/AdminCreators';
 import AdminCreatorDetails from './pages/AdminCreatorDetails';
 import AdminUsers from './pages/AdminUsers';
 import AdminCasting from './pages/AdminCasting';
+import AdminBookings from './pages/AdminBookings';
+import AdminSubscriptions from './pages/AdminSubscriptions';
+import AdminWallet from './pages/AdminWallet';
+import AdminBoost from './pages/AdminBoost';
+import AdminReviews from './pages/AdminReviews';
+import AdminAnalytics from './pages/AdminAnalytics';
 
 function App() {
   return (
@@ -37,13 +63,13 @@ function App() {
               <Route path="profiles" element={<AdminCreators />} />
               <Route path="profiles/:id" element={<AdminCreatorDetails />} />
               <Route path="casting" element={<AdminCasting />} />
-              <Route path="bookings" element={<ComingSoon />} />
+              <Route path="bookings" element={<AdminBookings />} />
               <Route path="payments" element={<ComingSoon />} />
-              <Route path="subscriptions" element={<ComingSoon />} />
-              <Route path="wallet" element={<ComingSoon />} />
-              <Route path="boost" element={<ComingSoon />} />
-              <Route path="reviews" element={<ComingSoon />} />
-              <Route path="analytics" element={<ComingSoon />} />
+              <Route path="subscriptions" element={<AdminSubscriptions />} />
+              <Route path="wallet" element={<AdminWallet />} />
+              <Route path="boost" element={<AdminBoost />} />
+              <Route path="reviews" element={<AdminReviews />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="cms" element={<Overview />} />
               <Route path="settings" element={<ComingSoon />} />
               <Route path="help" element={<ComingSoon />} />
@@ -53,15 +79,15 @@ function App() {
             <Route path="/company/login" element={<CompanyLogin />} />
             <Route path="/company/signup" element={<CompanySignup />} />
             <Route path="/company/dashboard" element={<CompanyLayout />}>
-              <Route index element={<Overview />} />
-              <Route path="find-talent" element={<ComingSoon />} />
-              <Route path="casting" element={<ComingSoon />} />
-              <Route path="talent-cart" element={<ComingSoon />} />
-              <Route path="hires" element={<ComingSoon />} />
-              <Route path="inbox" element={<ComingSoon />} />
-              <Route path="wallet" element={<ComingSoon />} />
-              <Route path="subscription" element={<ComingSoon />} />
-              <Route path="profile" element={<ComingSoon />} />
+              <Route index element={<CompanyOverview />} />
+              <Route path="find-talent" element={<CompanyFindTalent />} />
+              <Route path="casting" element={<CompanyCasting />} />
+              <Route path="talent-cart" element={<CompanyTalentCart />} />
+              <Route path="hires" element={<CompanyHires />} />
+              <Route path="inbox" element={<CompanyInbox />} />
+              <Route path="wallet" element={<CompanyWallet />} />
+              <Route path="subscription" element={<CompanySubscription />} />
+              <Route path="profile" element={<CompanyProfile />} />
               <Route path="settings" element={<ComingSoon />} />
               <Route path="help" element={<ComingSoon />} />
             </Route>
@@ -72,17 +98,17 @@ function App() {
             
             <Route path="/creator/dashboard" element={<CreatorLayout />}>
               <Route index element={<CreatorDashboard />} />
-              <Route path="portfolio" element={<ComingSoon />} />
-              <Route path="casting" element={<ComingSoon />} />
-              <Route path="applications" element={<ComingSoon />} />
-              <Route path="bookings" element={<ComingSoon />} />
-              <Route path="inbox" element={<ComingSoon />} />
-              <Route path="wallet" element={<ComingSoon />} />
-              <Route path="earnings" element={<ComingSoon />} />
-              <Route path="subscription" element={<ComingSoon />} />
-              <Route path="profile" element={<ComingSoon />} />
-              <Route path="settings" element={<ComingSoon />} />
-              <Route path="help" element={<ComingSoon />} />
+              <Route path="portfolio" element={<CreatorPortfolio />} />
+              <Route path="casting" element={<CreatorCasting />} />
+              <Route path="applications" element={<CreatorApplications />} />
+              <Route path="bookings" element={<CreatorBookings />} />
+              <Route path="inbox" element={<CreatorInbox />} />
+              <Route path="wallet" element={<CreatorWallet />} />
+              <Route path="earnings" element={<CreatorEarnings />} />
+              <Route path="subscription" element={<CreatorSubscription />} />
+              <Route path="profile" element={<CreatorProfile />} />
+              <Route path="settings" element={<CreatorSettings />} />
+              <Route path="help" element={<CreatorHelp />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
