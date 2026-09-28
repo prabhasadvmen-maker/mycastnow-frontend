@@ -18,6 +18,8 @@ import CreatorLayout from './layouts/CreatorLayout';
 import CreatorDashboard from './pages/creator/CreatorDashboard';
 import AdminCreators from './pages/AdminCreators';
 import AdminCreatorDetails from './pages/AdminCreatorDetails';
+import AdminUsers from './pages/AdminUsers';
+import AdminCasting from './pages/AdminCasting';
 
 function App() {
   return (
@@ -31,10 +33,10 @@ function App() {
             <Route path="/" element={<AdminLayout />}>
               <Route index element={<Overview />} />
               <Route path="company" element={<Company />} />
-              <Route path="users" element={<ComingSoon />} />
+              <Route path="users" element={<AdminUsers />} />
               <Route path="profiles" element={<AdminCreators />} />
               <Route path="profiles/:id" element={<AdminCreatorDetails />} />
-              <Route path="casting" element={<ComingSoon />} />
+              <Route path="casting" element={<AdminCasting />} />
               <Route path="bookings" element={<ComingSoon />} />
               <Route path="payments" element={<ComingSoon />} />
               <Route path="subscriptions" element={<ComingSoon />} />
