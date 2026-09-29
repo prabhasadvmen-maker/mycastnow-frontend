@@ -15,8 +15,8 @@ const CompanyOverview = () => {
     totalAuditions: 0,
     cartCount: 0,
     hiresCount: 0,
-    walletBalance: 275000,
-    escrowLocked: 85000
+    walletBalance: 0,
+    escrowLocked: 0
   });
   const [recentCastings, setRecentCastings] = useState([]);
   const [recentBookings, setRecentBookings] = useState([]);
@@ -48,8 +48,8 @@ const CompanyOverview = () => {
         totalAuditions: cStats.totalApplicants || 0,
         cartCount: cartItems.length || 0,
         hiresCount: bookings.filter(b => b.status === 'Confirmed').length || 0,
-        walletBalance: wData.balance || 275000,
-        escrowLocked: wData.escrowBalance || 85000
+        walletBalance: wData.balance || 0,
+        escrowLocked: wData.escrowBalance || 0
       });
 
       setRecentCastings(castings.slice(0, 3));
@@ -84,7 +84,7 @@ const CompanyOverview = () => {
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-            Welcome, Advmen Technologies!
+            Welcome to your company dashboard
           </h1>
           <p className="text-xs text-gray-300 max-w-2xl">
             Broadcast audition requirements, discover top actors & models, review audition reels, and disburse secure contract escrow payments.

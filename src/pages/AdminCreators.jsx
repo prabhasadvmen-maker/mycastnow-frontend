@@ -26,7 +26,6 @@ const AdminCreators = () => {
   };
 
   const handleDelete = async (creatorId) => {
-    if (!window.confirm("Are you sure you want to permanently delete this creator account?")) return;
     
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/admin/creators/${creatorId}`);
@@ -166,7 +165,7 @@ const AdminCreators = () => {
             style={{ top: dropdownState.top, left: dropdownState.left }}
           >
             <button 
-              onClick={() => { navigate(`/profiles/${dropdownState.id}`); setDropdownState(null); }}
+              onClick={() => { navigate(`/admin/profiles/${dropdownState.id}`); setDropdownState(null); }}
               className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 font-medium flex items-center gap-2"
             >
               <Eye size={16} /> View Profile

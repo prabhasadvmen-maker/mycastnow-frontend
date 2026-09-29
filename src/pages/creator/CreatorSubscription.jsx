@@ -81,45 +81,7 @@ const CreatorSubscription = () => {
     ]
   };
 
-  const plans = subData?.plans || [
-    {
-      id: 'free',
-      name: 'Starter Creator',
-      price: 0,
-      billing: 'Free Forever',
-      description: 'Basic access to public casting calls',
-      features: ['5 Applications / month', 'Standard Profile', 'Chat on Booking Only', '10% Commission']
-    },
-    {
-      id: 'pro',
-      name: 'Pro Creator VIP',
-      price: 999,
-      billing: 'per month',
-      popular: true,
-      description: 'Essential toolkit for working professional models & actors',
-      features: [
-        'Unlimited Casting Applications',
-        'Verified Talent Badge',
-        'Instant Chat with Producers',
-        '0% Commission on Direct Hires',
-        'Featured on Find Talent Top 10'
-      ]
-    },
-    {
-      id: 'elite',
-      name: 'Elite Celebrity Agency Tier',
-      price: 2499,
-      billing: 'per month',
-      description: 'For top-tier talent seeking lead roles in web series & films',
-      features: [
-        'All Pro VIP Features',
-        'Dedicated Casting Agent Manager',
-        'Custom Showreel Hosting & Highlights',
-        'Guaranteed Audition Slot Review',
-        'Legal Contract & Escrow Advisory'
-      ]
-    }
-  ];
+  const plans = subData?.plans || [];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -219,9 +181,14 @@ const CreatorSubscription = () => {
 
       {/* PLANS COMPARISON GRID */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {plans.map((plan) => {
-          const isCurrent = plan.name === currentPlan.planName;
-          const displayPrice = annualBilling ? Math.round(plan.price * 0.8) : plan.price;
+        {loading ? (
+          <div className="col-span-full py-16 text-center text-sm text-gray-400">Loading plans from database...</div>
+        ) : plans.length === 0 ? (
+          <div className="col-span-full py-16 text-center text-sm text-gray-400">No creator subscription plans found.</div>
+        ) : (
+          plans.map((plan) => {
+            const isCurrent = plan.name === currentPlan.planName;
+            const displayPrice = annualBilling ? Math.round(plan.price * 0.8) : plan.price;
 
           return (
             <div
@@ -290,7 +257,8 @@ const CreatorSubscription = () => {
               </div>
             </div>
           );
-        })}
+        })
+      )}
       </div>
     </div>
   );

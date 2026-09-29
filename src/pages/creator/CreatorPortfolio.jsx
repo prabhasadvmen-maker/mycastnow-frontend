@@ -9,15 +9,6 @@ import {
 
 const API = import.meta.env.VITE_API_URL;
 
-const SAMPLE_PRESETS = [
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80'
-];
-
 const CreatorPortfolio = () => {
   const { creatorUser, setCreatorUser } = useCreatorAuth();
   const [activeTab, setActiveTab] = useState('photos'); // 'photos' | 'videos' | 'campaigns' | 'physical' | 'skills'
@@ -41,34 +32,19 @@ const CreatorPortfolio = () => {
 
   // Physical details local form
   const [physicalForm, setPhysicalForm] = useState({
-    height: '6 ft 0 in',
-    weight: '74 kg',
-    chest: '40 in',
-    waist: '32 in',
-    hips: '38 in',
-    shoeSize: '10 UK',
-    eyeColor: 'Dark Brown',
-    hairColor: 'Black',
-    complexion: 'Wheatish'
+    height: '', weight: '', chest: '', waist: '', hips: '', shoeSize: '', eyeColor: '', hairColor: '', complexion: ''
   });
 
   // Skills & Pricing local form
   const [professionalForm, setProfessionalForm] = useState({
-    primaryCategory: 'Model / Actor',
-    subCategory: 'Commercial & Fashion',
-    experience: '4+ Years',
-    skills: ['Runway Walk', 'Commercial Acting', 'Fitness Modeling', 'Print Shoots', 'Voiceover'],
+    primaryCategory: '', subCategory: '', experience: '', skills: [],
     newSkillInput: '',
-    languages: ['Hindi', 'English', 'Punjabi'],
+    languages: [],
     newLangInput: ''
   });
 
   const [pricingForm, setPricingForm] = useState({
-    hourlyRate: 5000,
-    dayRate: 25000,
-    projectRate: 75000,
-    minimumBooking: 'Half Day (4 hrs)',
-    travelCharges: 'Extra as actuals outside Mumbai'
+    hourlyRate: '', dayRate: '', projectRate: '', minimumBooking: '', travelCharges: ''
   });
 
   // Fetch portfolio data from database
@@ -299,16 +275,10 @@ const CreatorPortfolio = () => {
   };
 
   const photos = creatorData?.portfolio?.photos || [];
-  const videos = creatorData?.portfolio?.videos || [
-    'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
-  ];
-  const campaigns = creatorData?.portfolio?.campaigns || [
-    { title: 'Zara Autumn Festive Lookbook', brand: 'Zara Men', supportingDocs: ['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400'] },
-    { title: 'Titan Edge Commercial Campaign', brand: 'Titan Watches', supportingDocs: ['https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400'] }
-  ];
-
-  const fullName = creatorData?.basicDetails?.fullName || creatorUser?.basicDetails?.fullName || 'Arvind Kumar';
-  const avatar = photos[0] || creatorData?.basicDetails?.profilePhoto || creatorUser?.basicDetails?.profilePhoto || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80';
+  const videos = creatorData?.portfolio?.videos || [];
+  const campaigns = creatorData?.portfolio?.campaigns || [];
+  const fullName = creatorData?.basicDetails?.fullName || creatorUser?.basicDetails?.fullName || 'Creator';
+  const avatar = photos[0] || creatorData?.basicDetails?.profilePhoto || creatorUser?.basicDetails?.profilePhoto;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -885,23 +855,6 @@ const CreatorPortfolio = () => {
                 onChange={(e) => setNewPhotoUrl(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
-            </div>
-
-            {/* Quick Presets */}
-            <div>
-              <p className="text-[11px] font-bold text-gray-500 mb-2">Or select from curated portfolio presets:</p>
-              <div className="grid grid-cols-6 gap-2">
-                {SAMPLE_PRESETS.map((preset, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleAddPhoto(preset)}
-                    className="aspect-square rounded-xl overflow-hidden border border-gray-200 hover:border-purple-600 hover:scale-105 transition cursor-pointer"
-                  >
-                    <img src={preset} alt="preset" className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">

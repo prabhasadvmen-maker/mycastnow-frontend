@@ -4,7 +4,7 @@ import { useCreatorAuth } from '../context/CreatorAuthContext';
 import { 
   LayoutDashboard, FolderOpen, Video, Briefcase, Calendar, 
   MessageSquare, Wallet, TrendingUp, CreditCard, 
-  Settings, User, HelpCircle, Menu, LogOut, ShieldAlert
+  Settings, User, HelpCircle, Menu, LogOut, ShieldAlert, KeyRound, Sparkles, ShieldCheck
 } from 'lucide-react';
 
 const navItems = [
@@ -161,7 +161,7 @@ const CreatorLayout = () => {
       {/* Main Content Area */}
       <div className={`flex-1 flex flex-col min-w-0 h-screen transition-all duration-300 ml-0 ${isSidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
         
-        <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-10 shadow-sm">
+        <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-40 shadow-sm">
           <div className="flex items-center gap-4">
             <button 
               onClick={toggleSidebar}
@@ -179,13 +179,13 @@ const CreatorLayout = () => {
             <div className="relative">
               <button 
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-3 px-4 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-3 px-3.5 py-1.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 <div className="text-right hidden md:block">
-                  <p className="text-sm font-semibold text-gray-800">{creatorUser.basicDetails?.fullName || creatorUser.phone}</p>
-                  <p className="text-xs text-gray-500 capitalize">{creatorUser.professionalDetails?.primaryCategory || 'Creator'}</p>
+                  <p className="text-sm font-bold text-gray-800 leading-tight">{creatorUser.basicDetails?.fullName || creatorUser.phone}</p>
+                  <p className="text-xs text-fuchsia-600 font-semibold capitalize">{creatorUser.professionalDetails?.primaryCategory || 'Creator'}</p>
                 </div>
-                <div className="w-10 h-10 bg-gradient-to-r from-fuchsia-600 to-blue-600 rounded-full flex items-center justify-center text-white overflow-hidden font-bold">
+                <div className="w-10 h-10 bg-gradient-to-tr from-fuchsia-600 via-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white overflow-hidden font-bold shadow-sm shrink-0">
                   {creatorUser.basicDetails?.profilePhoto ? (
                     <img src={creatorUser.basicDetails.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
@@ -195,19 +195,143 @@ const CreatorLayout = () => {
               </button>
               
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 py-2 animate-in fade-in slide-in-from-top-2">
-                  <div className="px-4 py-3 border-b border-gray-100 mb-2">
-                    <p className="text-sm font-bold text-gray-800">{creatorUser.phone}</p>
-                    <p className="text-xs text-gray-500 truncate">Approved Creator</p>
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setDropdownOpen(false)} 
+                  />
+                  <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                    {/* Creator Identity Header */}
+                    <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-fuchsia-50/50 to-purple-50/40 rounded-t-xl">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-fuchsia-600 to-blue-600 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden shadow-sm">
+                          {creatorUser.basicDetails?.profilePhoto ? (
+                            <img src={creatorUser.basicDetails.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+                          ) : (
+                            (creatorUser.basicDetails?.fullName?.[0] || 'C').toUpperCase()
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold text-gray-900 truncate">
+                            {creatorUser.basicDetails?.fullName || 'Verified Artist'}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate">{creatorUser.email || creatorUser.phone}</p>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="px-2 py-0.5 text-[10px] font-bold text-fuchsia-700 bg-fuchsia-100/80 rounded-full capitalize">
+                              {creatorUser.professionalDetails?.primaryCategory || 'Talent'}
+                            </span>
+                            <span className="px-2 py-0.5 text-[10px] font-bold text-emerald-700 bg-emerald-100/80 rounded-full flex items-center gap-0.5">
+                              <ShieldCheck size={10} /> Verified
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Menu links */}
+                    <div className="py-2 px-1">
+                      <Link
+                        to="/creator/dashboard/profile"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-fuchsia-600 hover:bg-fuchsia-50/70 rounded-xl transition-all group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-fuchsia-50 text-fuchsia-600 flex items-center justify-center group-hover:bg-fuchsia-600 group-hover:text-white transition-colors shrink-0">
+                          <User size={16} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="block font-semibold text-xs text-gray-900 group-hover:text-fuchsia-600">My Profile</span>
+                          <span className="block text-[11px] text-gray-400 font-normal">View & edit public talent card</span>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/creator/dashboard/profile?tab=compcard"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-purple-600 hover:bg-purple-50/70 rounded-xl transition-all group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors shrink-0">
+                          <Sparkles size={16} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="block font-semibold text-xs text-gray-900 group-hover:text-purple-600">Digital Comp Card</span>
+                          <span className="block text-[11px] text-gray-400 font-normal">Industry sedcard & stats card</span>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/creator/dashboard/portfolio"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-blue-600 hover:bg-blue-50/70 rounded-xl transition-all group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors shrink-0">
+                          <FolderOpen size={16} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="block font-semibold text-xs text-gray-900 group-hover:text-blue-600">Portfolio & Media</span>
+                          <span className="block text-[11px] text-gray-400 font-normal">Photos, reels & work campaigns</span>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/creator/dashboard/settings?tab=security"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-indigo-600 hover:bg-indigo-50/70 rounded-xl transition-all group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors shrink-0">
+                          <KeyRound size={16} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="block font-semibold text-xs text-gray-900 group-hover:text-indigo-600">Change Password</span>
+                          <span className="block text-[11px] text-gray-400 font-normal">Account password & security</span>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/creator/dashboard/settings"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100/70 rounded-xl transition-all group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center group-hover:bg-gray-800 group-hover:text-white transition-colors shrink-0">
+                          <Settings size={16} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="block font-semibold text-xs text-gray-900">Settings & Privacy</span>
+                          <span className="block text-[11px] text-gray-400 font-normal">Notifications & casting privacy</span>
+                        </div>
+                      </Link>
+
+                      <Link
+                        to="/creator/dashboard/help"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:text-amber-600 hover:bg-amber-50/70 rounded-xl transition-all group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors shrink-0">
+                          <HelpCircle size={16} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="block font-semibold text-xs text-gray-900 group-hover:text-amber-600">Help & Support</span>
+                          <span className="block text-[11px] text-gray-400 font-normal">Tickets, hotline & FAQs</span>
+                        </div>
+                      </Link>
+                    </div>
+
+                    {/* Log out */}
+                    <div className="pt-1 border-t border-gray-100 px-1">
+                      <button 
+                        onClick={() => {
+                          setDropdownOpen(false);
+                          logout();
+                        }}
+                        className="w-full flex items-center gap-3 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50/80 rounded-xl transition-colors cursor-pointer group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-colors shrink-0">
+                          <LogOut size={16} />
+                        </div>
+                        <span>Log Out</span>
+                      </button>
+                    </div>
                   </div>
-                  <button 
-                    onClick={logout}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    <LogOut size={16} />
-                    Log Out
-                  </button>
-                </div>
+                </>
               )}
             </div>
           </div>

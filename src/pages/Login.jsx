@@ -14,7 +14,7 @@ export default function Login() {
     e.preventDefault();
     try {
       await login(email, password);
-      navigate('/');
+      navigate('/admin');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
     }
@@ -69,6 +69,15 @@ export default function Login() {
             Sign In
           </button>
         </form>
+
+        <div className="mt-6 text-center border-t border-white/10 pt-4">
+          <button 
+            onClick={() => navigate('/home')}
+            className="text-xs text-gray-400 hover:text-white transition-colors cursor-pointer"
+          >
+            ← Back to MyCastNow Public Website
+          </button>
+        </div>
       </div>
     </div>
   );

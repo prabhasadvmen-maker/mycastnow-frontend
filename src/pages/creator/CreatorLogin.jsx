@@ -1,18 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCreatorAuth } from '../../context/CreatorAuthContext';
-import { Phone, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Phone, ArrowRight, ShieldCheck, AlertCircle, Sparkles, Check } from 'lucide-react';
 
-const CreatorLogin = () => {
+const CreatorLogin = ({ isSignup = false }) => {
   const { sendOtp, verifyOtp } = useCreatorAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const planParam = searchParams.get('plan');
+  const isSignupMode = isSignup || location.pathname.includes('signup') || searchParams.get('mode') === 'signup';
 
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState(1);
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(!isSignupMode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Keep isLogin in sync if path or params change
+  useEffect(() => {
+    if (isSignupMode) {
+      setIsLogin(false);
+    }
+  }, [isSignupMode]);
 
   // Auto-send OTP when 10 digits are entered
   useEffect(() => {
@@ -106,6 +117,18 @@ const CreatorLogin = () => {
 
           {step === 1 ? (
             <form onSubmit={handleSendOtp}>
+              {planParam && (
+                <div className="mb-5 p-3 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 text-purple-900 font-bold">
+                    <Sparkles size={14} className="text-purple-600" />
+                    <span>Selected: {planParam.toLowerCase() === 'pro' ? 'Unlimited Pro Plan (₹499/mo)' : 'Starter Artist (Free)'}</span>
+                  </div>
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-purple-600 text-white">
+                    {planParam.toLowerCase() === 'pro' ? 'PRO' : 'FREE'}
+                  </span>
+                </div>
+              )}
+
               <h3 className="text-2xl font-bold text-gray-800 mb-2">
                 {isLogin ? 'Welcome back' : 'Create an Account'}
               </h3>
@@ -196,6 +219,11 @@ const CreatorLogin = () => {
               By continuing, you agree to MyCastNow's <br/>
               <Link to="#" className="text-blue-600 hover:underline font-medium">Terms of Service</Link> and <Link to="#" className="text-blue-600 hover:underline font-medium">Privacy Policy</Link>
             </p>
+            <div className="mt-4 pt-2">
+              <Link to="/home" className="text-xs text-gray-400 hover:text-blue-600 transition-colors font-medium">
+                ← Back to MyCastNow Public Website
+              </Link>
+            </div>
           </div>
 
         </div>

@@ -20,6 +20,8 @@ import CompanyInbox from './pages/company/CompanyInbox';
 import CompanyWallet from './pages/company/CompanyWallet';
 import CompanySubscription from './pages/company/CompanySubscription';
 import CompanyProfile from './pages/company/CompanyProfile';
+import CompanySettings from './pages/company/CompanySettings';
+import CompanyHelp from './pages/company/CompanyHelp';
 
 import CreatorLogin from './pages/creator/CreatorLogin';
 import CreatorSignupFlow from './pages/creator/CreatorSignupFlow';
@@ -46,6 +48,11 @@ import AdminWallet from './pages/AdminWallet';
 import AdminBoost from './pages/AdminBoost';
 import AdminReviews from './pages/AdminReviews';
 import AdminAnalytics from './pages/AdminAnalytics';
+import AdminSettings from './pages/AdminSettings';
+import AdminHelp from './pages/AdminHelp';
+import PublicWebsite from './pages/PublicWebsite';
+import LiveCastingsPage from './pages/public/LiveCastingsPage';
+import PublicInfoPage from './pages/public/PublicInfoPage';
 
 function App() {
   return (
@@ -54,9 +61,27 @@ function App() {
         <CompanyAuthProvider>
           <CreatorAuthProvider>
             <Routes>
+              {/* Public Platform Website */}
+              <Route path="/" element={<PublicWebsite />} />
+              <Route path="/home" element={<PublicWebsite />} />
+              <Route path="/website" element={<PublicWebsite />} />
+              <Route path="/landing" element={<PublicWebsite />} />
+              <Route path="/castings" element={<LiveCastingsPage />} />
+              <Route path="/talents" element={<PublicWebsite />} />
+              <Route path="/plans" element={<PublicInfoPage page="plans" />} />
+              <Route path="/membership" element={<PublicInfoPage page="plans" />} />
+              <Route path="/guidelines" element={<PublicInfoPage page="guidelines" />} />
+              <Route path="/safety" element={<PublicInfoPage page="safety" />} />
+              <Route path="/support" element={<PublicInfoPage page="support" />} />
+              <Route path="/escrow" element={<PublicInfoPage page="escrow" />} />
+              <Route path="/terms" element={<PublicInfoPage page="terms" />} />
+              <Route path="/privacy" element={<PublicInfoPage page="privacy" />} />
+              <Route path="/fraud-prevention" element={<PublicInfoPage page="fraud" />} />
+              <Route path="/post-casting" element={<CompanySignup />} />
+
               {/* Admin Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<AdminLayout />}>
+              <Route path="/login" element={<Login />} />
+            <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Overview />} />
               <Route path="company" element={<Company />} />
               <Route path="users" element={<AdminUsers />} />
@@ -71,8 +96,8 @@ function App() {
               <Route path="reviews" element={<AdminReviews />} />
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="cms" element={<Overview />} />
-              <Route path="settings" element={<ComingSoon />} />
-              <Route path="help" element={<ComingSoon />} />
+              <Route path="settings" element={<AdminSettings />} />
+              <Route path="help" element={<AdminHelp />} />
             </Route>
 
             {/* Company Routes */}
@@ -88,12 +113,13 @@ function App() {
               <Route path="wallet" element={<CompanyWallet />} />
               <Route path="subscription" element={<CompanySubscription />} />
               <Route path="profile" element={<CompanyProfile />} />
-              <Route path="settings" element={<ComingSoon />} />
-              <Route path="help" element={<ComingSoon />} />
+              <Route path="settings" element={<CompanySettings />} />
+              <Route path="help" element={<CompanyHelp />} />
             </Route>
 
             {/* Creator Routes */}
             <Route path="/creator/login" element={<CreatorLogin />} />
+            <Route path="/creator/signup" element={<CreatorLogin isSignup={true} />} />
             <Route path="/creator/onboarding" element={<CreatorSignupFlow />} />
             
             <Route path="/creator/dashboard" element={<CreatorLayout />}>

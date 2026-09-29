@@ -3,29 +3,30 @@ import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, UserCircle, Video, CalendarCheck, 
   CreditCard, MonitorPlay, Wallet, Rocket, Star, 
-  BarChart3, Settings, HelpCircle, LogOut, Building2 
+  BarChart3, Settings, HelpCircle, LogOut, Building2, Globe
 } from 'lucide-react';
 
 const Sidebar = ({ isCollapsed }) => {
   const menuItems = [
-    { name: 'Overview', path: '/', icon: <LayoutDashboard size={20} /> },
-    { name: 'Company', path: '/company', icon: <Building2 size={20} /> },
-    { name: 'Users', path: '/users', icon: <Users size={20} /> },
-    { name: 'Creator Profiles', path: '/profiles', icon: <UserCircle size={20} /> },
-    { name: 'Casting', path: '/casting', icon: <Video size={20} /> },
-    { name: 'Bookings', path: '/bookings', icon: <CalendarCheck size={20} /> },
-    { name: 'Payments', path: '/payments', icon: <CreditCard size={20} /> },
-    { name: 'Subscriptions', path: '/subscriptions', icon: <MonitorPlay size={20} /> },
-    { name: 'Wallet', path: '/wallet', icon: <Wallet size={20} /> },
-    { name: 'Boost', path: '/boost', icon: <Rocket size={20} /> },
-    { name: 'Reviews', path: '/reviews', icon: <Star size={20} /> },
-    { name: 'Analytics', path: '/analytics', icon: <BarChart3 size={20} /> },
-    { name: 'CMS', path: '/cms', icon: <LayoutDashboard size={20} /> },
+    { name: 'Overview', path: '/admin', icon: <LayoutDashboard size={20} /> },
+    { name: 'Company', path: '/admin/company', icon: <Building2 size={20} /> },
+    { name: 'Users', path: '/admin/users', icon: <Users size={20} /> },
+    { name: 'Creator Profiles', path: '/admin/profiles', icon: <UserCircle size={20} /> },
+    { name: 'Casting', path: '/admin/casting', icon: <Video size={20} /> },
+    { name: 'Bookings', path: '/admin/bookings', icon: <CalendarCheck size={20} /> },
+    { name: 'Payments', path: '/admin/payments', icon: <CreditCard size={20} /> },
+    { name: 'Subscriptions', path: '/admin/subscriptions', icon: <MonitorPlay size={20} /> },
+    { name: 'Wallet', path: '/admin/wallet', icon: <Wallet size={20} /> },
+    { name: 'Boost', path: '/admin/boost', icon: <Rocket size={20} /> },
+    { name: 'Reviews', path: '/admin/reviews', icon: <Star size={20} /> },
+    { name: 'Analytics', path: '/admin/analytics', icon: <BarChart3 size={20} /> },
+    { name: 'CMS', path: '/admin/cms', icon: <LayoutDashboard size={20} /> },
   ];
 
   const bottomItems = [
-    { name: 'Settings', path: '/settings', icon: <Settings size={20} /> },
-    { name: 'Help', path: '/help', icon: <HelpCircle size={20} /> },
+    { name: 'Public Website', path: '/home', icon: <Globe size={20} />, external: true },
+    { name: 'Settings', path: '/admin/settings', icon: <Settings size={20} /> },
+    { name: 'Help', path: '/admin/help', icon: <HelpCircle size={20} /> },
   ];
 
   return (
@@ -67,8 +68,9 @@ const Sidebar = ({ isCollapsed }) => {
             <li key={item.name} title={isCollapsed ? item.name : ''}>
               <NavLink 
                 to={item.path} 
+                target={item.external ? '_blank' : undefined}
                 className={({isActive}) => 
-                  `flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 text-sm font-medium rounded-lg transition-all ${isActive ? 'bg-gradient-to-r from-blue-600/20 to-fuchsia-600/10 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white'}`
+                  `flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 text-sm font-medium rounded-lg transition-all ${isActive && !item.external ? 'bg-gradient-to-r from-blue-600/20 to-fuchsia-600/10 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white'}`
                 }
               >
                 <div className="shrink-0">{item.icon}</div>

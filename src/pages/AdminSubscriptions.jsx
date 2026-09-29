@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   MonitorPlay, Plus, Edit2, Trash2, Power, X, Check,
-  IndianRupee, Users, Star, Zap, Shield, Crown,
+  IndianRupee, Users, Star, Zap, Shield, Crown, Sparkles,
   CheckCircle, XCircle, ToggleLeft, ToggleRight,
   ChevronDown, ChevronUp, Tag, Calendar, Building2, UserCircle
 } from 'lucide-react';
@@ -70,7 +70,11 @@ const PlanCard = ({ plan, onEdit, onDelete, onToggle }) => {
         {!plan.isActive && (
           <div className="absolute top-3 left-3 bg-black/30 px-2 py-0.5 rounded text-[10px] font-bold">INACTIVE</div>
         )}
-        <p className="text-xs font-bold uppercase tracking-widest text-white/70 mb-1">{plan.targetAudience}</p>
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/25 backdrop-blur-xs border border-white/20">
+            {plan.targetAudience === 'Both' ? '👥 Both Panels (Creator & Company)' : plan.targetAudience === 'Creator' ? '🎨 Creators Only' : '🏢 Companies Only'}
+          </span>
+        </div>
         <h3 className="text-2xl font-black">{plan.name}</h3>
         {plan.description && <p className="text-white/80 text-xs mt-1 line-clamp-2">{plan.description}</p>}
 
@@ -153,6 +157,7 @@ const AdminSubscriptions = () => {
   const [formData, setFormData]         = useState(EMPTY_FORM);
   const [formLoading, setFormLoading]   = useState(false);
   const [newFeature, setNewFeature]     = useState('');
+  const [filterAudience, setFilterAudience] = useState('All'); // 'All' | 'Both' | 'Creator' | 'Company'
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchPlans = async () => {
@@ -385,16 +390,55 @@ const AdminSubscriptions = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {plans.map(plan => (
-              <PlanCard
-                key={plan._id}
-                plan={plan}
-                onEdit={openEdit}
-                onDelete={handleDelete}
-                onToggle={handleToggle}
-              />
-            ))}
+          <div className="space-y-4">
+            {/* Audience filter tabs */}
+            <div className="flex flex-wrap items-center gap-2 pb-1">
+              {[
+                { key: 'All', label: 'All Plans', count: plans.length },
+                { key: 'Both', label: '👥 Both Panels', count: plans.filter(p => p.targetAudience === 'Both').length },
+                { key: 'Creator', label: '🎨 Creators Only', count: plans.filter(p => p.targetAudience === 'Creator').length },
+                { key: 'Company', label: '🏢 Companies Only', count: plans.filter(p => p.targetAudience === 'Company').length },
+              ].map(f => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setFilterAudience(f.key)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                    filterAudience === f.key
+                      ? 'bg-purple-600 text-white shadow-sm'
+                      : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  <span>{f.label}</span>
+                  <span className={`px-1.5 py-0.2 rounded-md text-[10px] font-black ${
+                    filterAudience === f.key ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {f.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Plans list */}
+            {plans.filter(p => filterAudience === 'All' || p.targetAudience === filterAudience).length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-sm text-gray-500">
+                No plans found for audience "{filterAudience}". Click "Create Plan" to add one.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {plans
+                  .filter(p => filterAudience === 'All' || p.targetAudience === filterAudience)
+                  .map(plan => (
+                    <PlanCard
+                      key={plan._id}
+                      plan={plan}
+                      onEdit={openEdit}
+                      onDelete={handleDelete}
+                      onToggle={handleToggle}
+                    />
+                  ))}
+              </div>
+            )}
           </div>
         )
       )}
@@ -536,7 +580,7 @@ const AdminSubscriptions = () => {
                       className="form-input resize-none"
                     />
                   </div>
-                  <div>
+                  <div className="col-span-2 sm:col-span-1">
                     <label className="form-label">Target Audience *</label>
                     <select value={formData.targetAudience} onChange={e => setFormData(p => ({ ...p, targetAudience: e.target.value }))} className="form-select">
                       <option value="Both">Both (Creators & Companies)</option>
@@ -544,9 +588,29 @@ const AdminSubscriptions = () => {
                       <option value="Company">Companies Only</option>
                     </select>
                   </div>
-                  <div>
+                  <div className="col-span-2 sm:col-span-1">
                     <label className="form-label">Sort Order</label>
                     <input type="number" min="0" value={formData.sortOrder} onChange={e => setFormData(p => ({ ...p, sortOrder: e.target.value }))} className="form-input" placeholder="0" />
+                  </div>
+                  <div className="col-span-2 p-3 rounded-xl text-xs flex items-start gap-2.5 border bg-purple-50/70 border-purple-200 text-purple-900">
+                    <Sparkles size={16} className="text-purple-600 shrink-0 mt-0.5" />
+                    <div className="leading-relaxed">
+                      {formData.targetAudience === 'Both' && (
+                        <span>
+                          <strong>Visibility: Both Panels.</strong> This plan will dynamically appear on <strong>both Creator Subscription Panel</strong> and <strong>Company Subscription Panel</strong>, and on all public website plan sections.
+                        </span>
+                      )}
+                      {formData.targetAudience === 'Creator' && (
+                        <span>
+                          <strong>Visibility: Creator Only.</strong> This plan will appear <strong>only on the Creator Subscription Panel</strong> and website creator filter. It will <strong>NOT</strong> appear on the Company panel.
+                        </span>
+                      )}
+                      {formData.targetAudience === 'Company' && (
+                        <span>
+                          <strong>Visibility: Company Only.</strong> This plan will appear <strong>only on the Company Subscription Panel</strong> and website production filter. It will <strong>NOT</strong> appear on the Creator panel.
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </section>

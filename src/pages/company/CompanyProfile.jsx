@@ -31,34 +31,10 @@ const CompanyProfile = () => {
   const [activeTab, setActiveTab] = useState('general'); // 'general' | 'contact' | 'legal' | 'social'
 
   const [form, setForm] = useState({
-    name: 'Advmen Technologies',
-    logo: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?auto=format&fit=crop&w=400&q=80',
-    email: 'prabhas.advmen@gmail.com',
-    phone: '+91 98201 45892',
-    industry: 'Film & Commercial Media Production',
-    website: 'https://advmen.tech',
-    location: 'Mumbai, Maharashtra',
-    tagline: 'Premium OTT & Advertising Production House',
-    description: 'Advmen Technologies is a premier media & film production house based in Mumbai. We specialize in OTT series production, pan-India commercial ad films, celebrity brand shoots, and high-impact digital music videos.',
-    address: 'Plot 42, Lotus Grandeur, Veera Desai Industrial Estate, Andheri West',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    pincode: '400053',
-    gst: '27AABCA1234F1Z8',
-    cin: 'U74999MH2021PTC367890',
-    pan: 'AABCA1234F',
-    contactPerson: {
-      name: 'Prabhas Sharma',
-      designation: 'Head of Casting & Talent Operations',
-      phone: '+91 98201 45892',
-      email: 'prabhas.advmen@gmail.com'
-    },
-    socialLinks: {
-      instagram: 'https://instagram.com/advmentech',
-      linkedin: 'https://linkedin.com/company/advmen-technologies',
-      imdb: 'https://imdb.com/company/advmen',
-      youtube: 'https://youtube.com/@advmentv'
-    }
+    name: '', logo: '', email: '', phone: '', industry: '', website: '', location: '', tagline: '', description: '',
+    address: '', city: '', state: '', pincode: '', gst: '', cin: '', pan: '',
+    contactPerson: { name: '', designation: '', phone: '', email: '' },
+    socialLinks: { instagram: '', linkedin: '', imdb: '', youtube: '' }
   });
 
   // Fetch Company Profile
@@ -166,7 +142,7 @@ const CompanyProfile = () => {
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
-                  <Globe size={12} /> {form.website ? new URL(form.website).hostname : 'advmen.tech'}
+                  <Globe size={12} /> {form.website ? new URL(form.website).hostname : 'No website added'}
                 </span>
               </div>
             </div>

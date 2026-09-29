@@ -215,11 +215,11 @@ const AdminBookings = () => {
         </div>
       </div>
 
-      {/* ── Main: Table + Detail Panel ── */}
-      <div className="flex gap-6 items-start">
+      {/* ── Main: Full Width Table ── */}
+      <div className="w-full">
 
         {/* ── Table ── */}
-        <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all ${selectedBooking ? 'flex-[1.5]' : 'flex-1'}`}>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden w-full">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-50 border-b border-gray-100">
@@ -353,43 +353,51 @@ const AdminBookings = () => {
             </div>
           )}
         </div>
+      </div>
 
-        {/* ── Detail Side Panel ── */}
-        {selectedBooking && (
-          <div className="w-[360px] shrink-0 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden sticky top-4 max-h-[85vh] overflow-y-auto">
-
-            {/* Panel Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-fuchsia-600 p-5 text-white relative">
+      {/* ── Detail Front Modal Popup ── */}
+      {selectedBooking && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setSelectedBooking(null)}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-xl w-full shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-fuchsia-600 p-6 text-white relative shrink-0">
               <button
                 onClick={() => setSelectedBooking(null)}
-                className="absolute top-4 right-4 text-white/70 hover:text-white transition"
+                className="absolute top-5 right-5 text-white/80 hover:text-white p-1 rounded-full hover:bg-white/10 transition cursor-pointer"
+                title="Close"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
               <p className="text-xs font-semibold uppercase tracking-wider text-white/70 mb-1">Booking Detail</p>
-              <h3 className="font-bold text-lg leading-tight pr-6">{selectedBooking.projectTitle}</h3>
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <h3 className="font-black text-xl leading-tight pr-8">{selectedBooking.projectTitle}</h3>
+              <div className="flex items-center gap-2 mt-3 flex-wrap">
                 <StatusBadge status={selectedBooking.status} />
-                <span className={`inline-flex text-[10px] font-bold px-2 py-0.5 rounded-full ${PAYMENT_CONFIG[selectedBooking.paymentStatus]?.color || ''}`}>
+                <span className={`inline-flex text-[10px] font-bold px-2.5 py-1 rounded-full ${PAYMENT_CONFIG[selectedBooking.paymentStatus]?.color || 'bg-white/20 text-white'}`}>
                   {selectedBooking.paymentStatus}
                 </span>
               </div>
             </div>
 
-            <div className="p-5 space-y-5">
-
+            {/* Modal Scrollable Body */}
+            <div className="p-6 space-y-5 overflow-y-auto flex-1">
               {/* Company */}
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Company (Client)</p>
-                <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-xl">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-3 bg-blue-50 p-3.5 rounded-2xl border border-blue-100">
+                  <div className="w-11 h-11 bg-blue-100 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
                     {getCompanyLogo(selectedBooking)
                       ? <img src={getCompanyLogo(selectedBooking)} alt="" className="w-full h-full object-cover" />
-                      : <Building2 size={18} className="text-blue-500" />}
+                      : <Building2 size={20} className="text-blue-500" />}
                   </div>
                   <div>
-                    <p className="font-bold text-gray-800">{getCompanyName(selectedBooking)}</p>
-                    <p className="text-xs text-blue-600">{selectedBooking.company?.industry || '—'}</p>
+                    <p className="font-bold text-gray-900 text-sm">{getCompanyName(selectedBooking)}</p>
+                    <p className="text-xs text-blue-600 font-medium">{selectedBooking.company?.industry || 'Production House'}</p>
                     {selectedBooking.company?.email && (
                       <p className="text-xs text-gray-400">{selectedBooking.company.email}</p>
                     )}
@@ -400,18 +408,18 @@ const AdminBookings = () => {
               {/* Creator */}
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Creator (Talent)</p>
-                <div className="flex items-center gap-3 bg-fuchsia-50 p-3 rounded-xl">
-                  <div className="w-10 h-10 bg-fuchsia-100 rounded-full overflow-hidden flex items-center justify-center shrink-0">
+                <div className="flex items-center gap-3 bg-fuchsia-50 p-3.5 rounded-2xl border border-fuchsia-100">
+                  <div className="w-11 h-11 bg-fuchsia-100 rounded-full overflow-hidden flex items-center justify-center shrink-0">
                     {getCreatorPhoto(selectedBooking)
                       ? <img src={getCreatorPhoto(selectedBooking)} alt="" className="w-full h-full object-cover" />
-                      : <UserCircle size={18} className="text-fuchsia-500" />}
+                      : <UserCircle size={20} className="text-fuchsia-500" />}
                   </div>
                   <div>
-                    <p className="font-bold text-gray-800">{getCreatorName(selectedBooking)}</p>
-                    <p className="text-xs text-fuchsia-600">{selectedBooking.creator?.professionalDetails?.primaryCategory || '—'}</p>
+                    <p className="font-bold text-gray-900 text-sm">{getCreatorName(selectedBooking)}</p>
+                    <p className="text-xs text-fuchsia-600 font-medium">{selectedBooking.creator?.professionalDetails?.primaryCategory || 'Talent'}</p>
                     {selectedBooking.creator?.phone && (
-                      <p className="text-xs text-gray-400 flex items-center gap-1">
-                        <Phone size={10} /> {selectedBooking.creator.phone}
+                      <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                        <Phone size={11} /> {selectedBooking.creator.phone}
                       </p>
                     )}
                   </div>
@@ -421,7 +429,7 @@ const AdminBookings = () => {
               {/* Project Info */}
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Project Info</p>
-                <div className="space-y-2 bg-gray-50 rounded-xl p-3">
+                <div className="space-y-2.5 bg-gray-50 rounded-2xl p-4 border border-gray-100">
                   <InfoRow icon={Tag}      label="Type"       value={selectedBooking.projectType} />
                   <InfoRow icon={Calendar} label="Event Date" value={formatDate(selectedBooking.eventDate)} />
                   {selectedBooking.eventEndDate && (
@@ -436,14 +444,14 @@ const AdminBookings = () => {
               {selectedBooking.description && (
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Description</p>
-                  <p className="text-sm text-gray-600 bg-gray-50 rounded-xl p-3 leading-relaxed">{selectedBooking.description}</p>
+                  <p className="text-xs text-gray-600 bg-gray-50 rounded-2xl p-3.5 border border-gray-100 leading-relaxed">{selectedBooking.description}</p>
                 </div>
               )}
 
               {/* Financials */}
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Financials</p>
-                <div className="bg-gray-50 rounded-xl p-3 space-y-2">
+                <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 space-y-2.5">
                   <InfoRow icon={IndianRupee} label="Amount"  value={formatAmount(selectedBooking.amount)} />
                   <InfoRow icon={TrendingUp}  label="Payment" value={selectedBooking.paymentStatus} />
                 </div>
@@ -457,10 +465,10 @@ const AdminBookings = () => {
                     <button
                       key={s}
                       onClick={() => handleStatusChange(selectedBooking._id, s)}
-                      className={`py-2 rounded-lg text-xs font-bold border transition-all ${
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         selectedBooking.status === s
                           ? STATUS_CONFIG[s].color + ' shadow-sm'
-                          : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                       }`}
                     >
                       {s}
@@ -477,10 +485,10 @@ const AdminBookings = () => {
                     <button
                       key={p}
                       onClick={() => handlePaymentChange(selectedBooking._id, p)}
-                      className={`py-2 rounded-lg text-xs font-bold border transition-all ${
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         selectedBooking.paymentStatus === p
                           ? PAYMENT_CONFIG[p].color + ' shadow-sm border-transparent'
-                          : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                       }`}
                     >
                       {p}
@@ -493,18 +501,26 @@ const AdminBookings = () => {
               {selectedBooking.notes && (
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Admin Notes</p>
-                  <p className="text-sm text-gray-600 bg-amber-50 border border-amber-100 rounded-xl p-3 leading-relaxed">{selectedBooking.notes}</p>
+                  <p className="text-xs text-gray-600 bg-amber-50 border border-amber-100 rounded-2xl p-3.5 leading-relaxed">{selectedBooking.notes}</p>
                 </div>
               )}
+            </div>
 
-              {/* Created at */}
-              <p className="text-xs text-center text-gray-400 pt-1">
-                Booking created: {formatDate(selectedBooking.createdAt)}
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between shrink-0">
+              <p className="text-[11px] text-gray-400">
+                Created: {formatDate(selectedBooking.createdAt)}
               </p>
+              <button
+                onClick={() => setSelectedBooking(null)}
+                className="px-5 py-2 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-xs shadow-sm transition cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

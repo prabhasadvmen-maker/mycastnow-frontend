@@ -47,11 +47,10 @@ const AdminCreatorDetails = () => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to permanently delete this creator account?")) return;
     setStatusLoading(true);
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/admin/creators/${id}`);
-      navigate('/profiles');
+      navigate('/admin/profiles');
     } catch (err) {
       alert('Failed to delete account');
       setStatusLoading(false);
@@ -75,7 +74,7 @@ const AdminCreatorDetails = () => {
       {/* Header / Back Button */}
       <div className="flex items-center gap-4 mb-8">
         <button 
-          onClick={() => navigate('/profiles')}
+          onClick={() => navigate('/admin/profiles')}
           className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-600"
         >
           <ArrowLeft size={24} />

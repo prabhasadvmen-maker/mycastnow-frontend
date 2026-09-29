@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useCompanyAuth } from '../../context/CompanyAuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Lock, Mail, Building2, Globe, MapPin, Briefcase, Image as ImageIcon, Eye, EyeOff } from 'lucide-react';
+import CompanyPendingApproval from './CompanyPendingApproval';
 
 export default function CompanySignup() {
   const [formData, setFormData] = useState({
@@ -15,6 +16,8 @@ export default function CompanySignup() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [pendingApprovalData, setPendingApprovalData] = useState(null);
   const { signup } = useCompanyAuth();
   const navigate = useNavigate();
 
@@ -28,6 +31,7 @@ export default function CompanySignup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const data = new FormData();
     Object.keys(formData).forEach(key => {
       if (formData[key] !== null) {
@@ -36,12 +40,24 @@ export default function CompanySignup() {
     });
 
     try {
-      await signup(data);
-      navigate('/company/dashboard');
+      const result = await signup(data);
+      if (result?.pendingApproval) {
+        // Show the waiting-for-approval screen
+        setPendingApprovalData(result.company || { name: formData.name, email: formData.email });
+      } else {
+        navigate('/company/dashboard');
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
+
+  // Show pending approval screen after successful signup
+  if (pendingApprovalData) {
+    return <CompanyPendingApproval companyData={pendingApprovalData} onBackToLogin={() => navigate('/company/login')} />;
+  }
 
   return (
     <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center p-4 py-12">

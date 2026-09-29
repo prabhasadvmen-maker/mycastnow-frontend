@@ -1,6 +1,28 @@
 @import "tailwindcss";
 
+/* ── Hide browser default scrollbar while keeping smooth scrollable page ── */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  width: 0px;
+  background: transparent;
+}
+
+html,
+body {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 @layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
   }
@@ -25,4 +47,26 @@
   .form-select {
     @apply w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-800 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-all bg-white appearance-none;
   }
-}
+}
+
+/* Continuous Right-to-Left Sliding Marquee for Approved Companies */
+@keyframes marquee-rtl {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-rtl {
+  display: flex;
+  width: max-content;
+  animation: marquee-rtl 30s linear infinite;
+  will-change: transform;
+}
+
+.marquee-container:hover .animate-marquee-rtl,
+.animate-marquee-rtl:hover {
+  animation-play-state: paused;
+}

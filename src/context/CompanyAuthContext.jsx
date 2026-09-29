@@ -29,21 +29,32 @@ export const CompanyAuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/companyAuth/login`, { email, password });
-    const { token, company } = res.data;
-    localStorage.setItem('companyToken', token);
-    localStorage.removeItem('isAdminImpersonating');
-    setCompanyUser(company);
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/companyAuth/login`, { email, password });
+      const { token, company, pendingApproval } = res.data;
+
+      // If account pending admin approval - don't set company user, throw so caller shows waiting screen
+      if (pendingApproval || !token) {
+        const err = new Error('Pending Approval');
+        err.response = { status: 202, data: res.data };
+        throw err;
+      }
+
+      localStorage.setItem('companyToken', token);
+      localStorage.removeItem('isAdminImpersonating');
+      setCompanyUser(company);
+    } catch (error) {
+      // Re-throw so CompanyLogin.jsx can inspect error.response.status
+      throw error;
+    }
   };
 
   const signup = async (formData) => {
     const res = await axios.post(`${import.meta.env.VITE_API_URL}/companyAuth/signup`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    const { token, company } = res.data;
-    localStorage.setItem('companyToken', token);
-    localStorage.removeItem('isAdminImpersonating');
-    setCompanyUser(company);
+    // Signup now returns pendingApproval: true (no token), just return the data
+    return res.data;
   };
 
   const adminLoginAsCompany = async (companyId) => {

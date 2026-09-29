@@ -16,18 +16,18 @@ const HolographicTerminalShowcase = ({ onSelectModule }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const nodes = [
-    { id: 'profiles', label: 'Creator Profiles', path: '/profiles' },
-    { id: 'casting', label: 'Casting', path: '/casting' },
-    { id: 'bookings', label: 'Bookings', path: '/bookings' },
-    { id: 'payments', label: 'Payments', path: '/payments' },
-    { id: 'subscriptions', label: 'Subscriptions', path: '/subscriptions' },
-    { id: 'wallet', label: 'Wallet [Active Node]', path: '/wallet', isCurrent: true },
-    { id: 'boost', label: 'Boost (Ion Active)', path: '/boost', hasIon: true },
-    { id: 'reviews', label: 'Reviews', path: '/reviews' },
-    { id: 'analytics', label: 'Analytics', path: '/analytics' },
-    { id: 'cms', label: 'CMS', path: '/cms' },
-    { id: 'settings', label: 'Settings', path: '/settings' },
-    { id: 'help', label: 'Help', path: '/help' }
+    { id: 'profiles', label: 'Creator Profiles', path: '/admin/profiles' },
+    { id: 'casting', label: 'Casting', path: '/admin/casting' },
+    { id: 'bookings', label: 'Bookings', path: '/admin/bookings' },
+    { id: 'payments', label: 'Payments', path: '/admin/payments' },
+    { id: 'subscriptions', label: 'Subscriptions', path: '/admin/subscriptions' },
+    { id: 'wallet', label: 'Wallet [Active Node]', path: '/admin/wallet', isCurrent: true },
+    { id: 'boost', label: 'Boost (Ion Active)', path: '/admin/boost', hasIon: true },
+    { id: 'reviews', label: 'Reviews', path: '/admin/reviews' },
+    { id: 'analytics', label: 'Analytics', path: '/admin/analytics' },
+    { id: 'cms', label: 'CMS', path: '/admin/cms' },
+    { id: 'settings', label: 'Settings', path: '/admin/settings' },
+    { id: 'help', label: 'Help', path: '/admin/help' }
   ];
 
   return (
@@ -349,7 +349,7 @@ const AdminWallet = () => {
       {showHologram && (
         <HolographicTerminalShowcase
           onSelectModule={(node) => {
-            if (node.path && node.path !== '/wallet') navigate(node.path);
+            if (node.path && node.path !== '/admin/wallet') navigate(node.path);
           }}
         />
       )}

@@ -411,12 +411,12 @@ const CompanyFindTalent = () => {
               }`}
             >
               <div>
-                {/* Compact Photo Area (Height: 44 = 176px) */}
-                <div className="relative h-44 w-full bg-gray-900 overflow-hidden">
+                {/* Compact Photo Area (Height: 52 = 208px) */}
+                <div className="relative h-52 w-full bg-gray-900 overflow-hidden">
                   <img
                     src={talent.profilePhoto || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80'}
                     alt={talent.fullName}
-                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                    className="w-full h-full object-cover object-top group-hover:scale-103 transition-transform duration-300"
                     onError={(e) => {
                       e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80';
                     }}

@@ -13,11 +13,11 @@ const QUICK_AMOUNTS = [25000, 50000, 100000, 250000];
 
 const CompanyWallet = () => {
   const [wallet, setWallet] = useState({
-    balance: 275000,
-    escrowBalance: 85000,
-    totalDeposited: 350000,
-    totalSpent: 75000,
-    totalTransactions: 3
+    balance: 0,
+    escrowBalance: 0,
+    totalDeposited: 0,
+    totalSpent: 0,
+    totalTransactions: 0
   });
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,10 +35,10 @@ const CompanyWallet = () => {
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [bankDetails, setBankDetails] = useState({
-    accountHolder: 'Advmen Technologies Pvt Ltd',
-    bankName: 'HDFC Bank Ltd',
-    accountNumber: '50200034981245',
-    ifsc: 'HDFC0001234'
+    accountHolder: '',
+    bankName: '',
+    accountNumber: '',
+    ifsc: ''
   });
   const [submittingWithdraw, setSubmittingWithdraw] = useState(false);
   const [withdrawSuccess, setWithdrawSuccess] = useState(false);
