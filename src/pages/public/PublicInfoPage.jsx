@@ -8,7 +8,9 @@ let API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
 if (typeof window !== 'undefined') {
   const host = window.location.hostname;
   if (host !== 'localhost' && host !== '127.0.0.1') {
-    API = API.replace('localhost', host).replace('127.0.0.1', host);
+    if (!import.meta.env.VITE_API_URL || import.meta.env.VITE_API_URL.includes('localhost') || import.meta.env.VITE_API_URL.includes('127.0.0.1')) {
+      API = 'https://mycastnow-backend.onrender.com/api/v1';
+    }
   }
 }
 

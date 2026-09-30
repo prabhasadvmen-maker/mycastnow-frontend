@@ -13,7 +13,9 @@ let API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
 if (typeof window !== 'undefined') {
   const host = window.location.hostname;
   if (host !== 'localhost' && host !== '127.0.0.1') {
-    API = API.replace('localhost', host).replace('127.0.0.1', host);
+    if (!import.meta.env.VITE_API_URL || import.meta.env.VITE_API_URL.includes('localhost') || import.meta.env.VITE_API_URL.includes('127.0.0.1')) {
+      API = 'https://mycastnow-backend.onrender.com/api/v1';
+    }
   }
 }
 const mediaUrl = (value) => (!value || /^(https?:|data:)/.test(value) ? value : `${API.replace(/\/api\/?$/, '')}${value.startsWith('/') ? '' : '/'}${value}`);
@@ -114,13 +116,13 @@ function HeroVideoCard() {
       id="showreel"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative mx-auto lg:ml-auto lg:mr-0 w-fit transition-all duration-300"
+      className="group relative mx-auto lg:ml-auto lg:mr-0 w-fit transition-all duration-300 py-3 sm:py-4 px-2"
     >
       {/* Ambient background glow */}
-      <div className="absolute -inset-2 rounded-[2.8rem] bg-gradient-to-tr from-violet-600/35 via-fuchsia-500/25 to-sky-400/30 blur-2xl opacity-80 transition duration-700 group-hover:opacity-100 -z-10" />
+      <div className="absolute inset-1 rounded-[2.8rem] bg-gradient-to-tr from-violet-600/35 via-fuchsia-500/25 to-sky-400/30 blur-2xl opacity-80 transition duration-700 group-hover:opacity-100 -z-10 pointer-events-none" />
 
       {/* Floating Top Badge */}
-      <div className="absolute -top-3 left-4 z-20 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-3.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-xl shadow-violet-500/30">
+      <div className="absolute top-1 left-5 z-20 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-3.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-xl shadow-violet-500/30 ring-2 ring-white/20 select-none pointer-events-none">
         <Sparkles size={12} className="animate-pulse" />
         <span>Platform Preview</span>
       </div>
@@ -135,12 +137,13 @@ function HeroVideoCard() {
             loop
             muted={isMuted}
             playsInline
+            preload="auto"
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={() => {
               if (videoRef.current) setDuration(formatTime(videoRef.current.duration));
             }}
             onClick={togglePlay}
-            className="h-[460px] sm:h-[500px] md:h-[530px] lg:h-[560px] xl:h-[580px] w-auto max-w-[85vw] object-cover cursor-pointer block"
+            className="h-[430px] sm:h-[470px] md:h-[500px] lg:h-[530px] xl:h-[550px] aspect-[9/16] w-auto max-w-[85vw] object-cover cursor-pointer block"
           />
 
           {/* Top Bar Overlay */}
@@ -241,7 +244,7 @@ function HeroVideoCard() {
       </div>
 
       {/* Floating Bottom Trust Badge */}
-      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-2xl border border-white/90 bg-white/95 px-3.5 py-1.5 shadow-xl shadow-slate-900/10 backdrop-blur-md whitespace-nowrap">
+      <div className="absolute bottom-1 sm:bottom-1.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-2xl border border-white/90 bg-white/95 px-3.5 py-1.5 shadow-xl shadow-slate-900/10 backdrop-blur-md whitespace-nowrap select-none pointer-events-none">
         <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
           <BadgeCheck size={15} />
         </div>
@@ -386,7 +389,7 @@ export default function PublicWebsite() {
         </div>
 
         {/* RIGHT COLUMN: HERO VIDEO CARD */}
-        <div className="order-2 lg:order-2 flex justify-center lg:justify-end min-w-0 overflow-hidden">
+        <div className="order-2 lg:order-2 flex justify-center lg:justify-end min-w-0">
           <HeroVideoCard />
         </div>
       </div>
