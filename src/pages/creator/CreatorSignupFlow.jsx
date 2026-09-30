@@ -94,25 +94,28 @@ const CreatorSignupFlow = () => {
         let finalPortfolio = [...portfolioFiles];
         
         if (filesToUpload.length > 0) {
-          const formData = new FormData();
-          filesToUpload.forEach(f => {
-            formData.append('files', f.file);
-          });
-          
           try {
-            const uploadRes = await axios.post(`${import.meta.env.VITE_API_URL}/upload/portfolio`, formData, {
-              headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            
-            if (uploadRes.data.success) {
-              let uploadIndex = 0;
-              finalPortfolio = finalPortfolio.map(f => {
-                if (f.file) {
-                  const uploaded = uploadRes.data.files[uploadIndex++];
-                  return { url: uploaded.url, type: uploaded.type };
-                }
-                return f;
+            for (let f of filesToUpload) {
+              // 1. Get Pre-signed URL from Backend
+              const presignedRes = await axios.post(`${import.meta.env.VITE_API_URL}/upload/presigned-url`, {
+                filename: f.file.name,
+                fileType: f.file.type
               });
+              
+              if (presignedRes.data.success) {
+                const { uploadUrl, fileUrl } = presignedRes.data;
+                
+                // 2. Upload file directly to R2 (bypasses Vercel payload limits)
+                await axios.put(uploadUrl, f.file, {
+                  headers: { 'Content-Type': f.file.type }
+                });
+                
+                // 3. Update the final portfolio array with the new URL
+                const index = finalPortfolio.findIndex(item => item === f);
+                if (index !== -1) {
+                  finalPortfolio[index] = { url: fileUrl, type: f.file.type };
+                }
+              }
             }
           } catch (uploadErr) {
             console.error('Failed to upload files:', uploadErr);
@@ -221,42 +224,45 @@ const CreatorSignupFlow = () => {
               <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-5">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Basic Details</h2>
                 
-                <div className="flex gap-6 mb-6 items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                  <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white shadow-md overflow-hidden shrink-0 flex items-center justify-center relative group">
-                    {basic.profilePhoto ? (
-                      <img src={basic.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
-                    ) : (
-                      <User className="text-gray-400 w-10 h-10" />
-                    )}
-                    <label className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center cursor-pointer transition-all">
-                      <span className="text-white text-xs font-bold">Upload</span>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        className="hidden" 
-                        onChange={async (e) => {
-                          if(e.target.files && e.target.files[0]){
-                            const file = e.target.files[0];
-                            // Show immediate preview
-                            setBasic({...basic, profilePhoto: URL.createObjectURL(file)});
-                            
-                            // Upload in background
-                            const formData = new FormData();
-                            formData.append('files', file);
-                            try {
-                              const res = await axios.post(`${import.meta.env.VITE_API_URL}/upload/portfolio`, formData, {
-                                headers: { 'Content-Type': 'multipart/form-data' }
-                              });
-                              if (res.data.success) {
-                                setBasic(prev => ({...prev, profilePhoto: res.data.files[0].url}));
+                <div className="flex flex-col sm:flex-row gap-6 mb-6 sm:items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                  <div className="flex flex-col items-center gap-2 shrink-0">
+                    <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white shadow-md overflow-hidden flex items-center justify-center relative group">
+                      {basic.profilePhoto ? (
+                        <img src={basic.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="text-gray-400 w-10 h-10" />
+                      )}
+                      <label className="absolute inset-0 bg-black/50 flex opacity-0 group-hover:opacity-100 items-center justify-center cursor-pointer transition-all">
+                        <span className="text-white text-xs font-bold text-center px-2">Upload Profile Image</span>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={async (e) => {
+                            if(e.target.files && e.target.files[0]){
+                              const file = e.target.files[0];
+                              // Show immediate preview
+                              setBasic({...basic, profilePhoto: URL.createObjectURL(file)});
+                              
+                              // Upload in background
+                              const formData = new FormData();
+                              formData.append('files', file);
+                              try {
+                                const res = await axios.post(`${import.meta.env.VITE_API_URL}/upload/portfolio`, formData, {
+                                  headers: { 'Content-Type': 'multipart/form-data' }
+                                });
+                                if (res.data.success) {
+                                  setBasic(prev => ({...prev, profilePhoto: res.data.files[0].url}));
+                                }
+                              } catch (err) {
+                                console.error('Failed to upload profile photo', err);
                               }
-                            } catch (err) {
-                              console.error('Failed to upload profile photo', err);
                             }
-                          }
-                        }} 
-                      />
-                    </label>
+                          }} 
+                        />
+                      </label>
+                    </div>
+                    <span className="text-xs font-bold text-gray-500">Upload Profile Image</span>
                   </div>
                   <div className="flex-1">
                     <label className="block text-sm font-bold text-gray-700 mb-2">Full Name</label>

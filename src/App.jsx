@@ -137,6 +137,12 @@ function App() {
               <Route path="help" element={<CreatorHelp />} />
             </Route>
 
+            {/* Dashboard Convenience Redirects */}
+            <Route path="/superadmin" element={<Navigate to="/admin" replace />} />
+            <Route path="/superadmin/*" element={<Navigate to="/admin" replace />} />
+            <Route path="/company" element={<Navigate to="/company/dashboard" replace />} />
+            <Route path="/creator" element={<Navigate to="/creator/dashboard" replace />} />
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           </CreatorAuthProvider>
