@@ -9,7 +9,13 @@ import {
 } from 'lucide-react';
 import PublicLayout from '../components/public/PublicLayout';
 
-const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
+let API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
+if (typeof window !== 'undefined') {
+  const host = window.location.hostname;
+  if (host !== 'localhost' && host !== '127.0.0.1') {
+    API = API.replace('localhost', host).replace('127.0.0.1', host);
+  }
+}
 const mediaUrl = (value) => (!value || /^(https?:|data:)/.test(value) ? value : `${API.replace(/\/api\/?$/, '')}${value.startsWith('/') ? '' : '/'}${value}`);
 
 const PLAN_STYLES = {
@@ -344,7 +350,7 @@ export default function PublicWebsite() {
       <div className="absolute -left-20 top-0 h-80 w-80 rounded-full bg-violet-200/40 blur-3xl" /><div className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-sky-200/50 blur-3xl" />
       <div className="relative mx-auto grid max-w-[1440px] gap-10 lg:gap-14 px-5 py-12 md:py-20 lg:grid-cols-[1.15fr_0.85fr] lg:items-center md:px-8">
         {/* LEFT COLUMN: HERO TEXT & ACTIONS */}
-        <div className="order-1 lg:order-1">
+        <div className="order-1 lg:order-1 min-w-0">
           <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white/80 px-4 py-2 text-xs font-bold tracking-wide text-violet-700 shadow-sm backdrop-blur"><Sparkles size={15} /> INDIA'S VERIFIED CASTING NETWORK</div>
           <h1 className="mt-5 text-4xl font-black leading-[1.08] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.35rem]">The right role deserves the <span className="text-violet-600">right face.</span></h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">MyCastNow brings verified artists and production teams into one trusted, direct casting space. Discover live opportunities, build a profile that speaks for you, and make your next project happen.</p>
@@ -359,7 +365,7 @@ export default function PublicWebsite() {
           </div>
 
           {/* Live Casting Teaser Pill */}
-          <div className="mt-7 rounded-2xl border border-violet-100 bg-white/90 p-3.5 shadow-sm flex items-center justify-between gap-3 backdrop-blur max-w-xl">
+          <div className="mt-7 rounded-2xl border border-violet-100 bg-white/90 p-3.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 backdrop-blur max-w-xl w-full">
             <div className="flex items-center gap-3 min-w-0">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-300">
                 <Star size={17} fill="currentColor" />
@@ -373,14 +379,14 @@ export default function PublicWebsite() {
                 </p>
               </div>
             </div>
-            <Link to="/castings" className="shrink-0 rounded-xl bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700 hover:bg-violet-100 transition flex items-center gap-1">
+            <Link to="/castings" className="shrink-0 text-center rounded-xl bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700 hover:bg-violet-100 transition flex items-center justify-center gap-1">
               Explore calls <ArrowRight size={13} />
             </Link>
           </div>
         </div>
 
         {/* RIGHT COLUMN: HERO VIDEO CARD */}
-        <div className="order-2 lg:order-2 flex justify-center lg:justify-end">
+        <div className="order-2 lg:order-2 flex justify-center lg:justify-end min-w-0 overflow-hidden">
           <HeroVideoCard />
         </div>
       </div>

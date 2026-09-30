@@ -9,6 +9,14 @@ import {
 import PublicLayout from '../../components/public/PublicLayout';
 import { useCreatorAuth } from '../../context/CreatorAuthContext';
 
+let API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
+if (typeof window !== 'undefined') {
+  const host = window.location.hostname;
+  if (host !== 'localhost' && host !== '127.0.0.1') {
+    API = API.replace('localhost', host).replace('127.0.0.1', host);
+  }
+}
+
 const LiveCastingsPage = () => {
   const { creatorUser } = useCreatorAuth();
   const [castings, setCastings] = useState([]);
@@ -21,7 +29,7 @@ const LiveCastingsPage = () => {
   useEffect(() => {
     const fetchCastings = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/public/landing`);
+        const res = await axios.get(`${API}/public/landing`);
         if (res.data?.success && res.data.castings?.length > 0) {
           setCastings(res.data.castings);
         }

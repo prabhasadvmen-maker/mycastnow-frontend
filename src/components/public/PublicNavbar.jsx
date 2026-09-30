@@ -36,13 +36,13 @@ const PublicNavbar = () => {
   return (
     <>
       {/* ────────────────── TOP ANNOUNCEMENT BANNER ────────────────── */}
-      <div className="bg-gradient-to-r from-purple-100 via-indigo-50 to-blue-100 border-b border-purple-200/60 px-4 py-2 text-center text-xs font-semibold text-purple-900 flex items-center justify-center gap-2">
-        <span className="flex h-2 w-2 relative">
+      <div className="bg-gradient-to-r from-purple-100 via-indigo-50 to-blue-100 border-b border-purple-200/60 px-4 py-2 text-center text-xs font-semibold text-purple-900 flex flex-wrap items-center justify-center gap-1 sm:gap-2">
+        <span className="flex h-2 w-2 relative shrink-0">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
         </span>
-        <span>Over <strong className="text-purple-950 font-bold">45+ New Casting Calls</strong> live this week for OTT Series, Bollywood Films & Ad Campaigns!</span>
-        <Link to="/castings" className="underline hover:text-purple-700 ml-1 font-bold inline-flex items-center gap-0.5">
+        <span className="break-words">Over <strong className="text-purple-950 font-bold">45+ New Casting Calls</strong> live this week!</span>
+        <Link to="/castings" className="underline hover:text-purple-700 ml-1 font-bold inline-flex items-center gap-0.5 shrink-0">
           Explore Calls <ArrowRight size={12} />
         </Link>
       </div>
