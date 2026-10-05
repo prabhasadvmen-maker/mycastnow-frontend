@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import {
   Wallet, ArrowDownLeft, ArrowUpRight, CheckCircle, Clock,
@@ -219,27 +220,27 @@ const AdminWallet = () => {
     const numAmt = Number(withdrawAmount);
 
     if (!numAmt || numAmt <= 0) {
-      alert('Please enter a valid amount to withdraw.');
+      toast.error('Please enter a valid amount to withdraw.');
       return;
     }
 
     if (numAmt > (overview?.availableBalance || 0)) {
-      alert(`Amount exceeds available balance of ${fmt(overview?.availableBalance || 0)}.`);
+      toast.error(`Amount exceeds available balance of ${fmt(overview?.availableBalance || 0)}.`);
       return;
     }
 
     if (payoutMethod === 'Bank Transfer') {
       if (!bankDetails.accountHolder || !bankDetails.bankName || !bankDetails.accountNumber || !bankDetails.ifsc) {
-        alert('Please fill all bank details: Account Holder, Bank Name, Account Number, and IFSC.');
+        toast.error('Please fill all bank details: Account Holder, Bank Name, Account Number, and IFSC.');
         return;
       }
       if (bankDetails.confirmAccountNumber && bankDetails.accountNumber !== bankDetails.confirmAccountNumber) {
-        alert('Account numbers do not match. Please verify.');
+        toast.error('Account numbers do not match. Please verify.');
         return;
       }
     } else {
       if (!bankDetails.upiId || !bankDetails.upiId.includes('@')) {
-        alert('Please enter a valid UPI ID (e.g. name@okhdfcbank).');
+        toast.error('Please enter a valid UPI ID (e.g. name@okhdfcbank).');
         return;
       }
     }
@@ -260,7 +261,7 @@ const AdminWallet = () => {
       setWithdrawNotes('');
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || 'Withdrawal failed. Please try again.');
+      toast.error(err.response?.data?.message || 'Withdrawal failed. Please try again.');
     } finally {
       setSubmittingWithdraw(false);
     }
@@ -272,11 +273,11 @@ const AdminWallet = () => {
     setSavingBank(true);
     try {
       await axios.post(`${API}/admin/wallet/bank-account`, bankEditForm);
-      alert('Bank details updated successfully!');
+      toast.success('Bank details updated successfully!');
       setIsBankModalOpen(false);
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save bank details');
+      toast.error(err.response?.data?.message || 'Failed to save bank details');
     } finally {
       setSavingBank(false);
     }

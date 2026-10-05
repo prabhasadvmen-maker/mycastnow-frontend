@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { Plus, X, Building2, Mail, Lock, Globe, MapPin, Briefcase, Image as ImageIcon, Eye, EyeOff, Settings, Edit2, Trash2, Power, Calendar, LogIn, CheckCircle2, XCircle, Clock, AlertCircle, ShieldCheck, Phone, FileText, Link as LinkIcon, User } from 'lucide-react';
 import { useCompanyAuth } from '../../context/CompanyAuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -16,16 +17,11 @@ export default function Company() {
   const [reviewCompany, setReviewCompany] = useState(null); // Company in review modal
   const [rejectReason, setRejectReason] = useState('');
   const [reviewMode, setReviewMode] = useState('review'); // 'review' | 'reject'
-  const [toastMsg, setToastMsg] = useState(null); // { type: 'success' | 'error' | 'info', text: string }
+   // { type: 'success' | 'error' | 'info', text: string }
   const { adminLoginAsCompany } = useCompanyAuth();
   const navigate = useNavigate();
 
-  const showToast = (type, text) => {
-    setToastMsg({ type, text });
-    setTimeout(() => {
-      setToastMsg(null);
-    }, 4500);
-  };
+  
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -65,10 +61,10 @@ export default function Company() {
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/companies/${id}`);
       setCompanies(prev => prev.filter(c => c._id !== id));
-      showToast('info', 'Company deleted successfully');
+      toast.info('Company deleted successfully');
     } catch (err) {
       console.error('Failed to delete company', err);
-      showToast('error', 'Failed to delete company');
+      toast.error('Failed to delete company');
     }
   };
 
@@ -76,10 +72,10 @@ export default function Company() {
     try {
       const res = await axios.put(`${import.meta.env.VITE_API_URL}/companies/${id}/status`);
       setCompanies(prev => prev.map(c => c._id === id ? { ...c, isActive: res.data.isActive } : c));
-      showToast('success', 'Company status updated');
+      toast.success('Company status updated');
     } catch (err) {
       console.error('Failed to toggle status', err);
-      showToast('error', 'Failed to update status');
+      toast.error('Failed to update status');
     }
   };
 
@@ -105,10 +101,10 @@ export default function Company() {
         approvedAt: new Date().toISOString()
       } : c));
       setReviewCompany(null);
-      showToast('success', `✅ Company "${companyName || 'Account'}" approved successfully! They can now log in.`);
+      toast.success(`✅ Company "${companyName || 'Account'}" approved successfully! They can now log in.`);
     } catch (err) {
       console.error('Failed to approve company', err);
-      showToast('error', 'Failed to approve company. Please try again.');
+      toast.error('Failed to approve company. Please try again.');
     } finally {
       setActionLoading(null);
     }
@@ -128,10 +124,10 @@ export default function Company() {
       setReviewCompany(null);
       setRejectReason('');
       setReviewMode('review');
-      showToast('info', `Company "${companyName || 'Account'}" rejected.`);
+      toast.info(`Company "${companyName || 'Account'}" rejected.`);
     } catch (err) {
       console.error('Failed to reject company', err);
-      showToast('error', 'Failed to reject company. Please try again.');
+      toast.error('Failed to reject company. Please try again.');
     } finally {
       setActionLoading(null);
     }
@@ -151,7 +147,7 @@ export default function Company() {
       window.open('/company/dashboard', '_blank');
     } catch (err) {
       console.error('Failed to login as company', err);
-      alert('Failed to login as company. Make sure the backend is running.');
+      toast.error('Failed to login as company. Make sure the backend is running.');
     }
   };
 
@@ -180,9 +176,10 @@ export default function Company() {
         setCompanies([approvedCompany, ...companies]);
       }
       closeModal();
+      toast.success(editCompanyId ? 'Company updated successfully' : 'Company added successfully');
     } catch (err) {
       console.error('Failed to save company', err);
-      alert(err.response?.data?.message || 'Failed to save company');
+      toast.error(err.response?.data?.message || 'Failed to save company');
     }
   };
 
@@ -228,25 +225,6 @@ export default function Company() {
 
   return (
     <div className="space-y-6 relative">
-      {/* Toast Notification */}
-      {toastMsg && (
-        <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-sm font-semibold animate-in slide-in-from-top-4 duration-200 ${
-          toastMsg.type === 'success' 
-            ? 'bg-emerald-600 text-white border-emerald-500 shadow-emerald-600/30' 
-            : toastMsg.type === 'error'
-            ? 'bg-red-600 text-white border-red-500 shadow-red-600/30'
-            : 'bg-gray-900 text-white border-gray-800 shadow-gray-900/30'
-        }`}>
-          {toastMsg.type === 'success' && <CheckCircle2 size={18} className="shrink-0" />}
-          {toastMsg.type === 'error' && <XCircle size={18} className="shrink-0" />}
-          {toastMsg.type === 'info' && <AlertCircle size={18} className="shrink-0" />}
-          <span>{toastMsg.text}</span>
-          <button onClick={() => setToastMsg(null)} className="ml-2 opacity-70 hover:opacity-100">
-            <X size={15} />
-          </button>
-        </div>
-      )}
-
       <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Companies</h2>
@@ -359,7 +337,7 @@ export default function Company() {
                           <button
                             type="button"
                             onClick={() => openReviewModal(company)}
-                            className={`font-bold truncate max-w-[140px] text-left hover:text-blue-600 transition-colors block cursor-pointer ${company.isActive === false ? 'text-gray-500' : 'text-gray-800'}`}
+                            className={`font-bold text-left hover:text-blue-600 transition-colors block cursor-pointer break-words ${company.isActive === false ? 'text-gray-500' : 'text-gray-800'}`}
                             title="Click to view full company details"
                           >
                             {company.name}
@@ -369,19 +347,19 @@ export default function Company() {
                     </td>
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                        <Mail size={12} className="text-gray-400 shrink-0" /> 
-                        <span className="truncate max-w-[150px]" title={company.email}>{company.email}</span>
+                        <Mail size={12} className="text-gray-400 shrink-0 mt-0.5" /> 
+                        <span className="break-all">{company.email}</span>
                       </div>
                     </td>
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                        <MapPin size={12} className="text-gray-400 shrink-0" /> 
-                        <span className="truncate max-w-[100px]" title={company.location || '-'}>{company.location || '-'}</span>
+                        <MapPin size={12} className="text-gray-400 shrink-0 mt-0.5" /> 
+                        <span className="break-words">{company.location || '-'}</span>
                       </div>
                     </td>
                     <td className="py-3 px-3">
                       {company.industry ? (
-                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-[11px] font-medium border border-blue-100 truncate max-w-[100px] inline-block" title={company.industry}>
+                        <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-[11px] font-medium border border-blue-100 break-words inline-block">
                           {company.industry}
                         </span>
                       ) : '-'}

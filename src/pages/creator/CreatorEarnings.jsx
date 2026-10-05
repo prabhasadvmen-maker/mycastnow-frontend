@@ -36,27 +36,16 @@ const CreatorEarnings = () => {
   }, []);
 
   const summary = earningsData?.summary || {
-    totalGross: 85000,
-    netReceived: 50000,
-    inEscrow: 35000,
-    avgProjectFee: 42500,
-    completedProjectsCount: 2
+    totalGross: 0,
+    netReceived: 0,
+    inEscrow: 0,
+    avgProjectFee: 0,
+    completedProjectsCount: 0
   };
 
-  const monthlyTrends = earningsData?.monthlyTrends || [
-    { month: 'Apr', amount: 15000 },
-    { month: 'May', amount: 25000 },
-    { month: 'Jun', amount: 30000 },
-    { month: 'Jul', amount: 45000 },
-    { month: 'Aug', amount: 60000 },
-    { month: 'Sep', amount: 85000 }
-  ];
+  const monthlyTrends = earningsData?.monthlyTrends || [];
 
-  const categoryBreakdown = earningsData?.categoryBreakdown || [
-    { category: 'Fashion & Runway Shows', percentage: 55, amount: 46750 },
-    { category: 'Commercial Ad Films', percentage: 35, amount: 29750 },
-    { category: 'Print Catalog Shoots', percentage: 10, amount: 8500 }
-  ];
+  const categoryBreakdown = earningsData?.categoryBreakdown || [];
 
   const maxMonthVal = Math.max(...monthlyTrends.map(m => m.amount), 1);
 

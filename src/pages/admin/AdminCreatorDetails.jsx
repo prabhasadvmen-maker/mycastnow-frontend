@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { User, CheckCircle, XCircle, Clock, Phone, MapPin, Briefcase, ArrowLeft, Trash2 } from 'lucide-react';
 
 const AdminCreatorDetails = () => {
@@ -30,7 +31,7 @@ const AdminCreatorDetails = () => {
       await axios.put(`${import.meta.env.VITE_API_URL}/admin/creators/${id}/status`, { status: newStatus, rejectionReason: reason });
       setCreator(prev => ({ ...prev, status: newStatus, isApproved: newStatus === 'approved', rejectionReason: reason }));
     } catch (err) {
-      alert('Failed to update status');
+      toast.error('Failed to update status');
     }
     setStatusLoading(false);
   };
@@ -41,7 +42,7 @@ const AdminCreatorDetails = () => {
       await axios.put(`${import.meta.env.VITE_API_URL}/admin/creators/${id}/active`, { isActive: newActiveState });
       setCreator(prev => ({ ...prev, isActive: newActiveState }));
     } catch (err) {
-      alert('Failed to update active status');
+      toast.error('Failed to update active status');
     }
     setStatusLoading(false);
   };
@@ -52,7 +53,7 @@ const AdminCreatorDetails = () => {
       await axios.delete(`${import.meta.env.VITE_API_URL}/admin/creators/${id}`);
       navigate('/admin/profiles');
     } catch (err) {
-      alert('Failed to delete account');
+      toast.error('Failed to delete account');
       setStatusLoading(false);
     }
   };
@@ -97,7 +98,7 @@ const AdminCreatorDetails = () => {
                   if (reason !== null && reason.trim() !== '') {
                     handleStatusUpdate('rejected', reason);
                   } else if (reason !== null) {
-                    alert("Rejection reason is required.");
+                    toast.error("Rejection reason is required.");
                   }
                 }}
                 disabled={statusLoading}

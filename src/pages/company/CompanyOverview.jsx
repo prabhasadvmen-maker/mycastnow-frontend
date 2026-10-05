@@ -221,15 +221,15 @@ const CompanyOverview = () => {
                   key={c.id || c._id}
                   className="p-3.5 rounded-2xl bg-gray-50/70 border border-gray-100 flex items-center justify-between gap-3 hover:bg-gray-100/60 transition"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <img
                       src={c.image || 'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=200&q=80'}
                       alt={c.title}
-                      className="w-12 h-12 rounded-xl object-cover"
+                      className="w-12 h-12 rounded-xl object-cover shrink-0"
                     />
-                    <div>
-                      <h4 className="text-xs font-black text-gray-900 truncate max-w-xs">{c.title}</h4>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-xs font-black text-gray-900 truncate">{c.title}</h4>
+                      <p className="text-[11px] text-gray-500 mt-0.5 truncate">
                         {c.projectType} • Role: <b>{c.roleType}</b>
                       </p>
                     </div>
@@ -277,15 +277,15 @@ const CompanyOverview = () => {
                   key={b.id || b._id}
                   className="p-3.5 rounded-2xl bg-gray-50/70 border border-gray-100 flex items-center justify-between gap-3 hover:bg-gray-100/60 transition"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <img
                       src={b.creator?.basicDetails?.profilePhoto || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
                       alt={b.projectTitle}
-                      className="w-12 h-12 rounded-xl object-cover"
+                      className="w-12 h-12 rounded-xl object-cover shrink-0"
                     />
-                    <div>
-                      <h4 className="text-xs font-black text-gray-900 truncate max-w-xs">{b.projectTitle}</h4>
-                      <p className="text-[11px] text-gray-500 mt-0.5">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-xs font-black text-gray-900 truncate">{b.projectTitle}</h4>
+                      <p className="text-[11px] text-gray-500 mt-0.5 truncate">
                         Talent: <b>{b.creator?.basicDetails?.fullName || 'Creator'}</b>
                       </p>
                     </div>

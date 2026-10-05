@@ -145,7 +145,7 @@ const CreatorWallet = () => {
             </div>
           </div>
           <h3 className="text-2xl md:text-3xl font-black text-gray-900">
-            ₹{Number(walletData?.balance || 30000).toLocaleString('en-IN')}
+            ₹{Number(walletData?.balance || 0).toLocaleString('en-IN')}
           </h3>
           <p className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
             <CheckCircle2 size={12} /> Ready for instant payout
@@ -161,7 +161,7 @@ const CreatorWallet = () => {
             </div>
           </div>
           <h3 className="text-2xl md:text-3xl font-black text-gray-900">
-            ₹{Number(walletData?.escrowBalance || 35000).toLocaleString('en-IN')}
+            ₹{Number(walletData?.escrowBalance || 0).toLocaleString('en-IN')}
           </h3>
           <p className="text-[11px] text-gray-500">
             Held in escrow for active shoot
@@ -177,7 +177,7 @@ const CreatorWallet = () => {
             </div>
           </div>
           <h3 className="text-2xl md:text-3xl font-black text-gray-900">
-            ₹{Number(walletData?.totalWithdrawn || 20000).toLocaleString('en-IN')}
+            ₹{Number(walletData?.totalWithdrawn || 0).toLocaleString('en-IN')}
           </h3>
           <p className="text-[11px] text-gray-500">
             Disbursed to bank account
@@ -193,7 +193,7 @@ const CreatorWallet = () => {
             </div>
           </div>
           <h3 className="text-2xl md:text-3xl font-black text-gray-900">
-            ₹{Number(walletData?.totalEarned || 85000).toLocaleString('en-IN')}
+            ₹{Number(walletData?.totalEarned || 0).toLocaleString('en-IN')}
           </h3>
           <p className="text-[11px] text-gray-500">
             Across 2 confirmed projects
@@ -325,20 +325,20 @@ const CreatorWallet = () => {
                 <input
                   type="number"
                   min="1000"
-                  max={walletData?.balance || 30000}
+                  max={walletData?.balance || 0}
                   value={withdrawForm.amount}
                   onChange={(e) => setWithdrawForm({ ...withdrawForm, amount: Number(e.target.value) })}
                   className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm font-black focus:ring-2 focus:ring-purple-500"
                 />
               </div>
               <p className="text-[11px] text-gray-400 mt-1">
-                Available withdrawable: ₹{(walletData?.balance || 30000).toLocaleString('en-IN')}
+                Available withdrawable: ₹{(walletData?.balance || 0).toLocaleString('en-IN')}
               </p>
             </div>
 
             {/* Quick Amount presets */}
             <div className="flex gap-2">
-              {[5000, 10000, 20000, walletData?.balance || 30000].map(amt => (
+              {[5000, 10000, 20000, walletData?.balance || 0].map(amt => (
                 <button
                   key={amt}
                   type="button"

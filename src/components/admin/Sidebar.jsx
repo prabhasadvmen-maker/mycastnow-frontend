@@ -35,7 +35,7 @@ const Sidebar = ({ isCollapsed }) => {
         <img 
           src="/mycastnow logo.jpeg" 
           alt="Logo" 
-          className={`object-contain transition-all duration-300 ${isCollapsed ? 'w-10 h-10' : 'w-40 h-10'}`} 
+          className={`object-contain transition-all duration-300 bg-white rounded-lg p-1 ${isCollapsed ? 'w-10 h-10' : 'h-10 w-auto max-w-[140px]'}`} 
         />
         {!isCollapsed && (
           <span className="text-[9px] text-gray-400 uppercase tracking-widest font-bold mt-1">Superadmin Dashboard</span>

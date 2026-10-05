@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import {
   Star, MessageSquare, ThumbsUp, Building2, UserCircle,
   Search, Filter, CheckCircle2, AlertTriangle, Eye, Trash2,
@@ -59,7 +60,7 @@ const AdminReviews = () => {
       setReviews(prev => prev.map(r => r._id === id ? { ...r, status } : r));
       if (selectedReview?._id === id) setSelectedReview(prev => ({ ...prev, status }));
     } catch {
-      alert('Failed to update review status');
+      toast.error('Failed to update review status');
     }
   };
 
@@ -72,7 +73,7 @@ const AdminReviews = () => {
       if (selectedReview?._id === id) setSelectedReview(null);
       fetchAll();
     } catch {
-      alert('Failed to delete review');
+      toast.error('Failed to delete review');
     }
   };
 

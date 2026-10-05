@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import {
   MonitorPlay, Plus, Edit2, Trash2, Power, X, Check,
   IndianRupee, Users, Star, Zap, Shield, Crown, Sparkles,
@@ -265,7 +266,7 @@ const AdminSubscriptions = () => {
       setIsModalOpen(false);
       fetchPlans();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save plan');
+      toast.error(err.response?.data?.message || 'Failed to save plan');
     } finally {
       setFormLoading(false);
     }
@@ -277,7 +278,7 @@ const AdminSubscriptions = () => {
       const res = await axios.put(`${API}/admin/subscriptions/plans/${planId}/toggle`);
       setPlans(prev => prev.map(p => p._id === planId ? res.data : p));
     } catch {
-      alert('Failed to toggle plan');
+      toast.error('Failed to toggle plan');
     }
   };
 
@@ -288,7 +289,7 @@ const AdminSubscriptions = () => {
       await axios.delete(`${API}/admin/subscriptions/plans/${planId}`);
       setPlans(prev => prev.filter(p => p._id !== planId));
     } catch {
-      alert('Failed to delete plan');
+      toast.error('Failed to delete plan');
     }
   };
 
@@ -299,7 +300,7 @@ const AdminSubscriptions = () => {
       const res = await axios.put(`${API}/admin/subscriptions/subscribers/${subId}`, { status: 'Cancelled' });
       setSubscribers(prev => prev.map(s => s._id === subId ? res.data : s));
     } catch {
-      alert('Failed to cancel subscription');
+      toast.error('Failed to cancel subscription');
     }
   };
 

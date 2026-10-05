@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { User, CheckCircle, XCircle, Clock, Search, Filter, Eye, Phone, MapPin, Briefcase, Settings, Trash2 } from 'lucide-react';
 
@@ -31,7 +32,7 @@ const AdminCreators = () => {
       await axios.delete(`${import.meta.env.VITE_API_URL}/admin/creators/${creatorId}`);
       setCreators(prev => prev.filter(c => c._id !== creatorId));
     } catch (err) {
-      alert('Failed to delete account');
+      toast.error('Failed to delete account');
     }
   };
 
@@ -43,7 +44,7 @@ const AdminCreators = () => {
         setSelectedCreator(prev => ({ ...prev, isActive }));
       }
     } catch (err) {
-      alert('Failed to update active status');
+      toast.error('Failed to update active status');
     }
   };
 
@@ -59,7 +60,7 @@ const AdminCreators = () => {
         setSelectedCreator(prev => ({ ...prev, status: newStatus, isApproved: newStatus === 'approved' }));
       }
     } catch (err) {
-      alert('Failed to update status');
+      toast.error('Failed to update status');
     }
     setStatusLoading(false);
   };

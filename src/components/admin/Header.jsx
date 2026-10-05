@@ -44,14 +44,7 @@ const Header = ({ toggleSidebar }) => {
         </div>
         
         <div className="flex items-center gap-4">
-          <Link
-            to="/home"
-            target="_blank"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-full text-xs font-semibold shadow-xs transition-all"
-            title="Open public website in new tab"
-          >
-            <Globe size={13} /> View Website
-          </Link>
+
 
           <div className="flex items-center gap-2 bg-blue-50 px-4 py-1.5 rounded-full border border-blue-100">
             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>

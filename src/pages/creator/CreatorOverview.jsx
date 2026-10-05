@@ -55,7 +55,7 @@ const CreatorOverview = () => {
   const firstName = fullName.split(' ')[0];
   const category = creator.professionalDetails?.primaryCategory || creatorUser?.professionalDetails?.primaryCategory || 'Model / Actor';
   const city = creator.basicDetails?.city || creatorUser?.basicDetails?.city || 'Mumbai';
-  const completionScore = data?.creator?.completionScore || 85;
+  const completionScore = data?.creator?.completionScore || 0;
 
   const recentApplications = data?.recentApplications || [];
   const recommendedCastings = data?.recommendedCastings || [];

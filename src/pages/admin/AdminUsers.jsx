@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import axios from 'axios';
 import { Search, Filter, ShieldBan, ShieldCheck, MoreVertical, User, Building2 } from 'lucide-react';
 
@@ -34,7 +35,7 @@ const AdminUsers = () => {
       });
       setUsers(prev => prev.map(u => u._id === userId ? { ...u, isActive: !currentActiveState } : u));
     } catch (error) {
-      alert(`Failed to ${action} user`);
+      toast.error(`Failed to ${action} user`);
       console.error(error);
     }
   };

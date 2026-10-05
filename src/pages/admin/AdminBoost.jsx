@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import {
   Rocket, TrendingUp, Users, DollarSign, Calendar, Clock,
   Search, Filter, CheckCircle2, AlertCircle, XCircle,
   Plus, Edit3, Trash2, Eye, ShieldCheck, Zap, Sparkles,
   Award, ArrowUpRight, ChevronRight, Check, X, RefreshCw,
-  ExternalLink, Smartphone, Copy, CheckCheck
+  ExternalLink, Smartphone, Copy, CheckCheck, Settings
 } from 'lucide-react';
 
 const API = import.meta.env.VITE_API_URL;
 
 const AdminBoost = () => {
   // State
+  const [openDropdownId, setOpenDropdownId] = useState(null);
   const [stats, setStats]               = useState(null);
   const [boosts, setBoosts]             = useState([]);
   const [plans, setPlans]               = useState([]);
@@ -98,7 +100,7 @@ const AdminBoost = () => {
       await axios.put(`${API}/admin/boost/requests/${boostId}/status`, { status: newStatus });
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update boost status');
+      toast.error(err.response?.data?.message || 'Failed to update boost status');
     }
   };
 
@@ -111,7 +113,7 @@ const AdminBoost = () => {
       setExtendModal({ open: false, boostId: null, days: 7 });
       fetchData();
     } catch (err) {
-      alert('Failed to extend boost duration');
+      toast.error('Failed to extend boost duration');
     }
   };
 
@@ -121,7 +123,7 @@ const AdminBoost = () => {
       await axios.delete(`${API}/admin/boost/requests/${boostId}`);
       fetchData();
     } catch (err) {
-      alert('Failed to delete boost');
+      toast.error('Failed to delete boost');
     }
   };
 
@@ -129,7 +131,7 @@ const AdminBoost = () => {
   const handleManualBoostSubmit = async (e) => {
     e.preventDefault();
     if (!manualForm.creatorId) {
-      alert('Please select a creator to boost');
+      toast.error('Please select a creator to boost');
       return;
     }
     setManualSubmitting(true);
@@ -147,7 +149,7 @@ const AdminBoost = () => {
       });
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to boost creator');
+      toast.error(err.response?.data?.message || 'Failed to boost creator');
     } finally {
       setManualSubmitting(false);
     }
@@ -204,7 +206,7 @@ const AdminBoost = () => {
       setIsPlanModalOpen(false);
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save boost plan');
+      toast.error(err.response?.data?.message || 'Failed to save boost plan');
     } finally {
       setPlanSubmitting(false);
     }
@@ -216,7 +218,7 @@ const AdminBoost = () => {
       await axios.delete(`${API}/admin/boost/plans/${planId}`);
       fetchData();
     } catch (err) {
-      alert('Failed to delete plan');
+      toast.error('Failed to delete plan');
     }
   };
 
@@ -431,14 +433,15 @@ const AdminBoost = () => {
               <table className="w-full text-sm text-left">
                 <thead className="bg-gray-50 border-b border-gray-100 text-gray-500 text-xs font-semibold uppercase">
                   <tr>
-                    <th className="py-4 px-5">Creator</th>
-                    <th className="py-4 px-5">Boost Plan</th>
-                    <th className="py-4 px-5">Amount Charged</th>
-                    <th className="py-4 px-5">Payment Info</th>
-                    <th className="py-4 px-5">Timeline / Remaining</th>
-                    <th className="py-4 px-5">Performance</th>
-                    <th className="py-4 px-5">Status</th>
-                    <th className="py-4 px-5 text-center">Actions</th>
+                    <th className="py-3 px-2">#</th>
+                    <th className="py-3 px-2">Creator</th>
+                    <th className="py-3 px-2">Boost Plan</th>
+                    <th className="py-3 px-2">Amount Charged</th>
+                    <th className="py-3 px-2">Payment Info</th>
+                    <th className="py-3 px-2">Timeline / Remaining</th>
+                    <th className="py-3 px-2">Performance</th>
+                    <th className="py-3 px-2">Status</th>
+                    <th className="py-3 px-2 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -455,14 +458,15 @@ const AdminBoost = () => {
                       </td>
                     </tr>
                   ) : (
-                    filteredBoosts.map(b => {
+                    filteredBoosts.map((b, index) => {
                       const daysLeft = getDaysRemaining(b.endDate);
                       const isActive = b.status === 'Active' && daysLeft > 0;
 
                       return (
                         <tr key={b._id} className="hover:bg-gray-50/80 transition">
+                          <td className="py-3 px-2 text-gray-500 font-medium">{index + 1}</td>
                           {/* Creator Info */}
-                          <td className="py-4 px-5">
+                          <td className="py-3 px-2 min-w-[150px]">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-rose-100 text-purple-700 flex items-center justify-center font-bold text-sm shrink-0 border border-purple-200 overflow-hidden">
                                 {b.creatorPhoto ? (
@@ -491,33 +495,34 @@ const AdminBoost = () => {
                           </td>
 
                           {/* Plan */}
-                          <td className="py-4 px-5">
+                          <td className="py-3 px-2">
                             <p className="font-bold text-gray-800 text-xs">{b.planName}</p>
                             <span className="text-[11px] text-gray-400">{b.durationDays} Days Duration</span>
                           </td>
 
                           {/* Amount */}
-                          <td className="py-4 px-5">
+                          <td className="py-3 px-2">
                             <p className="font-black text-rose-600 text-sm">{fmt(b.amountPaid)}</p>
                             <span className="text-[10px] text-gray-400">Charged</span>
                           </td>
 
                           {/* Payment */}
-                          <td className="py-4 px-5">
+                          <td className="py-3 px-2 min-w-[100px]">
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                               <CheckCircle2 size={11} /> {b.paymentMethod || 'UPI'}
                             </span>
-                            <p className="text-[10px] text-gray-400 font-mono mt-1 truncate max-w-[120px]">
+                            <p className="text-[10px] text-gray-400 font-mono mt-1 break-all whitespace-normal">
                               {b.transactionId || '—'}
                             </p>
                           </td>
 
                           {/* Timeline */}
-                          <td className="py-4 px-5">
+                          <td className="py-3 px-2">
                             <div className="space-y-0.5">
-                              <p className="text-xs font-medium text-gray-700">
-                                {fmtDate(b.startDate)} → {fmtDate(b.endDate)}
-                              </p>
+                              <div className="text-xs font-medium text-gray-700">
+                                <div>{fmtDate(b.startDate)}</div>
+                                <div className="text-[10px] text-gray-400">to {fmtDate(b.endDate)}</div>
+                              </div>
                               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
                                 daysLeft > 0 ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-500'
                               }`}>
@@ -527,7 +532,7 @@ const AdminBoost = () => {
                           </td>
 
                           {/* Performance */}
-                          <td className="py-4 px-5">
+                          <td className="py-3 px-2 min-w-[120px]">
                             <div className="space-y-0.5 text-xs font-mono text-gray-600">
                               <p>👁️ {b.impressions || 0} impressions</p>
                               <p>🎯 {b.clicks || 0} profile visits</p>
@@ -535,7 +540,7 @@ const AdminBoost = () => {
                           </td>
 
                           {/* Status */}
-                          <td className="py-4 px-5">
+                          <td className="py-3 px-2">
                             <span className={`px-2.5 py-1 rounded-full text-xs font-bold border flex items-center gap-1 w-max ${
                               b.status === 'Active'
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
@@ -549,45 +554,47 @@ const AdminBoost = () => {
                           </td>
 
                           {/* Actions */}
-                          <td className="py-4 px-5 text-center">
-                            <div className="flex items-center justify-center gap-1.5">
-                              {/* Extend */}
-                              <button
-                                onClick={() => setExtendModal({ open: true, boostId: b._id, days: 7 })}
-                                className="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-xs transition"
-                                title="Extend Duration"
-                              >
-                                + Extend
-                              </button>
+                          <td className="py-3 px-2 text-center relative">
+                            <button
+                              onClick={() => setOpenDropdownId(openDropdownId === b._id ? null : b._id)}
+                              className="p-2 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition"
+                            >
+                              <Settings size={18} />
+                            </button>
 
-                              {/* Toggle Status */}
-                              {b.status === 'Active' ? (
+                            {openDropdownId === b._id && (
+                              <div className="absolute right-8 top-10 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden text-left animate-in fade-in zoom-in-95 duration-200">
                                 <button
-                                  onClick={() => handleUpdateStatus(b._id, 'Cancelled')}
-                                  className="p-1.5 text-gray-400 hover:text-amber-600 rounded-lg hover:bg-amber-50 transition"
-                                  title="Pause / Cancel"
+                                  onClick={() => { setExtendModal({ open: true, boostId: b._id, days: 7 }); setOpenDropdownId(null); }}
+                                  className="w-full text-left px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition flex items-center gap-2"
                                 >
-                                  <AlertCircle size={15} />
+                                  + Extend
                                 </button>
-                              ) : (
-                                <button
-                                  onClick={() => handleUpdateStatus(b._id, 'Active')}
-                                  className="p-1.5 text-gray-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition"
-                                  title="Activate"
-                                >
-                                  <CheckCircle2 size={15} />
-                                </button>
-                              )}
+                                
+                                {b.status === 'Active' ? (
+                                  <button
+                                    onClick={() => { handleUpdateStatus(b._id, 'Cancelled'); setOpenDropdownId(null); }}
+                                    className="w-full text-left px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-amber-50 hover:text-amber-700 transition flex items-center gap-2 border-t border-gray-50"
+                                  >
+                                    <AlertCircle size={15} /> Pause / Cancel
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => { handleUpdateStatus(b._id, 'Active'); setOpenDropdownId(null); }}
+                                    className="w-full text-left px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition flex items-center gap-2 border-t border-gray-50"
+                                  >
+                                    <CheckCircle2 size={15} /> Activate
+                                  </button>
+                                )}
 
-                              {/* Delete */}
-                              <button
-                                onClick={() => handleDeleteBoost(b._id)}
-                                className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition"
-                                title="Delete"
-                              >
-                                <Trash2 size={15} />
-                              </button>
-                            </div>
+                                <button
+                                  onClick={() => { handleDeleteBoost(b._id); setOpenDropdownId(null); }}
+                                  className="w-full text-left px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 transition flex items-center gap-2 border-t border-gray-50"
+                                >
+                                  <Trash2 size={15} /> Delete
+                                </button>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       );

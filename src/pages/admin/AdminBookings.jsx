@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import {
   CalendarCheck, Building2, UserCircle, Search, Filter, Eye,
   X, CheckCircle, Clock, XCircle, IndianRupee,
@@ -30,10 +31,10 @@ const StatCard = ({ title, value, icon: Icon, color, subtext }) => (
     <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
       <Icon size={22} />
     </div>
-    <div>
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{title}</p>
-      <p className="text-2xl font-bold text-gray-800 mt-0.5">{value}</p>
-      {subtext && <p className="text-xs text-gray-400 mt-0.5">{subtext}</p>}
+    <div className="min-w-0 flex-1">
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider truncate">{title}</p>
+      <p className="text-2xl font-bold text-gray-800 mt-0.5 truncate">{value}</p>
+      {subtext && <p className="text-[11px] text-gray-400 mt-0.5 truncate">{subtext}</p>}
     </div>
   </div>
 );
@@ -106,8 +107,9 @@ const AdminBookings = () => {
       const updated = await axios.put(`${API}/admin/bookings/${bookingId}/status`, { status: newStatus });
       setBookings(prev => prev.map(b => b._id === bookingId ? updated.data : b));
       if (selectedBooking?._id === bookingId) setSelectedBooking(updated.data);
+      toast.success('Status updated successfully!');
     } catch {
-      alert('Failed to update status');
+      toast.error('Failed to update status');
     }
   };
 
@@ -117,8 +119,9 @@ const AdminBookings = () => {
       const updated = await axios.put(`${API}/admin/bookings/${bookingId}/status`, { paymentStatus: newPayment });
       setBookings(prev => prev.map(b => b._id === bookingId ? updated.data : b));
       if (selectedBooking?._id === bookingId) setSelectedBooking(updated.data);
+      toast.success('Payment status updated successfully!');
     } catch {
-      alert('Failed to update payment status');
+      toast.error('Failed to update payment status');
     }
   };
 
@@ -129,8 +132,9 @@ const AdminBookings = () => {
       await axios.delete(`${API}/admin/bookings/${bookingId}`);
       setBookings(prev => prev.filter(b => b._id !== bookingId));
       if (selectedBooking?._id === bookingId) setSelectedBooking(null);
+      toast.success('Booking deleted successfully!');
     } catch {
-      alert('Failed to delete booking');
+      toast.error('Failed to delete booking');
     }
   };
 
@@ -166,7 +170,7 @@ const AdminBookings = () => {
 
       {/* ── Stats Cards ── */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
           <StatCard title="Total"     value={stats.total}     icon={CalendarCheck} color="bg-blue-50 text-blue-600" />
           <StatCard title="Pending"   value={stats.pending}   icon={Clock}         color="bg-amber-50 text-amber-500" />
           <StatCard title="Confirmed" value={stats.confirmed} icon={CheckCircle}   color="bg-blue-50 text-blue-600" />
@@ -224,14 +228,14 @@ const AdminBookings = () => {
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr className="text-gray-500 font-semibold text-xs uppercase tracking-wider">
-                  <th className="py-4 px-5">#</th>
-                  <th className="py-4 px-5">Company</th>
-                  <th className="py-4 px-5">Creator</th>
-                  <th className="py-4 px-5">Project</th>
-                  <th className="py-4 px-5">Event Date</th>
-                  <th className="py-4 px-5">Amount</th>
-                  <th className="py-4 px-5">Status</th>
-                  <th className="py-4 px-5 text-center">Actions</th>
+                  <th className="py-3 px-3">#</th>
+                  <th className="py-3 px-3">Company</th>
+                  <th className="py-3 px-3">Creator</th>
+                  <th className="py-3 px-3">Project</th>
+                  <th className="py-3 px-3">Event Date</th>
+                  <th className="py-3 px-3">Amount</th>
+                  <th className="py-3 px-3">Status</th>
+                  <th className="py-3 px-3 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -259,10 +263,10 @@ const AdminBookings = () => {
                       onClick={() => setSelectedBooking(selectedBooking?._id === b._id ? null : b)}
                       className={`hover:bg-blue-50/40 transition-colors cursor-pointer ${selectedBooking?._id === b._id ? 'bg-blue-50/60 border-l-4 border-blue-500' : ''}`}
                     >
-                      <td className="py-4 px-5 text-gray-400 font-medium">{idx + 1}</td>
+                      <td className="py-3 px-3 text-gray-400 font-medium">{idx + 1}</td>
 
                       {/* Company */}
-                      <td className="py-4 px-5">
+                      <td className="py-3 px-3">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center overflow-hidden shrink-0">
                             {getCompanyLogo(b)
@@ -277,7 +281,7 @@ const AdminBookings = () => {
                       </td>
 
                       {/* Creator */}
-                      <td className="py-4 px-5">
+                      <td className="py-3 px-3">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-fuchsia-100 flex items-center justify-center overflow-hidden shrink-0">
                             {getCreatorPhoto(b)
@@ -292,15 +296,15 @@ const AdminBookings = () => {
                       </td>
 
                       {/* Project */}
-                      <td className="py-4 px-5">
-                        <p className="font-semibold text-gray-800 max-w-[140px] truncate">{b.projectTitle}</p>
+                      <td className="py-3 px-3 min-w-[150px]">
+                        <p className="font-semibold text-gray-800 break-words">{b.projectTitle}</p>
                         <span className="inline-flex items-center gap-1 text-xs text-gray-400 mt-0.5">
                           <Tag size={10} /> {b.projectType}
                         </span>
                       </td>
 
                       {/* Event Date */}
-                      <td className="py-4 px-5 text-gray-600 whitespace-nowrap">
+                      <td className="py-3 px-3 text-gray-600 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <Calendar size={13} className="text-gray-400" />
                           {formatDate(b.eventDate)}
@@ -308,7 +312,7 @@ const AdminBookings = () => {
                       </td>
 
                       {/* Amount */}
-                      <td className="py-4 px-5">
+                      <td className="py-3 px-3">
                         <p className="font-bold text-gray-800">{formatAmount(b.amount)}</p>
                         <span className={`inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full mt-0.5 ${PAYMENT_CONFIG[b.paymentStatus]?.color || 'bg-gray-100 text-gray-600'}`}>
                           {b.paymentStatus}
@@ -316,12 +320,12 @@ const AdminBookings = () => {
                       </td>
 
                       {/* Status */}
-                      <td className="py-4 px-5">
+                      <td className="py-3 px-3">
                         <StatusBadge status={b.status} />
                       </td>
 
                       {/* Actions */}
-                      <td className="py-4 px-5 text-center" onClick={e => e.stopPropagation()}>
+                      <td className="py-3 px-3 text-center" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-center gap-1">
                           <button
                             onClick={() => setSelectedBooking(selectedBooking?._id === b._id ? null : b)}

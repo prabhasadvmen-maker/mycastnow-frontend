@@ -80,10 +80,10 @@ const AdminCasting = () => {
       setPendingCastings(prev => prev.filter(c => c._id !== id));
       fetchCastings(); // refresh main list
       setReviewCasting(null);
-      showToast('success', `✅ Casting "${title}" approved and published live!`);
+      toast.success(`✅ Casting "${title}" approved and published live!`);
     } catch (error) {
       console.error('Error approving casting:', error);
-      showToast('error', 'Failed to approve casting');
+      toast.error('Failed to approve casting');
     } finally {
       setApprovalLoading(null);
     }
@@ -99,10 +99,10 @@ const AdminCasting = () => {
       setReviewCasting(null);
       setRejectReason('');
       setReviewMode('review');
-      showToast('info', `Casting "${title}" has been rejected.`);
+      toast.info(`Casting "${title}" has been rejected.`);
     } catch (error) {
       console.error('Error rejecting casting:', error);
-      showToast('error', 'Failed to reject casting');
+      toast.error('Failed to reject casting');
     } finally {
       setApprovalLoading(null);
     }
@@ -162,7 +162,7 @@ const AdminCasting = () => {
       fetchCastings();
     } catch (error) {
       console.error('Error saving casting:', error);
-      showToast('error', 'Failed to save casting call');
+      toast.error('Failed to save casting call');
     } finally {
       setIsUploading(false);
     }
@@ -174,10 +174,10 @@ const AdminCasting = () => {
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/admin/casting/${id}`);
       setCastings(castings.filter(c => c._id !== id));
-      showToast('info', 'Casting call deleted successfully');
+      toast.info('Casting call deleted successfully');
     } catch (error) {
       console.error('Error deleting:', error);
-      showToast('error', 'Failed to delete casting call');
+      toast.error('Failed to delete casting call');
     }
   };
 

@@ -58,7 +58,10 @@ export const CompanyAuthProvider = ({ children }) => {
   };
 
   const adminLoginAsCompany = async (companyId) => {
-    const res = await axios.post(`${import.meta.env.VITE_API_URL}/companyAuth/admin-login/${companyId}`);
+    const adminToken = localStorage.getItem('token');
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/companyAuth/admin-login/${companyId}`, {}, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
     const { token, company } = res.data;
     localStorage.setItem('companyToken', token);
     localStorage.setItem('isAdminImpersonating', 'true');
