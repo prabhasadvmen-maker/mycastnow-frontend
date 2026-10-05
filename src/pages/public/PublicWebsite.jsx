@@ -210,9 +210,9 @@ export default function PublicWebsite() {
   return <PublicLayout>
     <section className="relative overflow-hidden bg-gradient-to-br from-violet-50 via-white to-sky-50">
       <div className="absolute -left-20 top-0 h-80 w-80 rounded-full bg-violet-200/40 blur-3xl" /><div className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-sky-200/50 blur-3xl" />
-      <div className="relative mx-auto flex flex-col lg:flex-row items-center justify-between gap-10 max-w-[1050px] px-5 pt-4 pb-20 md:pt-8 md:pb-24 lg:pb-28 md:px-8">
+      <div className="relative mx-auto flex flex-col lg:flex-row items-center justify-between gap-10 max-w-[1050px] px-5 pt-16 pb-20 md:pt-20 md:pb-24 lg:pb-28 md:px-8">
         {/* LEFT COLUMN: HERO TEXT & ACTIONS */}
-        <div className="flex-1 w-full max-w-lg lg:max-w-none flex flex-col justify-center -mt-6 lg:-mt-20">
+        <div className="flex-1 w-full max-w-lg lg:max-w-none flex flex-col justify-center mt-4 lg:-mt-20">
           <div>
             <h1 style={{ fontFamily: "'Permanent Marker', cursive" }} className="text-4xl font-black leading-[1.1] tracking-tight text-slate-900 sm:text-5xl lg:text-[3.75rem] font-normal">
               Discover & Hire <br />
