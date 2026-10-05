@@ -83,16 +83,16 @@ const CreatorSignupFlow = () => {
     try {
       // Save progress to DB before moving to next step
       let updateData = { onboardingStep: currentStep + 1 };
-      
-      if (currentStep === 1) updateData.professionalDetails = { ...creatorUser?.professionalDetails, ...prof, skills: prof.skills.split(',').map(s=>s.trim()).filter(s=>s) };
-      if (currentStep === 2) updateData.basicDetails = { ...creatorUser?.basicDetails, ...basic, languages: basic.languages.split(',').map(s=>s.trim()).filter(s=>s) };
-      if (currentStep === 3) updateData.professionalDetails = { ...creatorUser?.professionalDetails, ...prof, skills: prof.skills.split(',').map(s=>s.trim()).filter(s=>s) };
+
+      if (currentStep === 1) updateData.professionalDetails = { ...creatorUser?.professionalDetails, ...prof, skills: prof.skills.split(',').map(s => s.trim()).filter(s => s) };
+      if (currentStep === 2) updateData.basicDetails = { ...creatorUser?.basicDetails, ...basic, languages: basic.languages.split(',').map(s => s.trim()).filter(s => s) };
+      if (currentStep === 3) updateData.professionalDetails = { ...creatorUser?.professionalDetails, ...prof, skills: prof.skills.split(',').map(s => s.trim()).filter(s => s) };
       if (currentStep === 4) updateData.physicalDetails = { ...creatorUser?.physicalDetails, ...physical };
       if (currentStep === 5) {
         // Upload any new files to R2 via backend
         const filesToUpload = portfolioFiles.filter(f => f.file);
         let finalPortfolio = [...portfolioFiles];
-        
+
         if (filesToUpload.length > 0) {
           try {
             for (let f of filesToUpload) {
@@ -101,15 +101,15 @@ const CreatorSignupFlow = () => {
                 filename: f.file.name,
                 fileType: f.file.type
               });
-              
+
               if (presignedRes.data.success) {
                 const { uploadUrl, fileUrl } = presignedRes.data;
-                
+
                 // 2. Upload file directly to R2 (bypasses Vercel payload limits)
                 await axios.put(uploadUrl, f.file, {
                   headers: { 'Content-Type': f.file.type }
                 });
-                
+
                 // 3. Update the final portfolio array with the new URL
                 const index = finalPortfolio.findIndex(item => item === f);
                 if (index !== -1) {
@@ -122,9 +122,9 @@ const CreatorSignupFlow = () => {
             throw new Error('Failed to upload files to server.');
           }
         }
-        
+
         setPortfolioFiles(finalPortfolio); // update state so they are not re-uploaded if user comes back
-        
+
         updateData.portfolio = {
           photos: finalPortfolio.filter(f => f.type?.startsWith('image/')).map(f => f.url),
           videos: finalPortfolio.filter(f => f.type?.startsWith('video/')).map(f => f.url)
@@ -159,7 +159,7 @@ const CreatorSignupFlow = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-20">
-        <img src="/Mycastnow logo.png" alt="Logo" className="h-6 sm:h-8" />
+        <img src="/mycastnow logo.jpeg" alt="Logo" className="h-6 sm:h-8" />
         <p className="text-xs sm:text-sm font-semibold text-gray-500 text-right">
           <span className="md:hidden">Step {currentStep}/{steps.length}</span>
           <span className="hidden md:inline">Step {currentStep} of {steps.length}: {steps[currentStep - 1]}</span>
@@ -168,7 +168,7 @@ const CreatorSignupFlow = () => {
 
       {/* Progress Bar */}
       <div className="w-full bg-gray-200 h-1.5">
-        <div 
+        <div
           className="bg-fuchsia-600 h-1.5 transition-all duration-500 ease-out"
           style={{ width: `${(currentStep / steps.length) * 100}%` }}
         ></div>
@@ -176,7 +176,7 @@ const CreatorSignupFlow = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col md:flex-row max-w-6xl w-full mx-auto p-4 md:p-8 gap-8">
-        
+
         {/* Sidebar Steps Indicator */}
         <div className="hidden md:block w-64 shrink-0">
           <ul className="space-y-6">
@@ -193,7 +193,7 @@ const CreatorSignupFlow = () => {
 
         {/* Form Content */}
         <div className="flex-1 bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100 p-5 sm:p-8 min-h-[500px] flex flex-col relative">
-          
+
           {error && (
             <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-3 text-sm">
               <AlertCircle size={18} /> {error}
@@ -223,7 +223,7 @@ const CreatorSignupFlow = () => {
             {currentStep === 2 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-5">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Basic Details</h2>
-                
+
                 <div className="flex flex-col sm:flex-row gap-6 mb-6 sm:items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
                   <div className="flex flex-col items-center gap-2 shrink-0">
                     <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white shadow-md overflow-hidden flex items-center justify-center relative group">
@@ -234,16 +234,16 @@ const CreatorSignupFlow = () => {
                       )}
                       <label className="absolute inset-0 bg-black/50 flex opacity-0 group-hover:opacity-100 items-center justify-center cursor-pointer transition-all">
                         <span className="text-white text-xs font-bold text-center px-2">Upload Profile Image</span>
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          className="hidden" 
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
                           onChange={async (e) => {
-                            if(e.target.files && e.target.files[0]){
+                            if (e.target.files && e.target.files[0]) {
                               const file = e.target.files[0];
                               // Show immediate preview
-                              setBasic({...basic, profilePhoto: URL.createObjectURL(file)});
-                              
+                              setBasic({ ...basic, profilePhoto: URL.createObjectURL(file) });
+
                               // Upload in background
                               const formData = new FormData();
                               formData.append('files', file);
@@ -252,13 +252,13 @@ const CreatorSignupFlow = () => {
                                   headers: { 'Content-Type': 'multipart/form-data' }
                                 });
                                 if (res.data.success) {
-                                  setBasic(prev => ({...prev, profilePhoto: res.data.files[0].url}));
+                                  setBasic(prev => ({ ...prev, profilePhoto: res.data.files[0].url }));
                                 }
                               } catch (err) {
                                 console.error('Failed to upload profile photo', err);
                               }
                             }
-                          }} 
+                          }}
                         />
                       </label>
                     </div>
@@ -266,18 +266,18 @@ const CreatorSignupFlow = () => {
                   </div>
                   <div className="flex-1">
                     <label className="block text-sm font-bold text-gray-700 mb-2">Full Name</label>
-                    <input type="text" value={basic.fullName} onChange={e => setBasic({...basic, fullName: e.target.value})} className="w-full p-3 bg-white border border-gray-200 rounded-xl shadow-sm" placeholder="John Doe" />
+                    <input type="text" value={basic.fullName} onChange={e => setBasic({ ...basic, fullName: e.target.value })} className="w-full p-3 bg-white border border-gray-200 rounded-xl shadow-sm" placeholder="John Doe" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">City / Location</label>
-                    <input type="text" value={basic.city} onChange={e => setBasic({...basic, city: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Mumbai" />
+                    <input type="text" value={basic.city} onChange={e => setBasic({ ...basic, city: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Mumbai" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Gender</label>
-                    <select value={basic.gender} onChange={e => setBasic({...basic, gender: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                    <select value={basic.gender} onChange={e => setBasic({ ...basic, gender: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl">
                       <option value="">Select</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
@@ -286,17 +286,17 @@ const CreatorSignupFlow = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Date of Birth</label>
-                    <input type="date" value={basic.dob} onChange={e => setBasic({...basic, dob: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" />
+                    <input type="date" value={basic.dob} onChange={e => setBasic({ ...basic, dob: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Bio / About Me</label>
-                  <textarea value={basic.bio} onChange={e => setBasic({...basic, bio: e.target.value})} rows="4" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Tell brands about yourself..."></textarea>
+                  <textarea value={basic.bio} onChange={e => setBasic({ ...basic, bio: e.target.value })} rows="4" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Tell brands about yourself..."></textarea>
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Languages Spoken</label>
-                  <input type="text" value={basic.languages} onChange={e => setBasic({...basic, languages: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="English, Hindi, Marathi" />
+                  <input type="text" value={basic.languages} onChange={e => setBasic({ ...basic, languages: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="English, Hindi, Marathi" />
                   <p className="text-xs text-gray-400 mt-1">Separate multiple languages with commas</p>
                 </div>
               </div>
@@ -309,7 +309,7 @@ const CreatorSignupFlow = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Years of Experience</label>
-                    <select value={prof.experience} onChange={e => setProf({...prof, experience: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                    <select value={prof.experience} onChange={e => setProf({ ...prof, experience: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl">
                       <option value="">Select</option>
                       <option value="Fresher">Fresher</option>
                       <option value="1-3 Years">1-3 Years</option>
@@ -319,7 +319,7 @@ const CreatorSignupFlow = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Skills</label>
-                    <input type="text" value={prof.skills} onChange={e => setProf({...prof, skills: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Acting, Dancing, Modeling" />
+                    <input type="text" value={prof.skills} onChange={e => setProf({ ...prof, skills: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Acting, Dancing, Modeling" />
                     <p className="text-xs text-gray-400 mt-1">Separate multiple skills with commas</p>
                   </div>
                 </div>
@@ -333,31 +333,31 @@ const CreatorSignupFlow = () => {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Height</label>
-                    <input type="text" value={physical.height} onChange={e => setPhysical({...physical, height: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="5'10&quot;" />
+                    <input type="text" value={physical.height} onChange={e => setPhysical({ ...physical, height: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="5'10&quot;" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Weight</label>
-                    <input type="text" value={physical.weight} onChange={e => setPhysical({...physical, weight: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="70 kg" />
+                    <input type="text" value={physical.weight} onChange={e => setPhysical({ ...physical, weight: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="70 kg" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Eye Color</label>
-                    <input type="text" value={physical.eyeColor} onChange={e => setPhysical({...physical, eyeColor: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Brown" />
+                    <input type="text" value={physical.eyeColor} onChange={e => setPhysical({ ...physical, eyeColor: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Brown" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Hair Color</label>
-                    <input type="text" value={physical.hairColor} onChange={e => setPhysical({...physical, hairColor: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Black" />
+                    <input type="text" value={physical.hairColor} onChange={e => setPhysical({ ...physical, hairColor: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Black" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Chest / Bust</label>
-                    <input type="text" value={physical.chest} onChange={e => setPhysical({...physical, chest: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="40&quot;" />
+                    <input type="text" value={physical.chest} onChange={e => setPhysical({ ...physical, chest: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="40&quot;" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Waist</label>
-                    <input type="text" value={physical.waist} onChange={e => setPhysical({...physical, waist: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="32&quot;" />
+                    <input type="text" value={physical.waist} onChange={e => setPhysical({ ...physical, waist: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="32&quot;" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Hips</label>
-                    <input type="text" value={physical.hips} onChange={e => setPhysical({...physical, hips: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="38&quot;" />
+                    <input type="text" value={physical.hips} onChange={e => setPhysical({ ...physical, hips: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="38&quot;" />
                   </div>
                 </div>
               </div>
@@ -368,11 +368,11 @@ const CreatorSignupFlow = () => {
               <div className="animate-in fade-in slide-in-from-right-4 duration-500">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Upload Portfolio</h2>
                 <p className="text-gray-500 mb-6">Add your best photos and videos to showcase your work.</p>
-                
+
                 <label className="border-2 border-dashed border-gray-300 rounded-3xl p-12 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer flex flex-col items-center justify-center relative">
-                  <input 
-                    type="file" 
-                    multiple 
+                  <input
+                    type="file"
+                    multiple
                     accept="image/*,video/*"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     onChange={(e) => {
@@ -400,7 +400,7 @@ const CreatorSignupFlow = () => {
                         ) : (
                           <img src={fileObj.url} className="w-full h-full object-cover" alt="portfolio item" />
                         )}
-                        <button 
+                        <button
                           onClick={() => setPortfolioFiles(prev => prev.filter((_, i) => i !== idx))}
                           className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
@@ -417,15 +417,15 @@ const CreatorSignupFlow = () => {
             {currentStep === 6 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-5">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Pricing Setup</h2>
-                
+
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Hourly Rate (₹)</label>
-                  <input type="number" value={pricing.hourlyRate} onChange={e => setPricing({...pricing, hourlyRate: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="e.g. 500" />
+                  <input type="number" value={pricing.hourlyRate} onChange={e => setPricing({ ...pricing, hourlyRate: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="e.g. 500" />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Day Rate (₹)</label>
-                  <input type="number" value={pricing.dayRate} onChange={e => setPricing({...pricing, dayRate: e.target.value})} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="e.g. 4000" />
+                  <input type="number" value={pricing.dayRate} onChange={e => setPricing({ ...pricing, dayRate: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="e.g. 4000" />
                 </div>
               </div>
             )}
@@ -449,7 +449,7 @@ const CreatorSignupFlow = () => {
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">You're all set, {basic.fullName}!</h2>
                 <p className="text-gray-600 mb-8 max-w-md mx-auto">Your profile looks great. Hit publish to submit your profile to our admin team for verification.</p>
-                
+
                 <div className="bg-gray-50 p-6 rounded-2xl text-left max-w-md mx-auto mb-8 border border-gray-100">
                   <p className="font-bold text-gray-800 mb-2">Profile Summary</p>
                   <ul className="text-sm text-gray-600 space-y-2">
@@ -470,19 +470,19 @@ const CreatorSignupFlow = () => {
                 <ChevronLeft size={18} /> Back
               </button>
             ) : <div></div>}
-            
+
             {currentStep < steps.length ? (
-              <button 
-                onClick={handleNext} 
-                disabled={loading || (currentStep === 1 && !prof.primaryCategory)} 
+              <button
+                onClick={handleNext}
+                disabled={loading || (currentStep === 1 && !prof.primaryCategory)}
                 className="px-8 py-3 rounded-xl font-bold bg-gray-900 text-white hover:bg-black transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 {loading ? 'Saving...' : 'Next'} <ChevronRight size={18} />
               </button>
             ) : (
-              <button 
-                onClick={handlePublish} 
-                disabled={loading} 
+              <button
+                onClick={handlePublish}
+                disabled={loading}
                 className="px-8 py-3 rounded-xl font-bold bg-fuchsia-600 text-white hover:bg-fuchsia-700 shadow-lg shadow-fuchsia-500/30 transition-all flex items-center gap-2"
               >
                 {loading ? 'Publishing...' : 'Publish Profile'} <CheckCircle2 size={18} />

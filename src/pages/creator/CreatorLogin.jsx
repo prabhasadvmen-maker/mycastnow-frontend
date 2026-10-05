@@ -38,20 +38,20 @@ const CreatorLogin = ({ isSignup = false }) => {
       setError('Please enter a valid 10-digit phone number');
       return;
     }
-    
+
     setLoading(true);
     setError('');
     try {
       const res = await sendOtp(phone);
       if (res.success) {
         setStep(2); // Show the OTP screen first
-        
+
         // Auto-fill and auto-verify magic (with visual delay so they can see it happen)
         if (res.devOtp) {
           // Wait 1.5 seconds so they read "Verify OTP" and see the empty box
           setTimeout(() => {
             setOtp(res.devOtp); // Box fills up magically!
-            
+
             // Wait another 1 second so they see the filled OTP before it logs them in
             setTimeout(() => {
               handleVerifyOtp(null, res.devOtp);
@@ -70,12 +70,12 @@ const CreatorLogin = ({ isSignup = false }) => {
   const handleVerifyOtp = async (e, autoOtp = null) => {
     if (e) e.preventDefault();
     const currentOtp = autoOtp || otp;
-    
+
     if (currentOtp.length !== 6) {
       setError('Please enter the 6-digit OTP');
       return;
     }
-    
+
     setLoading(true);
     setError('');
     try {
@@ -98,10 +98,10 @@ const CreatorLogin = ({ isSignup = false }) => {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-        
+
         {/* Header */}
         <div className="p-6 sm:p-10 text-center border-b border-gray-100">
-          <img src="/Mycastnow logo.png" alt="MyCastNow" className="h-12 sm:h-16 mx-auto mb-4 sm:mb-6 object-contain" />
+          <img src="/mycastnow logo.jpeg" alt="MyCastNow" className="h-12 sm:h-16 mx-auto mb-4 sm:mb-6 object-contain" />
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Creator Portal</h2>
           <p className="text-gray-500 mt-2 text-xs sm:text-sm">Join the top casting network</p>
         </div>
@@ -135,14 +135,14 @@ const CreatorLogin = ({ isSignup = false }) => {
               <p className="text-gray-500 mb-8 text-sm">
                 {isLogin ? 'Enter your phone number to login to your creator dashboard.' : 'Enter your phone number to start building your creator profile.'}
               </p>
-              
+
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-medium">
                     +91
                   </div>
-                  <input 
+                  <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
@@ -154,7 +154,7 @@ const CreatorLogin = ({ isSignup = false }) => {
                 </div>
               </div>
 
-              <button 
+              <button
                 type="submit"
                 disabled={loading || phone.length !== 10}
                 className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-fuchsia-600 hover:from-blue-700 hover:to-fuchsia-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg mb-6"
@@ -175,8 +175,8 @@ const CreatorLogin = ({ isSignup = false }) => {
             </form>
           ) : (
             <form onSubmit={handleVerifyOtp}>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setStep(1)}
                 className="text-sm font-medium text-blue-600 hover:text-blue-700 mb-6 flex items-center gap-1"
               >
@@ -185,14 +185,14 @@ const CreatorLogin = ({ isSignup = false }) => {
 
               <h3 className="text-2xl font-bold text-gray-800 mb-2">Verify OTP</h3>
               <p className="text-gray-500 mb-8 text-sm">We've sent a 6-digit code to <strong>+91 {phone}</strong></p>
-              
+
               <div className="mb-8">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Enter OTP</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <ShieldCheck className="w-6 h-6 text-gray-400" />
                   </div>
-                  <input 
+                  <input
                     type="text"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -203,7 +203,7 @@ const CreatorLogin = ({ isSignup = false }) => {
                 </div>
               </div>
 
-              <button 
+              <button
                 type="submit"
                 disabled={loading || otp.length !== 6}
                 className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-fuchsia-600 hover:from-blue-700 hover:to-fuchsia-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg"
@@ -216,7 +216,7 @@ const CreatorLogin = ({ isSignup = false }) => {
 
           <div className="mt-8 text-center border-t border-gray-100 pt-6">
             <p className="text-xs text-gray-500 leading-relaxed">
-              By continuing, you agree to MyCastNow's <br/>
+              By continuing, you agree to MyCastNow's <br />
               <Link to="#" className="text-blue-600 hover:underline font-medium">Terms of Service</Link> and <Link to="#" className="text-blue-600 hover:underline font-medium">Privacy Policy</Link>
             </p>
             <div className="mt-4 pt-2">

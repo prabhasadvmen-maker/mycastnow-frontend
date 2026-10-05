@@ -5,9 +5,10 @@ import {
   ArrowRight, BadgeCheck, Building2, CheckCircle2, ChevronLeft, ChevronRight, Clapperboard,
   Crown, MapPin, Maximize2, Pause, Play, RotateCcw, Search, ShieldCheck,
   Sparkles, Star, Users, Volume2, VolumeX, Zap,
-  Camera, Eye, X, Phone, Mail, Globe, Calendar, Share2, Check, ExternalLink, Film, Award, DollarSign, User
+  Camera, Eye, X, Phone, Mail, Globe, Calendar, Share2, Check, ExternalLink, Film, Award, DollarSign, User, Briefcase,
+  Lock, Heart, MessageCircle, Send, MoreVertical
 } from 'lucide-react';
-import PublicLayout from '../components/public/PublicLayout';
+import PublicLayout from '../../components/public/PublicLayout';
 
 let API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
 if (typeof window !== 'undefined') {
@@ -41,215 +42,71 @@ const PLAN_STYLES = {
 
 function HeroVideoCard() {
   const videoRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
-  const [progress, setProgress] = useState(0);
-  const [currentTime, setCurrentTime] = useState('0:00');
-  const [duration, setDuration] = useState('0:00');
-  const [isHovered, setIsHovered] = useState(false);
-
-  const formatTime = (secs) => {
-    if (!secs || isNaN(secs)) return '0:00';
-    const m = Math.floor(secs / 60);
-    const s = Math.floor(secs % 60);
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
-  };
-
-  const togglePlay = () => {
-    if (!videoRef.current) return;
-    if (videoRef.current.paused) {
-      videoRef.current.play();
-      setIsPlaying(true);
-    } else {
-      videoRef.current.pause();
-      setIsPlaying(false);
-    }
-  };
-
-  const toggleMute = (e) => {
-    e.stopPropagation();
-    if (!videoRef.current) return;
-    const nextMuted = !videoRef.current.muted;
-    videoRef.current.muted = nextMuted;
-    setIsMuted(nextMuted);
-  };
-
-  const handleTimeUpdate = () => {
-    if (!videoRef.current) return;
-    const curr = videoRef.current.currentTime;
-    const dur = videoRef.current.duration;
-    if (dur > 0) {
-      setProgress((curr / dur) * 100);
-      setCurrentTime(formatTime(curr));
-      setDuration(formatTime(dur));
-    }
-  };
-
-  const handleSeek = (e) => {
-    e.stopPropagation();
-    if (!videoRef.current) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    videoRef.current.currentTime = pos * (videoRef.current.duration || 0);
-  };
-
-  const toggleFullscreen = (e) => {
-    e.stopPropagation();
-    if (!videoRef.current) return;
-    if (videoRef.current.requestFullscreen) {
-      videoRef.current.requestFullscreen();
-    } else if (videoRef.current.webkitRequestFullscreen) {
-      videoRef.current.webkitRequestFullscreen();
-    }
-  };
-
-  const restartVideo = (e) => {
-    e.stopPropagation();
-    if (!videoRef.current) return;
-    videoRef.current.currentTime = 0;
-    videoRef.current.play();
-    setIsPlaying(true);
-  };
 
   return (
-    <div
-      id="showreel"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="group relative mx-auto lg:ml-auto lg:mr-0 w-fit transition-all duration-300 py-3 sm:py-4 px-2"
-    >
-      {/* Ambient background glow */}
-      <div className="absolute inset-1 rounded-[2.8rem] bg-gradient-to-tr from-violet-600/35 via-fuchsia-500/25 to-sky-400/30 blur-2xl opacity-80 transition duration-700 group-hover:opacity-100 -z-10 pointer-events-none" />
+    <div className="relative w-[220px] mx-auto flex items-center justify-center shrink-0">
+      {/* Ambient glowing background */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-gradient-to-tr from-violet-300/40 via-purple-200/30 to-fuchsia-100/40 rounded-full blur-[80px] pointer-events-none -z-10" />
 
-      {/* Floating Top Badge */}
-      <div className="absolute top-1 left-5 z-20 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-3.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-xl shadow-violet-500/30 ring-2 ring-white/20 select-none pointer-events-none">
-        <Sparkles size={12} className="animate-pulse" />
-        <span>Platform Preview</span>
-      </div>
+      {/* Phone Mockup Frame - Fixed dimensions to prevent collapsing */}
+      <div className="relative group overflow-hidden rounded-[2rem] border-[10px] border-[#121212] bg-[#121212] shadow-2xl shadow-violet-900/20 w-[220px] h-[440px] rotate-[4deg] hover:rotate-[1deg] transition-all duration-500 ease-out shrink-0">
+        {/* Video Background */}
+        <video
+          ref={videoRef}
+          src="/My%20cast%20now%20video%20.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover rounded-[1.4rem] bg-slate-900"
+        />
 
-      {/* Video Container Card - Wrapped tightly around the video */}
-      <div className="relative inline-block overflow-hidden rounded-[2.4rem] border-2 border-white/90 bg-slate-950 p-2 shadow-2xl shadow-violet-500/25 backdrop-blur-xl w-fit">
-        <div className="relative overflow-hidden rounded-[1.9rem] bg-black flex items-center justify-center w-fit">
-          <video
-            ref={videoRef}
-            src="/My%20cast%20now%20video%20.mp4"
-            autoPlay
-            loop
-            muted={isMuted}
-            playsInline
-            preload="auto"
-            onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={() => {
-              if (videoRef.current) setDuration(formatTime(videoRef.current.duration));
-            }}
-            onClick={togglePlay}
-            className="h-[430px] sm:h-[470px] md:h-[500px] lg:h-[530px] xl:h-[550px] aspect-[9/16] w-auto max-w-[85vw] object-cover cursor-pointer block"
-          />
+        {/* Top Gradient for text readability */}
+        <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none rounded-t-[1.4rem]" />
+        {/* Bottom Gradient */}
+        <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-black/60 to-transparent pointer-events-none rounded-b-[1.4rem]" />
 
-          {/* Top Bar Overlay */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between p-3.5 bg-gradient-to-b from-black/80 via-black/30 to-transparent z-10">
-            <div className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-white/20 bg-black/50 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-md">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
-              <span>MYCASTNOW REEL</span>
-            </div>
-
-            <button
-              type="button"
-              onClick={toggleMute}
-              aria-label={isMuted ? 'Unmute video audio' : 'Mute video audio'}
-              className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md transition hover:bg-black/90 hover:scale-105 active:scale-95 shadow-md"
-            >
-              {isMuted ? (
-                <>
-                  <VolumeX size={14} className="text-rose-400" />
-                  <span className="text-[10px] font-medium">Unmute</span>
-                </>
-              ) : (
-                <>
-                  <Volume2 size={14} className="text-emerald-400" />
-                  <span className="text-[10px] font-medium">Sound On</span>
-                </>
-              )}
-            </button>
+        {/* Top Header */}
+        <div className="absolute top-4 left-4 right-3 flex items-center justify-between z-10 pointer-events-none">
+          <div className="flex items-center gap-1.5">
+            <div className="h-2 w-2 rounded-full bg-[#8B5CF6] shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
+            <span className="text-white text-xs font-bold tracking-wide drop-shadow-md">MyCastNow Reel</span>
           </div>
+          <MoreVertical size={16} className="text-white drop-shadow-md" />
+        </div>
 
-          {/* Center Play / Pause Indicator */}
-          {(!isPlaying || isHovered) && (
-            <div
-              onClick={togglePlay}
-              className="absolute inset-0 z-10 flex items-center justify-center cursor-pointer transition-opacity duration-200"
-            >
-              <button
-                type="button"
-                className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full border-2 border-white/90 bg-violet-600/90 text-white shadow-2xl shadow-violet-950/90 backdrop-blur-md transition hover:scale-110 hover:bg-violet-600 active:scale-95"
-              >
-                {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} className="ml-1" fill="currentColor" />}
-              </button>
+        {/* Right Side Social Actions */}
+        <div className="absolute right-3 bottom-20 flex flex-col items-center gap-5 z-10">
+          <div className="flex flex-col items-center gap-1 cursor-pointer hover:scale-110 transition-transform">
+            <div className="bg-black/20 backdrop-blur-md p-1.5 rounded-full">
+              <Heart size={20} className="text-white fill-white drop-shadow-md" />
             </div>
-          )}
-
-          {/* Bottom Controls Bar */}
-          <div className={`absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/95 via-black/60 to-transparent p-3.5 transition-opacity duration-300 ${isHovered || !isPlaying ? 'opacity-100' : 'opacity-85'}`}>
-            {/* Interactive Progress Bar */}
-            <div
-              onClick={handleSeek}
-              className="group/bar relative mb-2.5 h-1.5 w-full cursor-pointer rounded-full bg-white/25 transition-all hover:h-2"
-            >
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-500 via-indigo-400 to-purple-400 transition-[width] duration-100"
-                style={{ width: `${progress}%` }}
-              />
+            <span className="text-white text-[10px] font-black drop-shadow-md">12.4K</span>
+          </div>
+          <div className="flex flex-col items-center gap-1 cursor-pointer hover:scale-110 transition-transform">
+            <div className="bg-black/20 backdrop-blur-md p-1.5 rounded-full">
+              <MessageCircle size={18} className="text-white fill-white drop-shadow-md" />
             </div>
-
-            {/* Bottom Controls */}
-            <div className="flex items-center justify-between text-xs text-white/90 font-medium">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={togglePlay}
-                  className="rounded-lg p-1 hover:bg-white/20 transition"
-                  title={isPlaying ? 'Pause' : 'Play'}
-                >
-                  {isPlaying ? <Pause size={15} /> : <Play size={15} />}
-                </button>
-                <button
-                  type="button"
-                  onClick={restartVideo}
-                  title="Restart video"
-                  className="rounded-lg p-1 hover:bg-white/20 transition"
-                >
-                  <RotateCcw size={14} />
-                </button>
-                <span className="font-mono text-[11px] text-white/80">
-                  {currentTime} / {duration}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={toggleFullscreen}
-                  title="Fullscreen"
-                  className="rounded-lg p-1 hover:bg-white/20 transition"
-                >
-                  <Maximize2 size={15} />
-                </button>
-              </div>
+            <span className="text-white text-[10px] font-black drop-shadow-md">320</span>
+          </div>
+          <div className="flex flex-col items-center gap-1 cursor-pointer hover:scale-110 transition-transform">
+            <div className="bg-black/20 backdrop-blur-md p-1.5 rounded-full pl-2">
+              <Send size={18} className="text-white fill-white drop-shadow-md -ml-0.5" />
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Floating Bottom Trust Badge */}
-      <div className="absolute bottom-1 sm:bottom-1.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-2xl border border-white/90 bg-white/95 px-3.5 py-1.5 shadow-xl shadow-slate-900/10 backdrop-blur-md whitespace-nowrap select-none pointer-events-none">
-        <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
-          <BadgeCheck size={15} />
+        {/* Bottom Progress Bar & Controls */}
+        <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 z-10">
+          <Play size={14} className="text-white fill-white drop-shadow-md shrink-0 cursor-pointer hover:scale-110 transition-transform" />
+          <div className="text-white text-[9px] font-bold drop-shadow-md tracking-wider shrink-0">
+            0:16 / 0:28
+          </div>
+          <div className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden cursor-pointer relative backdrop-blur-sm">
+            <div className="absolute top-0 left-0 w-[57%] h-full bg-[#8B5CF6] rounded-full shadow-[0_0_10px_rgba(139,92,246,0.8)]" />
+          </div>
+          <Maximize2 size={12} className="text-white drop-shadow-md shrink-0 cursor-pointer hover:scale-110 transition-transform" />
         </div>
-        <p className="text-[11px] font-black text-slate-900">Direct & Verified</p>
-        <span className="text-[10px] font-semibold text-slate-500">• 100% Escrow</span>
       </div>
     </div>
   );
@@ -282,15 +139,16 @@ export default function PublicWebsite() {
           companies: response.companies || []
         });
       }
-      // Also query admin subscriptions endpoint to merge any freshly created admin plans
-      axios.get(`${API}/admin/subscriptions/plans`).then((pRes) => {
-        if (active && Array.isArray(pRes.data) && pRes.data.length > 0) {
+      // Also query public plans endpoint to merge any freshly created active plans
+      axios.get(`${API}/public/plans`).then((pRes) => {
+        const fetchedPlans = pRes.data?.plans || (Array.isArray(pRes.data) ? pRes.data : null);
+        if (active && Array.isArray(fetchedPlans) && fetchedPlans.length > 0) {
           setData((prev) => ({
             ...prev,
-            plans: pRes.data.filter((p) => p.isActive !== false)
+            plans: fetchedPlans.filter((p) => p.isActive !== false)
           }));
         }
-      }).catch(() => {});
+      }).catch(() => { });
       // Also query public companies endpoint to ensure latest approved companies
       axios.get(`${API}/public/companies`).then((cRes) => {
         if (active && Array.isArray(cRes.data?.companies) && cRes.data.companies.length > 0) {
@@ -299,19 +157,20 @@ export default function PublicWebsite() {
             companies: cRes.data.companies
           }));
         }
-      }).catch(() => {});
+      }).catch(() => { });
     }).catch((err) => {
       if (active) setError(err.message || 'Could not connect to the platform.');
-      axios.get(`${API}/admin/subscriptions/plans`).then((pRes) => {
-        if (active && Array.isArray(pRes.data) && pRes.data.length > 0) {
-          setData((prev) => ({ ...prev, plans: pRes.data.filter((p) => p.isActive !== false) }));
+      axios.get(`${API}/public/plans`).then((pRes) => {
+        const fetchedPlans = pRes.data?.plans || (Array.isArray(pRes.data) ? pRes.data : null);
+        if (active && Array.isArray(fetchedPlans) && fetchedPlans.length > 0) {
+          setData((prev) => ({ ...prev, plans: fetchedPlans.filter((p) => p.isActive !== false) }));
         }
-      }).catch(() => {});
+      }).catch(() => { });
       axios.get(`${API}/public/companies`).then((cRes) => {
         if (active && Array.isArray(cRes.data?.companies) && cRes.data.companies.length > 0) {
           setData((prev) => ({ ...prev, companies: cRes.data.companies }));
         }
-      }).catch(() => {});
+      }).catch(() => { });
     }).finally(() => active && setLoading(false));
     return () => { active = false; };
   }, []);
@@ -351,52 +210,81 @@ export default function PublicWebsite() {
   return <PublicLayout>
     <section className="relative overflow-hidden bg-gradient-to-br from-violet-50 via-white to-sky-50">
       <div className="absolute -left-20 top-0 h-80 w-80 rounded-full bg-violet-200/40 blur-3xl" /><div className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-sky-200/50 blur-3xl" />
-      <div className="relative mx-auto grid max-w-[1440px] gap-10 lg:gap-14 px-5 py-12 md:py-20 lg:grid-cols-[1.15fr_0.85fr] lg:items-center md:px-8">
+      <div className="relative mx-auto flex flex-col lg:flex-row items-center justify-between gap-10 max-w-[1050px] px-5 pt-4 pb-20 md:pt-8 md:pb-24 lg:pb-28 md:px-8">
         {/* LEFT COLUMN: HERO TEXT & ACTIONS */}
-        <div className="order-1 lg:order-1 min-w-0">
-          <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white/80 px-4 py-2 text-xs font-bold tracking-wide text-violet-700 shadow-sm backdrop-blur"><Sparkles size={15} /> INDIA'S VERIFIED CASTING NETWORK</div>
-          <h1 className="mt-5 text-4xl font-black leading-[1.08] tracking-tight text-slate-950 sm:text-5xl lg:text-[3.35rem]">The right role deserves the <span className="text-violet-600">right face.</span></h1>
-          <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">MyCastNow brings verified artists and production teams into one trusted, direct casting space. Discover live opportunities, build a profile that speaks for you, and make your next project happen.</p>
-          <div className="mt-7 flex flex-wrap gap-3.5">
-            <Link to="/creator/signup" className="inline-flex items-center gap-2 rounded-2xl bg-violet-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-300 transition hover:-translate-y-0.5 hover:bg-violet-700">Create your profile <ArrowRight size={17} /></Link>
-            <Link to="/company/signup" className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm hover:border-violet-300 hover:text-violet-700 transition">Post a casting <Clapperboard size={17} /></Link>
-          </div>
-          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2.5 text-xs font-semibold text-slate-600">
-            <span className="flex items-center gap-2"><CheckCircle2 size={16} className="text-emerald-500" />Verified platform</span>
-            <span className="flex items-center gap-2"><ShieldCheck size={16} className="text-emerald-500" />Direct & secure</span>
-            <span className="flex items-center gap-2"><BadgeCheck size={16} className="text-emerald-500" />Real opportunities</span>
+        <div className="flex-1 w-full max-w-lg lg:max-w-none flex flex-col justify-center -mt-6 lg:-mt-20">
+          <div>
+            <h1 style={{ fontFamily: "'Permanent Marker', cursive" }} className="text-4xl font-black leading-[1.1] tracking-tight text-slate-900 sm:text-5xl lg:text-[3.75rem] font-normal">
+              Discover & Hire <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Premium Talent.</span>
+            </h1>
+            <p style={{ fontFamily: "'Handlee', cursive" }} className="mt-6 max-w-lg text-[20px] leading-relaxed text-slate-700 font-medium tracking-wide">
+              MyCastNow brings verified actors, models, and creators together with top production houses in one direct, secure ecosystem.
+            </p>
+            <div style={{ fontFamily: "'Handlee', cursive" }} className="mt-6 inline-flex items-center gap-2 rounded-full bg-emerald-100/60 px-4 py-2 text-[13px] font-bold tracking-wide text-emerald-600 shadow-sm border border-emerald-200/50 uppercase">
+              <Sparkles size={15} /> INDIA'S VERIFIED CASTING NETWORK
+            </div>
           </div>
 
-          {/* Live Casting Teaser Pill */}
-          <div className="mt-7 rounded-2xl border border-violet-100 bg-white/90 p-3.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 backdrop-blur max-w-xl w-full">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-md shadow-violet-300">
-                <Star size={17} fill="currentColor" />
+          <div style={{ fontFamily: "'Handlee', cursive" }} className="mt-12 flex flex-wrap gap-x-6 gap-y-3 text-[16px] font-bold text-slate-800 tracking-wide">
+            <span className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-50 text-[#8B5CF6] shadow-sm">
+                <ShieldCheck size={14} />
               </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-slate-900 truncate">
-                  {loading ? 'Finding latest auditions...' : data.castings[0]?.title || 'New Casting Calls Live'}
-                </p>
-                <p className="text-[11px] text-slate-500 truncate">
-                  {data.castings[0]?.roleType || 'Actors, Models, Dancers'} · {data.castings[0]?.location || 'Mumbai, Delhi & Pan-India'}
-                </p>
+              Verified Artists
+            </span>
+            <span className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-50 text-[#8B5CF6] shadow-sm">
+                <Users size={14} />
               </div>
-            </div>
-            <Link to="/castings" className="shrink-0 text-center rounded-xl bg-violet-50 px-3 py-2 text-xs font-bold text-violet-700 hover:bg-violet-100 transition flex items-center justify-center gap-1">
-              Explore calls <ArrowRight size={13} />
-            </Link>
+              Zero Middlemen
+            </span>
+            <span className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-50 text-[#8B5CF6] shadow-sm">
+                <Lock size={14} />
+              </div>
+              100% Secure
+            </span>
           </div>
+
+
         </div>
 
         {/* RIGHT COLUMN: HERO VIDEO CARD */}
-        <div className="order-2 lg:order-2 flex justify-center lg:justify-end min-w-0">
+        <div className="flex flex-col justify-center lg:justify-end shrink-0 w-full lg:w-auto">
           <HeroVideoCard />
         </div>
       </div>
     </section>
-    <section className="relative z-10 mx-auto -mt-2 grid max-w-[1240px] grid-cols-2 gap-3 px-5 md:grid-cols-4 md:px-8">{[[Users, data.stats.artistsCount, 'Creators on platform'], [Building2, data.stats.productionsCount, 'Production partners'], [Clapperboard, data.stats.castingsCount, 'Live casting calls'], [ShieldCheck, data.stats.escrowPayouts, 'Completed payouts']].map(([Icon, amount, label]) => <div key={label} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-lg shadow-slate-200/50 md:p-5"><Icon size={19} className="mb-2 text-violet-600" /><p className="text-xl font-black text-slate-900 md:text-2xl">{loading ? '—' : amount ?? '0'}</p><p className="mt-1 text-[11px] font-semibold text-slate-500 md:text-xs">{label}</p></div>)}</section>
+    <section className="relative z-10 mx-auto -mt-8 grid max-w-[1240px] grid-cols-2 gap-3 px-5 md:grid-cols-4 md:px-8">{[[Users, data.stats.artistsCount, 'Creators on platform'], [Building2, data.stats.productionsCount, 'Production partners'], [Clapperboard, data.stats.castingsCount, 'Live casting calls'], [ShieldCheck, data.stats.escrowPayouts, 'Completed payouts']].map(([Icon, amount, label]) => <div key={label} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-lg shadow-slate-200/50 md:p-5"><Icon size={19} className="mb-2 text-violet-600" /><p className="text-xl font-black text-slate-900 md:text-2xl">{loading ? '—' : amount ?? '0'}</p><p className="mt-1 text-[11px] font-semibold text-slate-500 md:text-xs">{label}</p></div>)}</section>
+
+    {/* ────────────────── POPULAR TALENT CATEGORIES ────────────────── */}
+    <section className="relative z-10 mx-auto max-w-[1400px] px-5 py-20 md:px-8">
+      <div className="text-center mb-12">
+        <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Hire Top Talent by Category</h2>
+        <p className="mt-3 text-slate-600 text-sm sm:text-base max-w-2xl mx-auto">Explore our diverse pool of verified professionals ready to bring your creative vision to life.</p>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {[
+          { name: 'Actors', icon: Film, color: 'bg-rose-50 text-rose-600 border-rose-100', hover: 'hover:border-rose-300 hover:shadow-rose-100' },
+          { name: 'Models', icon: Camera, color: 'bg-violet-50 text-violet-600 border-violet-100', hover: 'hover:border-violet-300 hover:shadow-violet-100' },
+          { name: 'Voiceover', icon: Volume2, color: 'bg-blue-50 text-blue-600 border-blue-100', hover: 'hover:border-blue-300 hover:shadow-blue-100' },
+          { name: 'Dancers', icon: Sparkles, color: 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100', hover: 'hover:border-fuchsia-300 hover:shadow-fuchsia-100' },
+          { name: 'Creators', icon: Play, color: 'bg-emerald-50 text-emerald-600 border-emerald-100', hover: 'hover:border-emerald-300 hover:shadow-emerald-100' },
+          { name: 'Crew', icon: Briefcase, color: 'bg-amber-50 text-amber-600 border-amber-100', hover: 'hover:border-amber-300 hover:shadow-amber-100' },
+        ].map((cat) => (
+          <Link key={cat.name} to="/talents" className={`group flex flex-col items-center justify-center p-6 rounded-3xl border border-slate-200 bg-white hover:-translate-y-1 hover:shadow-xl ${cat.hover} transition-all duration-300`}>
+            <div className={`p-4 rounded-2xl ${cat.color} mb-4 transition-transform group-hover:scale-110`}>
+              <cat.icon size={26} strokeWidth={2.5} />
+            </div>
+            <h3 className="font-bold text-slate-900 group-hover:text-slate-950">{cat.name}</h3>
+            <span className="text-[11px] text-slate-400 mt-1 font-semibold flex items-center gap-1 group-hover:text-slate-600 transition-colors">Explore <ArrowRight size={10} /></span>
+          </Link>
+        ))}
+      </div>
+    </section>
     <section id="castings" className="mx-auto max-w-[1400px] px-5 py-20 md:px-8"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-violet-600">Updated from the database</p><h2 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Live casting calls</h2><p className="mt-2 text-sm text-slate-500">Current, open projects posted by companies on MyCastNow.</p></div><label className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm sm:max-w-xs"><Search size={17} className="text-slate-400" /><input value={query} onChange={(e) => setQuery(e.target.value)} className="w-full text-sm outline-none" placeholder="Search role or location" /></label></div>
-      {error ? <div className="mt-8 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">{error}</div> : loading ? <div className="mt-8 grid gap-5 md:grid-cols-3">{[1,2,3].map((n) => <div key={n} className="h-72 animate-pulse rounded-3xl bg-slate-100" />)}</div> : castings.length ? <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">{castings.map((c) => <article key={c._id} className="group rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-violet-200 hover:shadow-xl hover:shadow-violet-100"><div className="flex items-start justify-between gap-3"><span className="rounded-lg bg-violet-50 px-2.5 py-1 text-[11px] font-bold text-violet-700">{c.projectType || 'Casting call'}</span><span className="flex items-center gap-1 text-[11px] font-bold text-emerald-700"><i className="h-2 w-2 rounded-full bg-emerald-500" /> LIVE</span></div><h3 className="mt-4 text-lg font-black text-slate-900">{c.title}</h3><p className="mt-2 flex items-center gap-1.5 text-sm text-slate-500"><Building2 size={14} />{c.company?.name || 'Verified production'}</p><div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">{c.roleType && <span className="rounded-lg bg-slate-100 px-2.5 py-1.5">{c.roleType}</span>}{c.location && <span className="flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1.5"><MapPin size={12} />{c.location}</span>}</div><div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4"><span className="text-sm font-bold text-emerald-700">{c.budget || 'Budget on selection'}</span><Link to="/castings" className="inline-flex items-center gap-1 text-xs font-bold text-violet-700">View role <ArrowRight size={14} /></Link></div></article>)}</div> : <div className="mt-8 rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center"><Clapperboard className="mx-auto text-slate-300" size={38}/><h3 className="mt-3 font-bold text-slate-700">No matching live castings</h3><p className="mt-1 text-sm text-slate-500">Try a different search, or check back for the next verified opportunity.</p></div>}<div className="mt-8 text-center"><Link to="/castings" className="inline-flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm font-bold text-violet-700 hover:bg-violet-100">See all live castings <ArrowRight size={16} /></Link></div></section>
+      {error ? <div className="mt-8 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">{error}</div> : loading ? <div className="mt-8 grid gap-5 md:grid-cols-3">{[1, 2, 3].map((n) => <div key={n} className="h-72 animate-pulse rounded-3xl bg-slate-100" />)}</div> : castings.length ? <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">{castings.map((c) => <article key={c._id} className="group rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-violet-200 hover:shadow-xl hover:shadow-violet-100"><div className="flex items-start justify-between gap-3"><span className="rounded-lg bg-violet-50 px-2.5 py-1 text-[11px] font-bold text-violet-700">{c.projectType || 'Casting call'}</span><span className="flex items-center gap-1 text-[11px] font-bold text-emerald-700"><i className="h-2 w-2 rounded-full bg-emerald-500" /> LIVE</span></div><h3 className="mt-4 text-lg font-black text-slate-900">{c.title}</h3><p className="mt-2 flex items-center gap-1.5 text-sm text-slate-500"><Building2 size={14} />{c.company?.name || 'Verified production'}</p><div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-slate-600">{c.roleType && <span className="rounded-lg bg-slate-100 px-2.5 py-1.5">{c.roleType}</span>}{c.location && <span className="flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1.5"><MapPin size={12} />{c.location}</span>}</div><div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4"><span className="text-sm font-bold text-emerald-700">{c.budget || 'Budget on selection'}</span><Link to="/castings" className="inline-flex items-center gap-1 text-xs font-bold text-violet-700">View role <ArrowRight size={14} /></Link></div></article>)}</div> : <div className="mt-8 rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center"><Clapperboard className="mx-auto text-slate-300" size={38} /><h3 className="mt-3 font-bold text-slate-700">No matching live castings</h3><p className="mt-1 text-sm text-slate-500">Try a different search, or check back for the next verified opportunity.</p></div>}<div className="mt-8 text-center"><Link to="/castings" className="inline-flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm font-bold text-violet-700 hover:bg-violet-100">See all live castings <ArrowRight size={16} /></Link></div></section>
 
     {/* ────────────────── APPROVED PRODUCTION COMPANIES (RIGHT-TO-LEFT INFINITE SLIDER) ────────────────── */}
     <section className="relative overflow-hidden border-y border-slate-200/80 bg-gradient-to-r from-violet-50/50 via-white to-indigo-50/50 py-16">
@@ -672,24 +560,22 @@ export default function PublicWebsite() {
               <button
                 type="button"
                 onClick={() => setBillingCycle('monthly')}
-                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${
-                  billingCycle === 'monthly'
-                    ? 'bg-violet-600 text-white shadow-md shadow-violet-200'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${billingCycle === 'monthly'
+                  ? 'bg-violet-600 text-white shadow-md shadow-violet-200'
+                  : 'text-slate-600 hover:text-slate-900'
+                  }`}
               >
-                Monthly Billing
+                Monthly Plan
               </button>
               <button
                 type="button"
                 onClick={() => setBillingCycle('yearly')}
-                className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
-                  billingCycle === 'yearly'
-                    ? 'bg-violet-600 text-white shadow-md shadow-violet-200'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition-all ${billingCycle === 'yearly'
+                  ? 'bg-violet-600 text-white shadow-md shadow-violet-200'
+                  : 'text-slate-600 hover:text-slate-900'
+                  }`}
               >
-                <span>Annual Billing</span>
+                <span>Annual Plan</span>
                 <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-extrabold text-emerald-700">
                   Save 20%
                 </span>
@@ -703,11 +589,10 @@ export default function PublicWebsite() {
                   key={aud}
                   type="button"
                   onClick={() => setAudienceFilter(aud)}
-                  className={`rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
-                    audienceFilter === aud
-                      ? 'bg-slate-900 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
+                  className={`rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${audienceFilter === aud
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                    }`}
                 >
                   {aud === 'All' ? 'All Plans' : aud === 'Creator' ? 'For Creators' : 'For Production'}
                 </button>
@@ -732,11 +617,10 @@ export default function PublicWebsite() {
               return (
                 <div
                   key={plan._id}
-                  className={`relative flex flex-col justify-between rounded-3xl border-2 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl ${
-                    plan.isPopular
-                      ? 'border-violet-500 shadow-violet-100 ring-2 ring-violet-500/20'
-                      : 'border-slate-200'
-                  }`}
+                  className={`relative flex flex-col justify-between rounded-3xl border-2 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl ${plan.isPopular
+                    ? 'border-violet-500 shadow-violet-100 ring-2 ring-violet-500/20'
+                    : 'border-slate-200'
+                    }`}
                 >
                   {/* Popular Badge */}
                   {plan.isPopular && (
@@ -753,8 +637,8 @@ export default function PublicWebsite() {
                         {plan.targetAudience === 'Creator'
                           ? 'For Artists & Creators'
                           : plan.targetAudience === 'Company'
-                          ? 'For Production Houses'
-                          : 'For All Members'}
+                            ? 'For Production Houses'
+                            : 'For All Members'}
                       </span>
                       {plan.trialDays > 0 && (
                         <span className="rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">
@@ -853,8 +737,8 @@ export default function PublicWebsite() {
                         {isFree
                           ? 'Get Started Free'
                           : plan.trialDays > 0
-                          ? `Start ${plan.trialDays}-Day Free Trial`
-                          : 'Choose Plan'}
+                            ? `Start ${plan.trialDays}-Day Free Trial`
+                            : 'Choose Plan'}
                       </span>
                       <ArrowRight size={14} />
                     </Link>
@@ -887,7 +771,7 @@ export default function PublicWebsite() {
 
     {/* ── TALENT DETAILS & ALL PORTFOLIO PHOTOS MODAL ── */}
     {selectedTalentModal && (
-      <div 
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 md:p-8 bg-black/75 backdrop-blur-md animate-in fade-in duration-200"
         onClick={() => setSelectedTalentModal(null)}
       >

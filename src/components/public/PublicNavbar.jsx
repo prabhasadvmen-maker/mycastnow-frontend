@@ -35,56 +35,44 @@ const PublicNavbar = () => {
 
   return (
     <>
-      {/* ────────────────── TOP ANNOUNCEMENT BANNER ────────────────── */}
-      <div className="bg-gradient-to-r from-purple-100 via-indigo-50 to-blue-100 border-b border-purple-200/60 px-4 py-2 text-center text-xs font-semibold text-purple-900 flex flex-wrap items-center justify-center gap-1 sm:gap-2">
-        <span className="flex h-2 w-2 relative shrink-0">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
-        </span>
-        <span className="break-words">Over <strong className="text-purple-950 font-bold">45+ New Casting Calls</strong> live this week!</span>
-        <Link to="/castings" className="underline hover:text-purple-700 ml-1 font-bold inline-flex items-center gap-0.5 shrink-0">
-          Explore Calls <ArrowRight size={12} />
-        </Link>
-      </div>
-
       {/* ────────────────── CRISP LIGHT NAVBAR ────────────────── */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/90 border-b border-slate-200/80 shadow-xs transition-all">
-        <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-5 lg:px-6 h-20 flex items-center justify-between">
+      <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/95 border-b border-slate-200/80 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] transition-all">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/home" className="flex items-center gap-3 group">
+          <Link to="/home" className="flex items-center gap-3 group shrink-0">
             <div className="h-12 w-auto flex items-center">
               <img 
-                src="/Mycastnow logo.png" 
+                src="/mycastnow logo.jpeg" 
                 alt="MyCastNow Logo" 
-                className="h-11 w-auto object-contain transition-transform group-hover:scale-105" 
+                className="h-10 sm:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105" 
               />
             </div>
           </Link>
 
           {/* Nav Links (Desktop) */}
-          <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-slate-600">
-            <Link to="/talents" className="hover:text-purple-600 transition-colors">
+          <nav className="hidden lg:flex items-center justify-center gap-8 text-[14px] font-medium text-slate-600 flex-1 px-8">
+            <Link to="/talents" className="hover:text-purple-600 transition-colors relative after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-purple-600 after:transition-all after:duration-300">
               Explore Talent
             </Link>
-            <Link to="/castings" className="hover:text-purple-600 transition-colors flex items-center gap-1.5">
+            <Link to="/castings" className="hover:text-purple-600 transition-colors flex items-center gap-2 relative after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-purple-600 after:transition-all after:duration-300">
               Live Castings
-              <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold border border-emerald-300">
+              <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold border border-emerald-200 tracking-wide">
                 LIVE
               </span>
             </Link>
-            <Link to="/home#showreel" className="hover:text-purple-600 transition-colors flex items-center gap-1">
-              <Play size={12} className="text-purple-600 fill-purple-600" /> Watch Reel
+            <Link to="/reels" className="hover:text-purple-600 transition-colors flex items-center gap-1.5 relative after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-purple-600 after:transition-all after:duration-300">
+              <Play size={14} className="text-purple-600 fill-purple-600" /> Watch Reel
             </Link>
-            <Link to="/home#how-it-works" className="hover:text-purple-600 transition-colors">
+            <Link to="/how-it-works" className="hover:text-purple-600 transition-colors relative after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-purple-600 after:transition-all after:duration-300">
               How It Works
             </Link>
-            <Link to="/plans" className="hover:text-purple-600 transition-colors">
-              Plans & Pricing
+            <Link to="/pricing" className="hover:text-purple-600 transition-colors relative after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-purple-600 after:transition-all after:duration-300">
+              Pricing
             </Link>
-            <Link to="/guidelines" className="hover:text-purple-600 transition-colors">
-              Audition Guidelines
+            <Link to="/guidelines" className="hover:text-purple-600 transition-colors relative after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-purple-600 after:transition-all after:duration-300">
+              Guidelines
             </Link>
-            <Link to="/home#faq" className="hover:text-purple-600 transition-colors">
+            <Link to="/faq" className="hover:text-purple-600 transition-colors relative after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 hover:after:w-full after:bg-purple-600 after:transition-all after:duration-300">
               FAQ
             </Link>
           </nav>
@@ -442,19 +430,21 @@ const PublicNavbar = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-2 sm:gap-3">
-                <button
-                  onClick={() => setAuthSelectModal(true)}
-                  className="text-xs sm:text-sm font-bold text-slate-700 hover:text-purple-700 px-3.5 sm:px-4 py-2.5 rounded-xl hover:bg-slate-100 transition-all cursor-pointer border border-slate-200"
+              <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+                <Link
+                  to="/company/signup"
+                  className="hidden md:inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 hover:border-slate-900 bg-white text-slate-800 hover:bg-slate-900 hover:text-white font-bold text-[14px] shadow-xs transition-all cursor-pointer group"
                 >
-                  Sign In
-                </button>
+                  <Briefcase size={15} className="text-slate-500 group-hover:text-white transition-colors" />
+                  <span>Hire Talent</span>
+                </Link>
                 <button
+                  type="button"
                   onClick={() => setAuthSelectModal(true)}
-                  className="text-xs sm:text-sm font-bold text-white px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-md shadow-purple-600/20 transition-all transform hover:-translate-y-0.5 cursor-pointer flex items-center gap-1.5"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-700 hover:via-indigo-700 hover:to-purple-800 text-white font-bold text-[14px] shadow-md shadow-purple-600/30 hover:shadow-lg hover:shadow-purple-600/40 transform hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer group"
                 >
-                  <Sparkles size={15} />
-                  Join MyCastNow
+                  <Sparkles size={16} className="text-yellow-300 fill-yellow-300 group-hover:rotate-12 transition-transform" />
+                  <span>Join Mycastnow</span>
                 </button>
               </div>
             )}
@@ -558,11 +548,25 @@ const PublicNavbar = () => {
                 </span>
               </Link>
               <Link
-                to="/plans"
+                to="/reels"
                 onClick={() => setMobileNavOpen(false)}
                 className="px-3 py-2 rounded-xl hover:bg-purple-50 hover:text-purple-700 transition-colors"
               >
-                Plans & Pricing
+                Watch Reel
+              </Link>
+              <Link
+                to="/how-it-works"
+                onClick={() => setMobileNavOpen(false)}
+                className="px-3 py-2 rounded-xl hover:bg-purple-50 hover:text-purple-700 transition-colors"
+              >
+                How It Works
+              </Link>
+              <Link
+                to="/pricing"
+                onClick={() => setMobileNavOpen(false)}
+                className="px-3 py-2 rounded-xl hover:bg-purple-50 hover:text-purple-700 transition-colors"
+              >
+                Pricing & Plans
               </Link>
               <Link
                 to="/guidelines"
@@ -572,20 +576,37 @@ const PublicNavbar = () => {
                 Audition Guidelines
               </Link>
               <Link
-                to="/safety"
+                to="/faq"
                 onClick={() => setMobileNavOpen(false)}
                 className="px-3 py-2 rounded-xl hover:bg-purple-50 hover:text-purple-700 transition-colors"
               >
-                Safety & Verification
-              </Link>
-              <Link
-                to="/support"
-                onClick={() => setMobileNavOpen(false)}
-                className="px-3 py-2 rounded-xl hover:bg-purple-50 hover:text-purple-700 transition-colors"
-              >
-                Contact Support
+                FAQ & Help
               </Link>
             </nav>
+
+            {!creatorUser && !companyUser && (
+              <div className="pt-3 border-t border-slate-200 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileNavOpen(false);
+                    setAuthSelectModal(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-bold shadow-md shadow-purple-600/20 active:scale-98 transition-all"
+                >
+                  <Sparkles size={16} className="text-yellow-300 fill-yellow-300" />
+                  <span>Join Mycastnow</span>
+                </button>
+                <Link
+                  to="/company/signup"
+                  onClick={() => setMobileNavOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-slate-300 text-slate-800 text-sm font-bold hover:bg-slate-50 transition-colors"
+                >
+                  <Briefcase size={16} />
+                  <span>Hire Talent</span>
+                </Link>
+              </div>
+            )}
 
             {(creatorUser || companyUser) && (
               <div className="pt-2 border-t border-slate-200">

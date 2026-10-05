@@ -14,7 +14,7 @@ const PublicFooter = () => {
           {/* Column 1: Brand Info */}
           <div className="md:col-span-2 space-y-4">
             <Link to="/home" onClick={scrollToTop} className="inline-block h-10">
-              <img src="/Mycastnow logo.png" alt="MyCastNow" className="h-9 w-auto object-contain" />
+              <img src="/mycastnow logo.jpeg" alt="MyCastNow" className="h-9 w-auto object-contain" />
             </Link>
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
               MyCastNow is India's premier entertainment casting & talent marketplace. Connecting verified actors, models, voiceover artists, dancers, and creators directly with production houses, OTT networks, and ad agencies.

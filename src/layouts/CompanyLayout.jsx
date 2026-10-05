@@ -84,7 +84,7 @@ const CompanyLayout = () => {
       <aside className={`bg-[#0b1120] text-white h-screen flex flex-col fixed left-0 top-0 transition-all duration-300 z-20 ${isSidebarCollapsed ? 'w-20' : 'w-64'}`}>
         <div className="py-4 border-b border-white/10 flex flex-col items-center justify-center min-h-[5rem] shrink-0 gap-1">
           <img 
-            src="/Mycastnow logo.png" 
+            src="/mycastnow logo.jpeg" 
             alt="Logo" 
             className={`object-contain transition-all duration-300 ${isSidebarCollapsed ? 'w-10 h-10' : 'w-40 h-10'}`} 
           />

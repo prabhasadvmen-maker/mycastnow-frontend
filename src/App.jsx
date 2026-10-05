@@ -3,11 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CompanyAuthProvider } from './context/CompanyAuthContext';
 import { CreatorAuthProvider } from './context/CreatorAuthContext';
-import Login from './pages/Login';
+import Login from './pages/admin/Login';
 import AdminLayout from './layouts/AdminLayout';
-import Overview from './pages/Overview';
-import Company from './pages/Company';
-import ComingSoon from './pages/ComingSoon';
+import Overview from './pages/admin/Overview';
+import Company from './pages/admin/Company';
+import ComingSoon from './pages/admin/ComingSoon';
 import CompanyLogin from './pages/company/CompanyLogin';
 import CompanySignup from './pages/company/CompanySignup';
 import CompanyLayout from './layouts/CompanyLayout';
@@ -38,20 +38,26 @@ import CreatorSubscription from './pages/creator/CreatorSubscription';
 import CreatorProfile from './pages/creator/CreatorProfile';
 import CreatorSettings from './pages/creator/CreatorSettings';
 import CreatorHelp from './pages/creator/CreatorHelp';
-import AdminCreators from './pages/AdminCreators';
-import AdminCreatorDetails from './pages/AdminCreatorDetails';
-import AdminUsers from './pages/AdminUsers';
-import AdminCasting from './pages/AdminCasting';
-import AdminBookings from './pages/AdminBookings';
-import AdminSubscriptions from './pages/AdminSubscriptions';
-import AdminWallet from './pages/AdminWallet';
-import AdminBoost from './pages/AdminBoost';
-import AdminReviews from './pages/AdminReviews';
-import AdminAnalytics from './pages/AdminAnalytics';
-import AdminSettings from './pages/AdminSettings';
-import AdminHelp from './pages/AdminHelp';
-import PublicWebsite from './pages/PublicWebsite';
+import AdminCreators from './pages/admin/AdminCreators';
+import AdminCreatorDetails from './pages/admin/AdminCreatorDetails';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminCasting from './pages/admin/AdminCasting';
+import AdminBookings from './pages/admin/AdminBookings';
+import AdminSubscriptions from './pages/admin/AdminSubscriptions';
+import AdminWallet from './pages/admin/AdminWallet';
+import AdminBoost from './pages/admin/AdminBoost';
+import AdminReviews from './pages/admin/AdminReviews';
+import AdminAnalytics from './pages/admin/AdminAnalytics';
+import AdminSettings from './pages/admin/AdminSettings';
+import AdminHelp from './pages/admin/AdminHelp';
+import PublicWebsite from './pages/public/PublicWebsite';
 import LiveCastingsPage from './pages/public/LiveCastingsPage';
+import ExploreTalentPage from './pages/public/ExploreTalentPage';
+import WatchReelPage from './pages/public/WatchReelPage';
+import HowItWorksPage from './pages/public/HowItWorksPage';
+import PricingPage from './pages/public/PricingPage';
+import AuditionGuidelinesPage from './pages/public/AuditionGuidelinesPage';
+import FAQPage from './pages/public/FAQPage';
 import PublicInfoPage from './pages/public/PublicInfoPage';
 
 function App() {
@@ -66,11 +72,16 @@ function App() {
               <Route path="/home" element={<PublicWebsite />} />
               <Route path="/website" element={<PublicWebsite />} />
               <Route path="/landing" element={<PublicWebsite />} />
+              <Route path="/talents" element={<ExploreTalentPage />} />
               <Route path="/castings" element={<LiveCastingsPage />} />
-              <Route path="/talents" element={<PublicWebsite />} />
-              <Route path="/plans" element={<PublicInfoPage page="plans" />} />
-              <Route path="/membership" element={<PublicInfoPage page="plans" />} />
-              <Route path="/guidelines" element={<PublicInfoPage page="guidelines" />} />
+              <Route path="/reels" element={<WatchReelPage />} />
+              <Route path="/watch-reel" element={<WatchReelPage />} />
+              <Route path="/how-it-works" element={<HowItWorksPage />} />
+              <Route path="/plans" element={<PricingPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/membership" element={<PricingPage />} />
+              <Route path="/guidelines" element={<AuditionGuidelinesPage />} />
+              <Route path="/faq" element={<FAQPage />} />
               <Route path="/safety" element={<PublicInfoPage page="safety" />} />
               <Route path="/support" element={<PublicInfoPage page="support" />} />
               <Route path="/escrow" element={<PublicInfoPage page="escrow" />} />

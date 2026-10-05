@@ -110,7 +110,7 @@ const CreatorLayout = () => {
       <aside className={`bg-[#170B20] text-white h-screen flex flex-col fixed left-0 top-0 transition-all duration-300 z-50 ${isSidebarCollapsed ? 'md:w-20' : 'md:w-64'} ${isMobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64 md:translate-x-0'}`}>
         <div className="py-4 border-b border-white/10 flex flex-col items-center justify-center min-h-[5rem] shrink-0 gap-1">
           <img 
-            src="/Mycastnow logo.png" 
+            src="/mycastnow logo.jpeg" 
             alt="Logo" 
             className={`object-contain transition-all duration-300 ${isSidebarCollapsed ? 'w-10 h-10' : 'w-40 h-10'}`} 
           />

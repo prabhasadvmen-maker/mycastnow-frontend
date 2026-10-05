@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Plus, X, Building2, Mail, Lock, Globe, MapPin, Briefcase, Image as ImageIcon, Eye, EyeOff, Settings, Edit2, Trash2, Power, Calendar, LogIn, CheckCircle2, XCircle, Clock, AlertCircle, ShieldCheck, Phone, FileText, Link as LinkIcon, User } from 'lucide-react';
-import { useCompanyAuth } from '../context/CompanyAuthContext';
+import { useCompanyAuth } from '../../context/CompanyAuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function Company() {

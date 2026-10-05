@@ -6,7 +6,7 @@ import {
   Send, AlertCircle, CheckCircle2, FileText, Phone, 
   Mail, MessageSquare, LifeBuoy, ExternalLink, RefreshCw 
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 const AdminHelp = () => {
   const { user } = useAuth();

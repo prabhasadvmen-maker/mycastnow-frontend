@@ -7,7 +7,7 @@ import {
   Lock, Mail, Phone, Building, Percent, DollarSign,
   AlertCircle, ShieldAlert, Cpu, ToggleLeft, ToggleRight
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 const AdminSettings = () => {
   const { user, updateUser } = useAuth();

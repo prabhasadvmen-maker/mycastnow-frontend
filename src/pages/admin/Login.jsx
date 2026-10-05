@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Mail } from 'lucide-react';
 
@@ -24,7 +24,7 @@ export default function Login() {
     <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center p-4">
       <div className="bg-[#0b1120] p-8 rounded-2xl shadow-2xl shadow-blue-900/20 w-full max-w-md border border-white/10">
         <div className="text-center mb-8">
-          <img src="/Mycastnow logo.png" alt="Logo" className="w-48 h-auto mx-auto mb-6 object-contain" />
+          <img src="/mycastnow logo.jpeg" alt="Logo" className="w-48 h-auto mx-auto mb-6 object-contain" />
           <h2 className="text-2xl font-bold text-white">Admin Login</h2>
           <p className="text-gray-400 mt-2">Sign in to access dashboard</p>
         </div>

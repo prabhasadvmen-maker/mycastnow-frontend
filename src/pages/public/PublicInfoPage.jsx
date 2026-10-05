@@ -33,7 +33,7 @@ export default function PublicInfoPage({ page = 'support' }) {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(isPlansPage);
   const [billingCycle, setBillingCycle] = useState('monthly');
-  const [audienceFilter, setAudienceFilter] = useState('All');
+  const [audienceFilter, setAudienceFilter] = useState('Creator');
 
   useEffect(() => {
     if (!isPlansPage) return;
@@ -41,11 +41,12 @@ export default function PublicInfoPage({ page = 'support' }) {
 
     axios.get(`${API}/public/landing`).then(({ data: res }) => {
       if (active && res?.plans?.length) setPlans(res.plans);
-      // Also query admin subscriptions to ensure latest updates
-      return axios.get(`${API}/admin/subscriptions/plans`);
+      // Also query public plans endpoint to ensure latest updates
+      return axios.get(`${API}/public/plans`);
     }).then((pRes) => {
-      if (active && Array.isArray(pRes?.data) && pRes.data.length) {
-        setPlans(pRes.data.filter((p) => p.isActive !== false));
+      const fetchedPlans = pRes?.data?.plans || (Array.isArray(pRes?.data) ? pRes.data : null);
+      if (active && Array.isArray(fetchedPlans) && fetchedPlans.length) {
+        setPlans(fetchedPlans.filter((p) => p.isActive !== false));
       }
     }).catch(() => {})
       .finally(() => active && setLoading(false));
@@ -79,7 +80,7 @@ export default function PublicInfoPage({ page = 'support' }) {
                     billingCycle === 'monthly' ? 'bg-violet-600 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Monthly Billing
+                  Monthly Plan
                 </button>
                 <button
                   type="button"
@@ -88,7 +89,7 @@ export default function PublicInfoPage({ page = 'support' }) {
                     billingCycle === 'yearly' ? 'bg-violet-600 text-white shadow-md' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <span>Annual Billing</span>
+                  <span>Annual Plan</span>
                   <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-extrabold text-emerald-700">
                     Save 20%
                   </span>
@@ -96,7 +97,7 @@ export default function PublicInfoPage({ page = 'support' }) {
               </div>
 
               <div className="inline-flex items-center rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
-                {['All', 'Creator', 'Company'].map((aud) => (
+                {['Creator', 'Company'].map((aud) => (
                   <button
                     key={aud}
                     type="button"

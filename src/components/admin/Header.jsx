@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { Menu, LogOut, User, Settings, HelpCircle, Key, ShieldCheck, Globe } from 'lucide-react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import AdminProfileModal from './AdminProfileModal';
