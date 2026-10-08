@@ -328,7 +328,7 @@ export default function Company() {
                           title="Click to view full company details"
                         >
                           {company.logo ? (
-                            <img src={company.logo} alt="Logo" className="w-full h-full object-cover" />
+                            <img src={company.logo.startsWith('http') ? company.logo : `${import.meta.env.VITE_API_URL}${company.logo}`} alt="Logo" className="w-full h-full object-cover" />
                           ) : (
                             <Building2 size={16} />
                           )}
@@ -625,7 +625,7 @@ export default function Company() {
                   <div className="w-20 h-20 rounded-2xl bg-white p-1.5 shadow-xl border-2 border-white overflow-hidden shrink-0">
                     <div className="w-full h-full rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 overflow-hidden">
                       {reviewCompany.logo ? (
-                        <img src={reviewCompany.logo} alt={reviewCompany.name} className="w-full h-full object-cover" />
+                        <img src={reviewCompany.logo.startsWith('http') ? reviewCompany.logo : `${import.meta.env.VITE_API_URL}${reviewCompany.logo}`} alt={reviewCompany.name} className="w-full h-full object-cover" />
                       ) : (
                         <Building2 size={32} className="text-gray-400" />
                       )}
