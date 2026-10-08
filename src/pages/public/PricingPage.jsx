@@ -5,11 +5,14 @@ import { Crown, CheckCircle2, ShieldCheck, Sparkles, Zap, Star, HelpCircle, Arro
 import PublicLayout from '../../components/public/PublicLayout';
 
 let API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
+if (API && !API.includes('/api')) {
+  API = API.replace(/\/+$/, '') + '/api';
+}
 if (typeof window !== 'undefined') {
   const host = window.location.hostname;
   if (host !== 'localhost' && host !== '127.0.0.1') {
     if (!import.meta.env.VITE_API_URL || import.meta.env.VITE_API_URL.includes('localhost') || import.meta.env.VITE_API_URL.includes('127.0.0.1')) {
-      API = 'https://mycastnow-backend.onrender.com/api/v1';
+      API = 'https://mycastnow-backend.onrender.com/api';
     }
   }
 }
