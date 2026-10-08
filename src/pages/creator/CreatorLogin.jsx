@@ -4,7 +4,7 @@ import { useCreatorAuth } from '../../context/CreatorAuthContext';
 import { Phone, ArrowRight, ShieldCheck, AlertCircle, Sparkles, Check } from 'lucide-react';
 
 const CreatorLogin = ({ isSignup = false }) => {
-  const { sendOtp, verifyOtp } = useCreatorAuth();
+  const { sendOtp, resendOtp, verifyOtp } = useCreatorAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -17,6 +17,20 @@ const CreatorLogin = ({ isSignup = false }) => {
   const [isLogin, setIsLogin] = useState(!isSignupMode);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [resendTimer, setResendTimer] = useState(30);
+
+  // Countdown timer
+  useEffect(() => {
+    let interval = null;
+    if (step === 2 && resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer(t => t - 1);
+      }, 1000);
+    } else if (resendTimer === 0) {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [step, resendTimer]);
 
   // Keep isLogin in sync if path or params change
   useEffect(() => {
@@ -45,6 +59,7 @@ const CreatorLogin = ({ isSignup = false }) => {
       const res = await sendOtp(phone);
       if (res.success) {
         setStep(2); // Show the OTP screen first
+        setResendTimer(30);
 
         // Auto-fill and auto-verify magic (with visual delay so they can see it happen)
         if (res.devOtp) {
@@ -67,9 +82,55 @@ const CreatorLogin = ({ isSignup = false }) => {
     setLoading(false);
   };
 
+  const handleResendOtp = async () => {
+    setLoading(true);
+    setError('');
+    setOtp('');
+    try {
+      const res = await resendOtp(phone);
+      if (res.success) {
+        setResendTimer(30);
+        if (res.devOtp) {
+          setTimeout(() => {
+            setOtp(res.devOtp);
+            setTimeout(() => {
+              handleVerifyOtp(null, res.devOtp);
+            }, 1000);
+          }, 1500);
+        }
+      } else {
+        setError(res.message || 'Failed to resend OTP');
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
+    }
+    setLoading(false);
+  };
+
+  const handleOtpChange = (index, value) => {
+    if (value && !/^\d+$/.test(value)) return;
+    
+    let otpArray = (otp || '').padEnd(6, ' ').split('');
+    otpArray[index] = value || ' ';
+    setOtp(otpArray.join(''));
+
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    let otpArray = (otp || '').padEnd(6, ' ').split('');
+    if (e.key === 'Backspace' && otpArray[index] === ' ' && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    }
+  };
+
   const handleVerifyOtp = async (e, autoOtp = null) => {
     if (e) e.preventDefault();
-    const currentOtp = autoOtp || otp;
+    const currentOtp = (autoOtp || otp).replace(/\s/g, '');
 
     if (currentOtp.length !== 6) {
       setError('Please enter the 6-digit OTP');
@@ -186,26 +247,39 @@ const CreatorLogin = ({ isSignup = false }) => {
               <h3 className="text-2xl font-bold text-gray-800 mb-2">Verify OTP</h3>
               <p className="text-gray-500 mb-8 text-sm">We've sent a 6-digit code to <strong>+91 {phone}</strong></p>
 
-              <div className="mb-8">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Enter OTP</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <ShieldCheck className="w-6 h-6 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="w-full pl-14 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-center tracking-[1em] font-bold text-2xl text-gray-800"
-                    placeholder="------"
-                    required
-                  />
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-4 text-center">Enter 6-digit OTP</label>
+                <div className="flex gap-2 justify-center">
+                  {[0, 1, 2, 3, 4, 5].map((index) => (
+                    <input
+                      key={index}
+                      id={`otp-${index}`}
+                      type="text"
+                      maxLength="1"
+                      value={(otp || '').padEnd(6, ' ')[index] !== ' ' ? (otp || '').padEnd(6, ' ')[index] : ''}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      className="w-12 h-14 text-center text-2xl font-bold bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-800"
+                    />
+                  ))}
                 </div>
+              </div>
+
+              <div className="flex justify-between items-center mb-6 text-sm px-2">
+                <span className="text-gray-500">Didn't receive code?</span>
+                <button
+                  type="button"
+                  disabled={resendTimer > 0 || loading}
+                  onClick={handleResendOtp}
+                  className={`font-semibold transition-colors ${resendTimer > 0 ? 'text-gray-400' : 'text-blue-600 hover:text-blue-700'}`}
+                >
+                  {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
+                </button>
               </div>
 
               <button
                 type="submit"
-                disabled={loading || otp.length !== 6}
+                disabled={loading || (otp || '').replace(/\s/g, '').length !== 6}
                 className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-fuchsia-600 hover:from-blue-700 hover:to-fuchsia-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg"
               >
                 {loading ? 'Verifying...' : 'Verify & Continue'}

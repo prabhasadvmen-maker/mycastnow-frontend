@@ -36,6 +36,15 @@ export const CreatorAuthProvider = ({ children }) => {
     }
   };
 
+  const resendOtp = async (phone) => {
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/creatorAuth/resend-otp`, { phone });
+      return res.data;
+    } catch (err) {
+      return err.response?.data || { success: false, message: 'Failed to resend OTP' };
+    }
+  };
+
   const verifyOtp = async (phone, otp) => {
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/creatorAuth/verify-otp`, { phone, otp });
@@ -71,6 +80,7 @@ export const CreatorAuthProvider = ({ children }) => {
       setCreatorUser, 
       loading, 
       sendOtp, 
+      resendOtp,
       verifyOtp, 
       updateProfile,
       logout 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { User, CheckCircle, XCircle, Clock, Phone, MapPin, Briefcase, ArrowLeft, Trash2 } from 'lucide-react';
+import { User, CheckCircle, XCircle, Clock, Phone, MapPin, Briefcase, ArrowLeft, Trash2, Mail, Camera, Globe } from 'lucide-react';
 
 const AdminCreatorDetails = () => {
   const { id } = useParams();
@@ -150,10 +150,11 @@ const AdminCreatorDetails = () => {
             {getStatusBadge(creator.status)}
           </div>
           
-          <div className="flex gap-8 mt-6 bg-gray-50 p-4 rounded-2xl">
-            <div className="flex items-center gap-3 text-gray-600"><Phone size={20} className="text-gray-400"/> <span className="font-medium">{creator.phone}</span></div>
-            <div className="flex items-center gap-3 text-gray-600"><MapPin size={20} className="text-gray-400"/> <span className="font-medium">{creator.basicDetails?.city || 'Location Not Set'}</span></div>
-            <div className="flex items-center gap-3 text-gray-600"><Clock size={20} className="text-gray-400"/> <span className="font-medium">Joined: {new Date(creator.createdAt).toLocaleDateString()}</span></div>
+          <div className="flex flex-wrap gap-6 mt-6 bg-gray-50 p-4 rounded-2xl">
+            <div className="flex items-center gap-2 text-gray-600"><Phone size={18} className="text-gray-400"/> <span className="font-medium">{creator.phone}</span></div>
+            {creator.email && <div className="flex items-center gap-2 text-gray-600"><Mail size={18} className="text-gray-400"/> <span className="font-medium">{creator.email}</span></div>}
+            <div className="flex items-center gap-2 text-gray-600"><MapPin size={18} className="text-gray-400"/> <span className="font-medium">{creator.basicDetails?.city || 'Location Not Set'}</span></div>
+            <div className="flex items-center gap-2 text-gray-600"><Clock size={18} className="text-gray-400"/> <span className="font-medium">Joined: {new Date(creator.createdAt).toLocaleDateString()}</span></div>
           </div>
         </div>
       </div>
@@ -212,6 +213,25 @@ const AdminCreatorDetails = () => {
                     : <span className="text-gray-400">-</span>
                   }
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Social & Web Links */}
+          <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm">
+            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6 border-b border-gray-100 pb-4">Social & Links</h3>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Camera size={20} className="text-pink-600" />
+                {creator.socialLinks?.instagram ? <a href={creator.socialLinks.instagram} target="_blank" rel="noreferrer" className="text-blue-600 font-medium hover:underline break-all">{creator.socialLinks.instagram}</a> : <span className="text-gray-400">-</span>}
+              </div>
+              <div className="flex items-center gap-3">
+                <Briefcase size={20} className="text-blue-700" />
+                {creator.socialLinks?.linkedin ? <a href={creator.socialLinks.linkedin} target="_blank" rel="noreferrer" className="text-blue-600 font-medium hover:underline break-all">{creator.socialLinks.linkedin}</a> : <span className="text-gray-400">-</span>}
+              </div>
+              <div className="flex items-center gap-3">
+                <Globe size={20} className="text-gray-600" />
+                {creator.socialLinks?.website ? <a href={creator.socialLinks.website} target="_blank" rel="noreferrer" className="text-blue-600 font-medium hover:underline break-all">{creator.socialLinks.website}</a> : <span className="text-gray-400">-</span>}
               </div>
             </div>
           </div>

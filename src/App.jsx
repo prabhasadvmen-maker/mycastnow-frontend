@@ -50,6 +50,7 @@ import AdminReviews from './pages/admin/AdminReviews';
 import AdminAnalytics from './pages/admin/AdminAnalytics';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminHelp from './pages/admin/AdminHelp';
+import AdminPayments from './pages/admin/AdminPayments';
 import PublicWebsite from './pages/public/PublicWebsite';
 import LiveCastingsPage from './pages/public/LiveCastingsPage';
 import ExploreTalentPage from './pages/public/ExploreTalentPage';
@@ -100,7 +101,7 @@ function App() {
               <Route path="profiles/:id" element={<AdminCreatorDetails />} />
               <Route path="casting" element={<AdminCasting />} />
               <Route path="bookings" element={<AdminBookings />} />
-              <Route path="payments" element={<ComingSoon />} />
+              <Route path="payments" element={<AdminPayments />} />
               <Route path="subscriptions" element={<AdminSubscriptions />} />
               <Route path="wallet" element={<AdminWallet />} />
               <Route path="boost" element={<AdminBoost />} />

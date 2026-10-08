@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCreatorAuth } from '../../context/CreatorAuthContext';
-import { CheckCircle2, ChevronRight, ChevronLeft, UploadCloud, AlertCircle, User } from 'lucide-react';
+import { CheckCircle2, ChevronRight, ChevronLeft, UploadCloud, AlertCircle, User, CreditCard, ShieldCheck, IndianRupee } from 'lucide-react';
+import DownloadReceipt from '../../components/DownloadReceipt';
 
 const steps = [
   "Category",
@@ -12,6 +13,7 @@ const steps = [
   "Portfolio",
   "Pricing",
   "Availability",
+  "Payment",
   "Preview"
 ];
 
@@ -24,10 +26,15 @@ const CreatorSignupFlow = () => {
   const [currentStep, setCurrentStep] = useState(creatorUser?.onboardingStep || 1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   // 1. Basic Details
   const [basic, setBasic] = useState({
     fullName: creatorUser?.basicDetails?.fullName || '',
+    email: creatorUser?.email || '',
+    instagram: creatorUser?.socialLinks?.instagram || '',
+    linkedin: creatorUser?.socialLinks?.linkedin || '',
+    portfolioLink: creatorUser?.socialLinks?.website || '',
     profilePhoto: creatorUser?.basicDetails?.profilePhoto || '',
     gender: creatorUser?.basicDetails?.gender || '',
     dob: creatorUser?.basicDetails?.dob ? new Date(creatorUser.basicDetails.dob).toISOString().split('T')[0] : '',
@@ -69,6 +76,9 @@ const CreatorSignupFlow = () => {
 
   // 7. Availability
   const [availabilityStatus, setAvailabilityStatus] = useState(creatorUser?.availability?.status || 'Available');
+  const [paymentDone, setPaymentDone] = useState(creatorUser?.onboardingFeePaid || false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [receipt, setReceipt] = useState(null);
 
   useEffect(() => {
     if (creatorUser?.isProfileComplete) {
@@ -85,45 +95,68 @@ const CreatorSignupFlow = () => {
       let updateData = { onboardingStep: currentStep + 1 };
 
       if (currentStep === 1) updateData.professionalDetails = { ...creatorUser?.professionalDetails, ...prof, skills: prof.skills.split(',').map(s => s.trim()).filter(s => s) };
-      if (currentStep === 2) updateData.basicDetails = { ...creatorUser?.basicDetails, ...basic, languages: basic.languages.split(',').map(s => s.trim()).filter(s => s) };
+      if (currentStep === 2) {
+        updateData.basicDetails = { 
+          ...creatorUser?.basicDetails, 
+          ...basic, 
+          languages: basic.languages.split(',').map(s => s.trim()).filter(s => s) 
+        };
+        if (basic.email && basic.email.trim() !== '') {
+          updateData.email = basic.email.trim();
+        } else {
+          updateData.email = null; // null works well with sparse indexes
+        }
+        updateData.socialLinks = { 
+          ...creatorUser?.socialLinks, 
+          instagram: basic.instagram, 
+          linkedin: basic.linkedin, 
+          website: basic.portfolioLink 
+        };
+        delete updateData.basicDetails.email;
+        delete updateData.basicDetails.instagram;
+        delete updateData.basicDetails.linkedin;
+        delete updateData.basicDetails.portfolioLink;
+      }
       if (currentStep === 3) updateData.professionalDetails = { ...creatorUser?.professionalDetails, ...prof, skills: prof.skills.split(',').map(s => s.trim()).filter(s => s) };
       if (currentStep === 4) updateData.physicalDetails = { ...creatorUser?.physicalDetails, ...physical };
       if (currentStep === 5) {
-        // Upload any new files to R2 via backend
         const filesToUpload = portfolioFiles.filter(f => f.file);
         let finalPortfolio = [...portfolioFiles];
 
         if (filesToUpload.length > 0) {
           try {
-            for (let f of filesToUpload) {
-              // 1. Get Pre-signed URL from Backend
-              const presignedRes = await axios.post(`${import.meta.env.VITE_API_URL}/upload/presigned-url`, {
-                filename: f.file.name,
-                fileType: f.file.type
-              });
+            for (let i = 0; i < filesToUpload.length; i++) {
+              const f = filesToUpload[i];
+              const fileIndex = finalPortfolio.findIndex(item => item === f);
+              
+              const formData = new FormData();
+              formData.append('file', f.file);
 
-              if (presignedRes.data.success) {
-                const { uploadUrl, fileUrl } = presignedRes.data;
-
-                // 2. Upload file directly to R2 (bypasses Vercel payload limits)
-                await axios.put(uploadUrl, f.file, {
-                  headers: { 'Content-Type': f.file.type }
-                });
-
-                // 3. Update the final portfolio array with the new URL
-                const index = finalPortfolio.findIndex(item => item === f);
-                if (index !== -1) {
-                  finalPortfolio[index] = { url: fileUrl, type: f.file.type };
+              await axios.post(`${import.meta.env.VITE_API_URL}/upload/upload-direct`, formData, {
+                onUploadProgress: (progressEvent) => {
+                  const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+                  setPortfolioFiles(prev => {
+                    const updated = [...prev];
+                    if (updated[fileIndex]) {
+                      updated[fileIndex] = { ...updated[fileIndex], uploadProgress: progress };
+                    }
+                    return updated;
+                  });
                 }
-              }
+              }).then(res => {
+                if (res.data.success) {
+                  if (fileIndex !== -1) {
+                    finalPortfolio[fileIndex] = { url: res.data.url, type: f.file.type, uploadProgress: 100 };
+                    setPortfolioFiles([...finalPortfolio]);
+                  }
+                }
+              });
             }
           } catch (uploadErr) {
             console.error('Failed to upload files:', uploadErr);
             throw new Error('Failed to upload files to server.');
           }
         }
-
-        setPortfolioFiles(finalPortfolio); // update state so they are not re-uploaded if user comes back
 
         updateData.portfolio = {
           photos: finalPortfolio.filter(f => f.type?.startsWith('image/')).map(f => f.url),
@@ -132,13 +165,79 @@ const CreatorSignupFlow = () => {
       }
       if (currentStep === 6) updateData.pricing = { ...creatorUser?.pricing, ...pricing };
       if (currentStep === 7) updateData.availability = { ...creatorUser?.availability, status: availabilityStatus };
+      if (currentStep === 8 && !paymentDone) {
+        setLoading(false);
+        setError('Please complete the onboarding fee payment to proceed.');
+        return;
+      }
 
       await updateProfile(updateData);
       setCurrentStep((prev) => prev + 1);
     } catch (err) {
-      setError('Failed to save progress.');
+      setError(err.response?.data?.message || 'Failed to save progress.');
     }
     setLoading(false);
+  };
+
+  const handlePayment = async () => {
+    setPaymentLoading(true);
+    setError('');
+    try {
+      const token = localStorage.getItem('creatorToken');
+      const orderRes = await axios.post(
+        `${import.meta.env.VITE_API_URL}/payments/create-onboarding-order`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const { orderId, amount, currency, creatorName, creatorPhone } = orderRes.data;
+      const keyRes = await axios.get(`${import.meta.env.VITE_API_URL}/payments/razorpay-key`);
+
+      const options = {
+        key: keyRes.data.key,
+        amount,
+        currency,
+        name: 'MyCastNow',
+        description: 'Creator Onboarding Fee',
+        image: '/mycastnow logo.jpeg',
+        order_id: orderId,
+        prefill: { name: creatorName, contact: creatorPhone },
+        theme: { color: '#a21caf' },
+        handler: async (response) => {
+          try {
+            const verifyRes = await axios.post(
+              `${import.meta.env.VITE_API_URL}/payments/verify-onboarding`,
+              {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (verifyRes.data.success) {
+              setPaymentDone(true);
+              setReceipt({
+                paymentId: response.razorpay_payment_id,
+                orderId: response.razorpay_order_id,
+                amount: amount / 100,
+                name: creatorName,
+                phone: creatorPhone,
+                date: new Date().toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' })
+              });
+            }
+          } catch {
+            setError('Payment verification failed. Please contact support.');
+          }
+          setPaymentLoading(false);
+        },
+        modal: { ondismiss: () => setPaymentLoading(false) }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to initiate payment.');
+      setPaymentLoading(false);
+    }
   };
 
   const handlePublish = async () => {
@@ -146,7 +245,7 @@ const CreatorSignupFlow = () => {
     try {
       await updateProfile({
         isProfileComplete: true,
-        onboardingStep: 8
+        onboardingStep: 9
       });
       navigate('/creator/dashboard');
     } catch (err) {
@@ -204,8 +303,8 @@ const CreatorSignupFlow = () => {
             {/* Step 1: Category */}
             {currentStep === 1 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">What describes you best?</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">What describes you best?</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                   {categories.map(cat => (
                     <button
                       key={cat}
@@ -221,8 +320,8 @@ const CreatorSignupFlow = () => {
 
             {/* Step 2: Basic Details */}
             {currentStep === 2 && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-5">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Basic Details</h2>
+              <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-4 sm:space-y-5">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Basic Details</h2>
 
                 <div className="flex flex-col sm:flex-row gap-6 mb-6 sm:items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
                   <div className="flex flex-col items-center gap-2 shrink-0">
@@ -231,6 +330,11 @@ const CreatorSignupFlow = () => {
                         <img src={basic.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
                       ) : (
                         <User className="text-gray-400 w-10 h-10" />
+                      )}
+                      {photoUploading && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-full">
+                          <div className="w-6 h-6 rounded-full border-2 border-white border-t-fuchsia-400 animate-spin"></div>
+                        </div>
                       )}
                       <label className="absolute inset-0 bg-black/50 flex opacity-0 group-hover:opacity-100 items-center justify-center cursor-pointer transition-all">
                         <span className="text-white text-xs font-bold text-center px-2">Upload Profile Image</span>
@@ -241,21 +345,25 @@ const CreatorSignupFlow = () => {
                           onChange={async (e) => {
                             if (e.target.files && e.target.files[0]) {
                               const file = e.target.files[0];
-                              // Show immediate preview
-                              setBasic({ ...basic, profilePhoto: URL.createObjectURL(file) });
-
-                              // Upload in background
-                              const formData = new FormData();
-                              formData.append('files', file);
+                              const previewUrl = URL.createObjectURL(file);
+                              setBasic(prev => ({ ...prev, profilePhoto: previewUrl }));
+                              setPhotoUploading(true);
                               try {
-                                const res = await axios.post(`${import.meta.env.VITE_API_URL}/upload/portfolio`, formData, {
-                                  headers: { 'Content-Type': 'multipart/form-data' }
-                                });
+                                const formData = new FormData();
+                                formData.append('file', file);
+                                const res = await axios.post(`${import.meta.env.VITE_API_URL}/upload/upload-direct`, formData);
                                 if (res.data.success) {
-                                  setBasic(prev => ({ ...prev, profilePhoto: res.data.files[0].url }));
+                                  setBasic(prev => ({ ...prev, profilePhoto: res.data.url }));
+                                } else {
+                                  setError('Profile photo upload failed. Please try again.');
+                                  setBasic(prev => ({ ...prev, profilePhoto: previewUrl }));
                                 }
                               } catch (err) {
                                 console.error('Failed to upload profile photo', err);
+                                setError('Profile photo upload failed. Please try again.');
+                                setBasic(prev => ({ ...prev, profilePhoto: previewUrl }));
+                              } finally {
+                                setPhotoUploading(false);
                               }
                             }
                           }}
@@ -294,18 +402,38 @@ const CreatorSignupFlow = () => {
                   <label className="block text-sm font-bold text-gray-700 mb-2">Bio / About Me</label>
                   <textarea value={basic.bio} onChange={e => setBasic({ ...basic, bio: e.target.value })} rows="4" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Tell brands about yourself..."></textarea>
                 </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Languages Spoken</label>
-                  <input type="text" value={basic.languages} onChange={e => setBasic({ ...basic, languages: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="English, Hindi, Marathi" />
-                  <p className="text-xs text-gray-400 mt-1">Separate multiple languages with commas</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
+                    <input type="email" value={basic.email} onChange={e => setBasic({ ...basic, email: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="johndoe@example.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Languages Spoken</label>
+                    <input type="text" value={basic.languages} onChange={e => setBasic({ ...basic, languages: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="English, Hindi, Marathi" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Instagram Link</label>
+                    <input type="url" value={basic.instagram} onChange={e => setBasic({ ...basic, instagram: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="https://instagram.com/..." />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">LinkedIn Link</label>
+                    <input type="url" value={basic.linkedin} onChange={e => setBasic({ ...basic, linkedin: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="https://linkedin.com/in/..." />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Portfolio Link</label>
+                    <input type="url" value={basic.portfolioLink} onChange={e => setBasic({ ...basic, portfolioLink: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="https://yourportfolio.com" />
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Step 3: Professional */}
             {currentStep === 3 && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-5">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Professional Experience</h2>
+              <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-4 sm:space-y-5">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Professional Experience</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Years of Experience</label>
@@ -328,9 +456,9 @@ const CreatorSignupFlow = () => {
 
             {/* Step 4: Physical Attributes */}
             {currentStep === 4 && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-5">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Physical Attributes</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+              <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-4 sm:space-y-5">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Physical Attributes</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Height</label>
                     <input type="text" value={physical.height} onChange={e => setPhysical({ ...physical, height: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="5'10&quot;" />
@@ -366,10 +494,10 @@ const CreatorSignupFlow = () => {
             {/* Step 5: Portfolio */}
             {currentStep === 5 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Upload Portfolio</h2>
-                <p className="text-gray-500 mb-6">Add your best photos and videos to showcase your work.</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Upload Portfolio</h2>
+                <p className="text-sm sm:text-base text-gray-500 mb-6">Add your best photos and videos to showcase your work.</p>
 
-                <label className="border-2 border-dashed border-gray-300 rounded-3xl p-12 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer flex flex-col items-center justify-center relative">
+                <label className="border-2 border-dashed border-gray-300 rounded-3xl p-8 sm:p-12 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer flex flex-col items-center justify-center relative">
                   <input
                     type="file"
                     multiple
@@ -378,9 +506,10 @@ const CreatorSignupFlow = () => {
                     onChange={(e) => {
                       if (e.target.files.length > 0) {
                         const newFiles = Array.from(e.target.files).map(file => ({
-                          file, // Store actual file for upload
-                          url: URL.createObjectURL(file), // Temp URL for preview
-                          type: file.type
+                          file,
+                          url: URL.createObjectURL(file),
+                          type: file.type,
+                          uploadProgress: 0
                         }));
                         setPortfolioFiles(prev => [...prev, ...newFiles]);
                       }
@@ -392,13 +521,26 @@ const CreatorSignupFlow = () => {
                 </label>
 
                 {portfolioFiles.length > 0 && (
-                  <div className="mt-6 grid grid-cols-3 md:grid-cols-4 gap-4">
+                  <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
                     {portfolioFiles.map((fileObj, idx) => (
                       <div key={idx} className="aspect-square rounded-xl overflow-hidden border border-gray-200 relative group bg-black flex items-center justify-center">
                         {fileObj.type.startsWith('video/') ? (
                           <video src={fileObj.url} className="w-full h-full object-cover" autoPlay muted loop />
                         ) : (
                           <img src={fileObj.url} className="w-full h-full object-cover" alt="portfolio item" />
+                        )}
+                        {fileObj.uploadProgress > 0 && fileObj.uploadProgress < 100 && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="w-12 h-12 rounded-full border-4 border-white border-t-fuchsia-500 animate-spin mb-2"></div>
+                              <p className="text-white text-xs font-bold">{fileObj.uploadProgress}%</p>
+                            </div>
+                          </div>
+                        )}
+                        {fileObj.uploadProgress === 100 && (
+                          <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
+                            <CheckCircle2 size={24} className="text-green-400" />
+                          </div>
                         )}
                         <button
                           onClick={() => setPortfolioFiles(prev => prev.filter((_, i) => i !== idx))}
@@ -415,8 +557,8 @@ const CreatorSignupFlow = () => {
 
             {/* Step 6: Pricing */}
             {currentStep === 6 && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-5">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Pricing Setup</h2>
+              <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-4 sm:space-y-5">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Pricing Setup</h2>
 
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Hourly Rate (₹)</label>
@@ -433,21 +575,66 @@ const CreatorSignupFlow = () => {
             {/* Step 7: Availability */}
             {currentStep === 7 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Current Availability</h2>
-                <div className="flex gap-4">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Current Availability</h2>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <button onClick={() => setAvailabilityStatus('Available')} className={`flex-1 py-4 border-2 rounded-2xl font-bold ${availabilityStatus === 'Available' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-600'}`}>Available Now</button>
                   <button onClick={() => setAvailabilityStatus('Unavailable')} className={`flex-1 py-4 border-2 rounded-2xl font-bold ${availabilityStatus === 'Unavailable' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 text-gray-600'}`}>Unavailable</button>
                 </div>
               </div>
             )}
 
-            {/* Step 8: Preview */}
+            {/* Step 8: Payment */}
             {currentStep === 8 && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-500 text-center">
-                <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="w-12 h-12" />
+              <div className="animate-in fade-in slide-in-from-right-4 duration-500 px-2 sm:px-0">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Onboarding Fee</h2>
+                <p className="text-sm sm:text-base text-gray-500 mb-8">One-time fee to activate your creator profile on MyCastNow.</p>
+
+                {paymentDone ? (
+                  <div className="flex flex-col items-center gap-5">
+                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+                      <ShieldCheck className="w-10 h-10 text-green-600" />
+                    </div>
+                    <h3 className="text-xl font-bold text-green-700">Payment Successful!</h3>
+                    <p className="text-gray-500 text-sm">Your onboarding fee has been received. Click Next to continue.</p>
+                    <DownloadReceipt receipt={receipt} />
+                  </div>
+                ) : (
+                  <div className="max-w-sm mx-auto">
+                    <div className="bg-gradient-to-br from-fuchsia-600 to-purple-700 rounded-3xl p-8 text-white text-center mb-6 shadow-xl shadow-fuchsia-200">
+                      <CreditCard className="w-10 h-10 mx-auto mb-4 opacity-80" />
+                      <p className="text-sm font-semibold opacity-80 mb-1">One-time Onboarding Fee</p>
+                      <p className="text-5xl font-black mb-1">₹1</p>
+                      <p className="text-xs opacity-70">Includes profile listing + admin verification</p>
+                    </div>
+                    <ul className="space-y-3 mb-8 text-sm text-gray-600">
+                      {['Profile listed on MyCastNow platform', 'Admin verification & approval', 'Access to casting calls & bookings', 'Lifetime profile (no renewal)'].map(item => (
+                        <li key={item} className="flex items-center gap-2">
+                          <CheckCircle2 size={16} className="text-fuchsia-600 shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      onClick={handlePayment}
+                      disabled={paymentLoading}
+                      className="w-full py-4 bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-fuchsia-200 transition-all disabled:opacity-60"
+                    >
+                      <IndianRupee size={18} />
+                      {paymentLoading ? 'Opening Payment...' : 'Pay ₹1 Now'}
+                    </button>
+                    <p className="text-xs text-center text-gray-400 mt-3">Secured by Razorpay · UPI, Cards, NetBanking accepted</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 9: Preview */}
+            {currentStep === 9 && (
+              <div className="animate-in fade-in slide-in-from-right-4 duration-500 text-center px-2 sm:px-0">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                  <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">You're all set, {basic.fullName}!</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">You're all set, {basic.fullName}!</h2>
                 <p className="text-gray-600 mb-8 max-w-md mx-auto">Your profile looks great. Hit publish to submit your profile to our admin team for verification.</p>
 
                 <div className="bg-gray-50 p-6 rounded-2xl text-left max-w-md mx-auto mb-8 border border-gray-100">
@@ -466,16 +653,16 @@ const CreatorSignupFlow = () => {
           {/* Footer Controls */}
           <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
             {currentStep > 1 ? (
-              <button onClick={() => setCurrentStep(prev => prev - 1)} disabled={loading} className="px-6 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors flex items-center gap-2">
-                <ChevronLeft size={18} /> Back
+              <button onClick={() => setCurrentStep(prev => prev - 1)} disabled={loading} className="px-4 sm:px-6 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base">
+                <ChevronLeft size={18} /> <span className="hidden sm:inline">Back</span>
               </button>
             ) : <div></div>}
 
             {currentStep < steps.length ? (
               <button
                 onClick={handleNext}
-                disabled={loading || (currentStep === 1 && !prof.primaryCategory)}
-                className="px-8 py-3 rounded-xl font-bold bg-gray-900 text-white hover:bg-black transition-colors flex items-center gap-2 disabled:opacity-50"
+                disabled={loading || (currentStep === 1 && !prof.primaryCategory) || (currentStep === 8 && !paymentDone)}
+                className="px-6 sm:px-8 py-3 rounded-xl font-bold bg-gray-900 text-white hover:bg-black transition-colors flex items-center gap-2 disabled:opacity-50 text-sm sm:text-base"
               >
                 {loading ? 'Saving...' : 'Next'} <ChevronRight size={18} />
               </button>
@@ -483,9 +670,9 @@ const CreatorSignupFlow = () => {
               <button
                 onClick={handlePublish}
                 disabled={loading}
-                className="px-8 py-3 rounded-xl font-bold bg-fuchsia-600 text-white hover:bg-fuchsia-700 shadow-lg shadow-fuchsia-500/30 transition-all flex items-center gap-2"
+                className="px-6 sm:px-8 py-3 rounded-xl font-bold bg-fuchsia-600 text-white hover:bg-fuchsia-700 shadow-lg shadow-fuchsia-500/30 transition-all flex items-center gap-2 text-sm sm:text-base"
               >
-                {loading ? 'Publishing...' : 'Publish Profile'} <CheckCircle2 size={18} />
+                {loading ? 'Publishing...' : <><span className="hidden sm:inline">Publish Profile</span><span className="sm:hidden">Publish</span></>} <CheckCircle2 size={18} />
               </button>
             )}
           </div>
