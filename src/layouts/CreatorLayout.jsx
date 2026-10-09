@@ -4,7 +4,7 @@ import { useCreatorAuth } from '../context/CreatorAuthContext';
 import { 
   LayoutDashboard, FolderOpen, Video, Briefcase, Calendar, 
   MessageSquare, Wallet, TrendingUp, CreditCard, 
-  Settings, User, HelpCircle, Menu, LogOut, ShieldAlert, KeyRound, Sparkles, ShieldCheck
+  Settings, User, HelpCircle, Menu, LogOut, ShieldAlert, KeyRound, Sparkles, ShieldCheck, X
 } from 'lucide-react';
 
 const navItems = [
@@ -108,7 +108,7 @@ const CreatorLayout = () => {
       
       {/* Sidebar */}
       <aside className={`bg-[#170B20] text-white h-screen flex flex-col fixed left-0 top-0 transition-all duration-300 z-50 ${isSidebarCollapsed ? 'md:w-20' : 'md:w-64'} ${isMobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64 md:translate-x-0'}`}>
-        <div className="py-4 border-b border-white/10 flex flex-col items-center justify-center min-h-[5rem] shrink-0 gap-1">
+        <div className="py-4 border-b border-white/10 flex flex-col items-center justify-center min-h-[5rem] shrink-0 gap-1 relative">
           <img 
             src="/mycastnow logo.jpeg" 
             alt="Logo" 
@@ -117,6 +117,13 @@ const CreatorLayout = () => {
           {!isSidebarCollapsed && (
             <span className="text-[9px] text-fuchsia-400 uppercase tracking-widest font-bold mt-1">Creator Portal</span>
           )}
+          {/* Mobile Close Button */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="md:hidden absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition"
+          >
+            <X size={20} />
+          </button>
         </div>
         
         <nav className="flex-1 py-4 overflow-y-auto custom-scrollbar">
@@ -127,6 +134,7 @@ const CreatorLayout = () => {
                 <li key={item.name} title={isSidebarCollapsed ? item.name : ''}>
                   <Link 
                     to={item.path} 
+                    onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-6'} py-3 text-sm font-medium transition-all ${isActive ? 'bg-gradient-to-r from-fuchsia-600/20 to-blue-600/10 border-r-4 border-fuchsia-500 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}
                   >
                     <div className="shrink-0"><item.icon size={20} /></div>
@@ -146,6 +154,7 @@ const CreatorLayout = () => {
                 <li key={item.name} title={isSidebarCollapsed ? item.name : ''}>
                   <Link 
                     to={item.path} 
+                    onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center ${isSidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-4'} py-3 text-sm font-medium rounded-lg transition-all ${isActive ? 'bg-gradient-to-r from-fuchsia-600/20 to-blue-600/10 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}
                   >
                     <div className="shrink-0"><item.icon size={20} /></div>

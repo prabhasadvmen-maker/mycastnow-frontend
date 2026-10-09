@@ -603,7 +603,7 @@ const CreatorSignupFlow = () => {
                     <div className="bg-gradient-to-br from-fuchsia-600 to-purple-700 rounded-3xl p-8 text-white text-center mb-6 shadow-xl shadow-fuchsia-200">
                       <CreditCard className="w-10 h-10 mx-auto mb-4 opacity-80" />
                       <p className="text-sm font-semibold opacity-80 mb-1">One-time Onboarding Fee</p>
-                      <p className="text-5xl font-black mb-1">₹1</p>
+                      <p className="text-5xl font-black mb-1">₹99</p>
                       <p className="text-xs opacity-70">Includes profile listing + admin verification</p>
                     </div>
                     <ul className="space-y-3 mb-8 text-sm text-gray-600">
@@ -620,7 +620,7 @@ const CreatorSignupFlow = () => {
                       className="w-full py-4 bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-fuchsia-200 transition-all disabled:opacity-60"
                     >
                       <IndianRupee size={18} />
-                      {paymentLoading ? 'Opening Payment...' : 'Pay ₹1 Now'}
+                      {paymentLoading ? 'Opening Payment...' : 'Pay ₹99 Now'}
                     </button>
                     <p className="text-xs text-center text-gray-400 mt-3">Secured by Razorpay · UPI, Cards, NetBanking accepted</p>
                   </div>

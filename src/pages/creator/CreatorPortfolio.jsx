@@ -847,14 +847,30 @@ const CreatorPortfolio = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Image URL</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Upload Photo</label>
               <input
-                type="url"
-                placeholder="https://images.unsplash.com/..."
-                value={newPhotoUrl}
-                onChange={(e) => setNewPhotoUrl(e.target.value)}
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setSaving(true);
+                    try {
+                      const formData = new FormData();
+                      formData.append('file', e.target.files[0]);
+                      const res = await axios.post(`${API}/upload/upload-direct`, formData);
+                      if (res.data.success) {
+                        setNewPhotoUrl(res.data.url);
+                      }
+                    } catch (err) {
+                      showNotification('Failed to upload image', 'error');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }
+                }}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
+              {newPhotoUrl && <p className="text-[10px] text-emerald-600 mt-1 font-bold">✓ Image uploaded successfully!</p>}
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
@@ -921,14 +937,30 @@ const CreatorPortfolio = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Poster / Photo Link</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Upload Poster / Photo</label>
               <input
-                type="url"
-                placeholder="https://images.unsplash.com/..."
-                value={campaignForm.supportingDocs}
-                onChange={(e) => setCampaignForm({ ...campaignForm, supportingDocs: e.target.value })}
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setSaving(true);
+                    try {
+                      const formData = new FormData();
+                      formData.append('file', e.target.files[0]);
+                      const res = await axios.post(`${API}/upload/upload-direct`, formData);
+                      if (res.data.success) {
+                        setCampaignForm({ ...campaignForm, supportingDocs: res.data.url });
+                      }
+                    } catch (err) {
+                      showNotification('Failed to upload image', 'error');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }
+                }}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs focus:ring-2 focus:ring-purple-500"
               />
+              {campaignForm.supportingDocs && <p className="text-[10px] text-emerald-600 mt-1 font-bold">✓ Image uploaded successfully!</p>}
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
