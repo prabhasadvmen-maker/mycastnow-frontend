@@ -303,7 +303,7 @@ export default function PublicWebsite() {
               <span>Verified Production Partners</span>
             </div>
             <h2 className="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-              Trusted by India's Top Production Studios
+              Trusted by India's Top Production Companies
             </h2>
             <p className="mt-1 text-xs sm:text-sm text-slate-500">
               Approved production companies, casting agencies, and OTT studios currently casting on MyCastNow.
@@ -316,7 +316,7 @@ export default function PublicWebsite() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
-              <span>{approvedCompanies.length} Approved Studios</span>
+              <span>{approvedCompanies.length} Approved Companies</span>
             </span>
           </div>
         </div>
