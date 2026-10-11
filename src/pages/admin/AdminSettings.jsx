@@ -5,7 +5,8 @@ import {
   User, Shield, Key, Sliders, Bell, CheckCircle2, 
   AlertTriangle, Eye, EyeOff, Save, RefreshCw, 
   Lock, Mail, Phone, Building, Percent, DollarSign,
-  AlertCircle, ShieldAlert, Cpu, ToggleLeft, ToggleRight
+  AlertCircle, ShieldAlert, Cpu, ToggleLeft, ToggleRight,
+  IndianRupee, CreditCard, Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -55,6 +56,8 @@ const AdminSettings = () => {
     platformCommissionPercent: 10,
     boostCommissionPercent: 15,
     minWithdrawalAmount: 500,
+    creatorOnboardingFee: 99,
+    creatorOnboardingFeeEnabled: true,
     currency: 'INR',
     maintenanceMode: false,
     allowNewRegistrations: true,
@@ -269,8 +272,8 @@ const AdminSettings = () => {
               : 'border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/60'
           }`}
         >
-          <Sliders size={18} />
-          Platform & Fees
+          <IndianRupee size={18} />
+          Creator Onboarding Fee
         </button>
 
         <button
@@ -599,14 +602,14 @@ const AdminSettings = () => {
         </div>
       )}
 
-      {/* TAB 3: PLATFORM & COMMISSION SETTINGS */}
+      {/* TAB 3: CREATOR ONBOARDING FEE */}
       {currentTab === 'platform' && (
         <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 animate-in fade-in">
-          <div className="max-w-3xl">
+          <div className="max-w-xl">
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Platform Financial & Business Rules</h2>
+              <h2 className="text-xl font-bold text-gray-900">Creator Onboarding Fee</h2>
               <p className="text-sm text-gray-500 mt-0.5">
-                Set platform fee percentages, creator payout minimums, and automated approval workflows.
+                Manage how much creators are charged during signup (Step 8) or enter 0 to make onboarding 100% free.
               </p>
             </div>
 
@@ -622,117 +625,46 @@ const AdminSettings = () => {
             )}
 
             <form onSubmit={handleSettingsSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                    Platform Commission Rate (%)
-                  </label>
-                  <div className="relative">
-                    <Percent size={16} className="absolute left-3.5 top-3 text-gray-400" />
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={systemSettings.platformCommissionPercent}
-                      onChange={(e) => setSystemSettings({ ...systemSettings, platformCommissionPercent: Number(e.target.value) })}
-                      className="w-full pl-10 pr-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                    />
-                  </div>
-                  <p className="text-[11px] text-gray-400 mt-1">Deducted automatically from casting completion payouts</p>
+              <div className="bg-gray-50/70 p-5 rounded-2xl border border-gray-100">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Creator Onboarding Fee Amount (₹)
+                </label>
+                <div className="relative">
+                  <IndianRupee size={18} className="absolute left-3.5 top-3.5 text-gray-500" />
+                  <input
+                    type="number"
+                    min="0"
+                    value={systemSettings.creatorOnboardingFee}
+                    onChange={(e) => {
+                      const val = e.target.value === '' ? '' : Math.max(0, Number(e.target.value));
+                      setSystemSettings({ 
+                        ...systemSettings, 
+                        creatorOnboardingFee: val,
+                        creatorOnboardingFeeEnabled: Number(val) > 0
+                      });
+                    }}
+                    placeholder="e.g. 99 (Enter 0 for free onboarding)"
+                    className="w-full pl-10 pr-4 py-3 text-base font-semibold text-gray-900 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                  />
                 </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                    Boost Plan Commission (%)
-                  </label>
-                  <div className="relative">
-                    <Percent size={16} className="absolute left-3.5 top-3 text-gray-400" />
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={systemSettings.boostCommissionPercent}
-                      onChange={(e) => setSystemSettings({ ...systemSettings, boostCommissionPercent: Number(e.target.value) })}
-                      className="w-full pl-10 pr-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                    />
-                  </div>
-                  <p className="text-[11px] text-gray-400 mt-1">Platform fee on spotlight & boost purchases</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                    Minimum Creator Withdrawal (₹)
-                  </label>
-                  <div className="relative">
-                    <DollarSign size={16} className="absolute left-3.5 top-3 text-gray-400" />
-                    <input
-                      type="number"
-                      min="100"
-                      value={systemSettings.minWithdrawalAmount}
-                      onChange={(e) => setSystemSettings({ ...systemSettings, minWithdrawalAmount: Number(e.target.value) })}
-                      className="w-full pl-10 pr-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                    />
-                  </div>
-                  <p className="text-[11px] text-gray-400 mt-1">Minimum wallet balance required for bank payout</p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                    Default Currency
-                  </label>
-                  <select
-                    value={systemSettings.currency}
-                    onChange={(e) => setSystemSettings({ ...systemSettings, currency: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
-                  >
-                    <option value="INR">INR (₹) - Indian Rupee</option>
-                    <option value="USD">USD ($) - US Dollar</option>
-                    <option value="EUR">EUR (€) - Euro</option>
-                  </select>
+                <div className="mt-2.5 flex items-center justify-between text-xs text-gray-500">
+                  <span>Enter amount manually to increase or decrease. Enter <strong>0</strong> for 100% Free Onboarding.</span>
+                  {Number(systemSettings.creatorOnboardingFee) === 0 ? (
+                    <span className="font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Free Mode</span>
+                  ) : (
+                    <span className="font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">₹{systemSettings.creatorOnboardingFee} / Signup</span>
+                  )}
                 </div>
               </div>
 
-              {/* Automation Toggles */}
-              <div className="pt-4 border-t border-gray-100 space-y-4">
-                <h4 className="text-sm font-bold text-gray-900">Automation & Approvals</h4>
-                
-                <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:bg-gray-50/50 transition-colors">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">Auto-Approve Casting Calls</p>
-                    <p className="text-xs text-gray-500">Company casting calls become active immediately without manual review</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSystemSettings(prev => ({ ...prev, autoApproveCastings: !prev.autoApproveCastings }))}
-                    className="text-2xl transition-colors text-blue-600"
-                  >
-                    {systemSettings.autoApproveCastings ? <ToggleRight size={36} /> : <ToggleLeft size={36} className="text-gray-300" />}
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:bg-gray-50/50 transition-colors">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">Auto-Approve Creator Verification</p>
-                    <p className="text-xs text-gray-500">Automatically grant verified badge to creators upon profile completion</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSystemSettings(prev => ({ ...prev, autoApproveCreators: !prev.autoApproveCreators }))}
-                    className="text-2xl transition-colors text-blue-600"
-                  >
-                    {systemSettings.autoApproveCreators ? <ToggleRight size={36} /> : <ToggleLeft size={36} className="text-gray-300" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="pt-4 flex items-center justify-end">
+              <div className="pt-2 flex items-center justify-end">
                 <button
                   type="submit"
                   disabled={settingsSaving}
-                  className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20 disabled:opacity-60 transition-all"
+                  className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20 disabled:opacity-60 transition-all cursor-pointer"
                 >
                   {settingsSaving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
-                  {settingsSaving ? 'Saving...' : 'Save Financial Rules'}
+                  {settingsSaving ? 'Saving...' : 'Save Fee Setting'}
                 </button>
               </div>
             </form>

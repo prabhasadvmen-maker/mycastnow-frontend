@@ -86,6 +86,22 @@ const CreatorSignupFlow = () => {
   const [paymentDone, setPaymentDone] = useState(creatorUser?.onboardingFeePaid || false);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [receipt, setReceipt] = useState(null);
+  const [onboardingFeeConfig, setOnboardingFeeConfig] = useState({ fee: 99, isFree: false, enabled: true });
+
+  // Fetch live onboarding fee configuration set by Super Admin
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_API_URL}/payments/razorpay-key`)
+      .then(res => {
+        if (res.data) {
+          setOnboardingFeeConfig({
+            fee: typeof res.data.fee === 'number' ? res.data.fee : 99,
+            isFree: res.data.isFree === true || res.data.fee === 0,
+            enabled: res.data.enabled !== false
+          });
+        }
+      })
+      .catch(err => console.error('Failed to load fee config:', err));
+  }, []);
 
   // Redirect completed profiles
   useEffect(() => {
@@ -465,6 +481,29 @@ const CreatorSignupFlow = () => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      // If Super Admin configured Onboarding Fee to be FREE
+      if (orderRes.data.isFree) {
+        const verifyRes = await axios.post(
+          `${import.meta.env.VITE_API_URL}/payments/verify-onboarding`,
+          { isFree: true },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (verifyRes.data.success) {
+          setPaymentDone(true);
+          setReceipt({
+            paymentId: 'FREE_ACTIVATION',
+            orderId: 'FREE_ONBOARDING',
+            amount: 0,
+            name: orderRes.data.creatorName || basic.fullName,
+            phone: orderRes.data.creatorPhone || '',
+            date: new Date().toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' })
+          });
+        }
+        setPaymentLoading(false);
+        return;
+      }
+
       const { orderId, amount, currency, creatorName, creatorPhone } = orderRes.data;
       const keyRes = await axios.get(`${import.meta.env.VITE_API_URL}/payments/razorpay-key`);
 
@@ -909,9 +948,15 @@ const CreatorSignupFlow = () => {
                   <div className="max-w-sm mx-auto">
                     <div className="bg-gradient-to-br from-fuchsia-600 to-purple-700 rounded-3xl p-8 text-white text-center mb-6 shadow-xl shadow-fuchsia-200">
                       <CreditCard className="w-10 h-10 mx-auto mb-4 opacity-80" />
-                      <p className="text-sm font-semibold opacity-80 mb-1">One-time Onboarding Fee</p>
-                      <p className="text-5xl font-black mb-1">₹99</p>
-                      <p className="text-xs opacity-70">Includes profile listing + admin verification</p>
+                      <p className="text-sm font-semibold opacity-80 mb-1">
+                        {onboardingFeeConfig.isFree || onboardingFeeConfig.fee === 0 ? 'Special Promotion' : 'One-time Onboarding Fee'}
+                      </p>
+                      <p className="text-5xl font-black mb-1">
+                        {onboardingFeeConfig.isFree || onboardingFeeConfig.fee === 0 ? 'FREE' : `₹${onboardingFeeConfig.fee}`}
+                      </p>
+                      <p className="text-xs opacity-70">
+                        {onboardingFeeConfig.isFree || onboardingFeeConfig.fee === 0 ? '₹0 activation fee currently active' : 'Includes profile listing + admin verification'}
+                      </p>
                     </div>
                     <ul className="space-y-3 mb-8 text-sm text-gray-600">
                       {['Profile listed on MyCastNow platform', 'Admin verification & approval', 'Access to casting calls & bookings', 'Lifetime profile (no renewal)'].map(item => (
@@ -924,12 +969,25 @@ const CreatorSignupFlow = () => {
                     <button
                       onClick={handlePayment}
                       disabled={paymentLoading}
-                      className="w-full py-4 bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-fuchsia-200 transition-all disabled:opacity-60"
+                      className="w-full py-4 bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-fuchsia-200 transition-all disabled:opacity-60 cursor-pointer"
                     >
-                      <IndianRupee size={18} />
-                      {paymentLoading ? 'Opening Payment...' : 'Pay ₹99 Now'}
+                      {onboardingFeeConfig.isFree || onboardingFeeConfig.fee === 0 ? (
+                        <>
+                          <CheckCircle2 size={18} />
+                          {paymentLoading ? 'Activating Profile...' : 'Activate Profile for Free'}
+                        </>
+                      ) : (
+                        <>
+                          <IndianRupee size={18} />
+                          {paymentLoading ? 'Opening Payment...' : `Pay ₹${onboardingFeeConfig.fee} Now`}
+                        </>
+                      )}
                     </button>
-                    <p className="text-xs text-center text-gray-400 mt-3">Secured by Razorpay · UPI, Cards, NetBanking accepted</p>
+                    <p className="text-xs text-center text-gray-400 mt-3">
+                      {onboardingFeeConfig.isFree || onboardingFeeConfig.fee === 0 
+                        ? '100% Free · No payment required'
+                        : 'Secured by Razorpay · UPI, Cards, NetBanking accepted'}
+                    </p>
                   </div>
                 )}
               </div>

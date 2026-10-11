@@ -94,6 +94,9 @@ const AdminCreatorDetails = () => {
   if (!creator) return <div className="p-8 text-center text-red-500">Creator not found.</div>;
 
   const incomplete = isIncomplete(creator);
+  const creatorPhoto = (!creator.basicDetails?.profilePhoto?.startsWith('blob:') && creator.basicDetails?.profilePhoto)
+    || creator.portfolio?.photos?.[0]
+    || null;
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -174,10 +177,24 @@ const AdminCreatorDetails = () => {
 
       {/* Top Summary Card */}
       <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm mb-8 flex items-start gap-8">
-        <div className="w-40 h-40 rounded-3xl bg-gray-100 overflow-hidden shrink-0 border-4 border-white shadow-xl">
-          {creator.basicDetails?.profilePhoto ? (
-            <img src={creator.basicDetails.profilePhoto} alt="Profile" className="w-full h-full object-cover"/>
-          ) : <div className="w-full h-full flex items-center justify-center"><User size={48} className="text-gray-400" /></div>}
+        <div className="w-40 h-40 rounded-3xl bg-gray-100 overflow-hidden shrink-0 border-4 border-white shadow-xl flex items-center justify-center relative">
+          {creatorPhoto ? (
+            <img 
+              src={creatorPhoto} 
+              alt={creator.basicDetails?.fullName || "Profile"} 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <div 
+            className="w-full h-full items-center justify-center bg-gray-100"
+            style={{ display: creatorPhoto ? 'none' : 'flex' }}
+          >
+            <User size={48} className="text-gray-400" />
+          </div>
         </div>
         
         <div className="flex-1">

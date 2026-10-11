@@ -15,7 +15,8 @@ export const CreatorAuthProvider = ({ children }) => {
           const res = await axios.get(`${import.meta.env.VITE_API_URL}/creatorAuth/me`, {
             headers: { Authorization: `Bearer ${token}` }
           });
-          setCreatorUser(res.data);
+          // /me returns creator object directly (no wrapper)
+          setCreatorUser(res.data.creator || res.data);
         } catch (error) {
           console.error("Failed to fetch creator user:", error);
           localStorage.removeItem('creatorToken');

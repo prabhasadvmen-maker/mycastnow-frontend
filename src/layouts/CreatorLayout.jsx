@@ -96,6 +96,10 @@ const CreatorLayout = () => {
   // -----------------------------------------------------
   // MAIN DASHBOARD LAYOUT (If Approved)
   // -----------------------------------------------------
+  const creatorAvatarUrl = (!creatorUser?.basicDetails?.profilePhoto?.startsWith('blob:') && creatorUser?.basicDetails?.profilePhoto)
+    || creatorUser?.portfolio?.photos?.[0]
+    || null;
+
   return (
     <div className="flex bg-[#f5f6f8] h-screen overflow-hidden">
       {/* Mobile Overlay */}
@@ -195,11 +199,23 @@ const CreatorLayout = () => {
                   <p className="text-xs text-fuchsia-600 font-semibold capitalize">{creatorUser.professionalDetails?.primaryCategory || 'Creator'}</p>
                 </div>
                 <div className="w-10 h-10 bg-gradient-to-tr from-fuchsia-600 via-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white overflow-hidden font-bold shadow-sm shrink-0">
-                  {creatorUser.basicDetails?.profilePhoto ? (
-                    <img src={creatorUser.basicDetails.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    (creatorUser.basicDetails?.fullName?.[0] || 'C').toUpperCase()
-                  )}
+                  {creatorAvatarUrl ? (
+                    <img 
+                      src={creatorAvatarUrl} 
+                      alt="" 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => { 
+                        e.currentTarget.style.display = 'none'; 
+                        if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = 'flex';
+                      }} 
+                    />
+                  ) : null}
+                  <span 
+                    className="w-full h-full items-center justify-center font-bold" 
+                    style={{ display: creatorAvatarUrl ? 'none' : 'flex' }}
+                  >
+                    {(creatorUser.basicDetails?.fullName?.[0] || 'C').toUpperCase()}
+                  </span>
                 </div>
               </button>
               
@@ -214,11 +230,23 @@ const CreatorLayout = () => {
                     <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-fuchsia-50/50 to-purple-50/40 rounded-t-xl">
                       <div className="flex items-center gap-3">
                         <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-fuchsia-600 to-blue-600 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden shadow-sm">
-                          {creatorUser.basicDetails?.profilePhoto ? (
-                            <img src={creatorUser.basicDetails.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
-                          ) : (
-                            (creatorUser.basicDetails?.fullName?.[0] || 'C').toUpperCase()
-                          )}
+                          {creatorAvatarUrl ? (
+                            <img 
+                              src={creatorAvatarUrl} 
+                              alt="" 
+                              className="w-full h-full object-cover" 
+                              onError={(e) => { 
+                                e.currentTarget.style.display = 'none'; 
+                                if (e.currentTarget.nextSibling) e.currentTarget.nextSibling.style.display = 'flex';
+                              }} 
+                            />
+                          ) : null}
+                          <span 
+                            className="w-full h-full items-center justify-center font-bold" 
+                            style={{ display: creatorAvatarUrl ? 'none' : 'flex' }}
+                          >
+                            {(creatorUser.basicDetails?.fullName?.[0] || 'C').toUpperCase()}
+                          </span>
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-bold text-gray-900 truncate">
