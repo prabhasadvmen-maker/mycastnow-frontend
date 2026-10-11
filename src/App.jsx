@@ -52,7 +52,6 @@ const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'));
 const AdminCasting = lazy(() => import('./pages/admin/AdminCasting'));
 const AdminBookings = lazy(() => import('./pages/admin/AdminBookings'));
 const AdminSubscriptions = lazy(() => import('./pages/admin/AdminSubscriptions'));
-const AdminWallet = lazy(() => import('./pages/admin/AdminWallet'));
 const AdminBoost = lazy(() => import('./pages/admin/AdminBoost'));
 const AdminReviews = lazy(() => import('./pages/admin/AdminReviews'));
 const AdminAnalytics = lazy(() => import('./pages/admin/AdminAnalytics'));
@@ -112,7 +111,6 @@ function App() {
                   <Route path="bookings" element={<AdminBookings />} />
                   <Route path="payments" element={<AdminPayments />} />
                   <Route path="subscriptions" element={<AdminSubscriptions />} />
-                  <Route path="wallet" element={<AdminWallet />} />
                   <Route path="boost" element={<AdminBoost />} />
                   <Route path="reviews" element={<AdminReviews />} />
                   <Route path="analytics" element={<AdminAnalytics />} />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useCreatorAuth } from '../context/CreatorAuthContext';
 import { 
@@ -28,6 +28,10 @@ const bottomItems = [
 const CreatorLayout = () => {
   const { creatorUser, loading, logout } = useCreatorAuth();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    document.title = 'Creator Portal | MyCastNow';
+  }, []);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const location = useLocation();

@@ -172,7 +172,7 @@ const AdminAnalytics = () => {
               </div>
             </div>
             <p className="text-3xl font-black text-white">{fmt(kpis.grossRevenue)}</p>
-            <p className="text-xs text-blue-200/70 mt-1">Bookings + Subs + Boosts + Credits</p>
+            <p className="text-xs text-blue-200/70 mt-1">Onboarding + Bookings + Subs + Boosts</p>
           </div>
           <div className="pt-3 border-t border-white/10 mt-3 flex items-center justify-between text-[11px] text-blue-200">
             <span className="flex items-center gap-1 text-emerald-400 font-bold">

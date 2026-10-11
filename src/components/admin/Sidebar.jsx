@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, UserCircle, Video, CalendarCheck, 
-  CreditCard, MonitorPlay, Wallet, Rocket, Star, 
+  CreditCard, MonitorPlay, Rocket, Star, 
   BarChart3, Settings, HelpCircle, LogOut, Building2, Globe
 } from 'lucide-react';
 
@@ -16,7 +16,6 @@ const Sidebar = ({ isCollapsed }) => {
     { name: 'Bookings', path: '/admin/bookings', icon: <CalendarCheck size={20} /> },
     { name: 'Payments', path: '/admin/payments', icon: <CreditCard size={20} /> },
     { name: 'Subscriptions', path: '/admin/subscriptions', icon: <MonitorPlay size={20} /> },
-    { name: 'Wallet', path: '/admin/wallet', icon: <Wallet size={20} /> },
     { name: 'Boost', path: '/admin/boost', icon: <Rocket size={20} /> },
     { name: 'Reviews', path: '/admin/reviews', icon: <Star size={20} /> },
     { name: 'Analytics', path: '/admin/analytics', icon: <BarChart3 size={20} /> },
@@ -49,6 +48,7 @@ const Sidebar = ({ isCollapsed }) => {
             <li key={item.name} title={isCollapsed ? item.name : ''}>
               <NavLink 
                 to={item.path} 
+                end={item.path === '/admin'}
                 className={({isActive}) => 
                   `flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-6'} py-3 text-sm font-medium transition-all ${isActive ? 'bg-gradient-to-r from-blue-600/20 to-fuchsia-600/10 border-r-4 border-fuchsia-500 text-white' : 'text-white/70 hover:bg-white/5 hover:text-white'}`
                 }

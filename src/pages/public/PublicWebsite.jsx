@@ -834,7 +834,7 @@ export default function PublicWebsite() {
               </button>
 
               <Link
-                to="/login"
+                to="/company/login"
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-md shadow-violet-200 transition"
               >
                 <Calendar size={13} />
@@ -1168,7 +1168,7 @@ export default function PublicWebsite() {
                 Close
               </button>
               <Link
-                to="/login"
+                to="/company/login"
                 className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold shadow-md shadow-violet-200 transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Calendar size={13} />

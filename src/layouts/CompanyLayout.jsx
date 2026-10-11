@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useCompanyAuth } from '../context/CompanyAuthContext';
 import { 
@@ -12,6 +12,10 @@ const CompanyLayout = () => {
   const location = useLocation();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    document.title = 'Production Portal | MyCastNow';
+  }, []);
 
   const isAdminImpersonating = localStorage.getItem('isAdminImpersonating') === 'true';
 
