@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import {
   Search, Filter, Star, ShieldCheck, MapPin, Sparkles, User, Briefcase,
@@ -23,22 +23,26 @@ if (typeof window !== 'undefined') {
 
 // Fallback Subcategory Mapping per Primary Category
 const SUBCATEGORY_MAP = {
-  Actor: ['All Subcategories', 'Lead Actor / Lead Actress', 'Method Actor', 'Character Artist', 'Theatre Artist', 'Commercial & TVC Actor', 'Child Artist'],
   Model: ['All Subcategories', 'Fashion & Runway Model', 'Commercial & Print Model', 'Fitness & Bikini Model', 'Parts / Hand Model', 'Plus Size Model'],
-  Dancer: ['All Subcategories', 'Bollywood & Commercial', 'Classical / Kathak / Bharatanatyam', 'Hip Hop / Street Dance', 'Contemporary / Modern', 'Salsa / Ballroom'],
-  'Voice Artist': ['All Subcategories', 'Dubbing Artist (Films & Series)', 'Commercial Voiceover', 'Audiobook Narrator', 'Radio Jockey (RJ)', 'IVR / Corporate Voice'],
+  Actor: ['All Subcategories', 'Lead Actor / Lead Actress', 'Method Actor', 'Character Artist', 'Theatre Artist', 'Commercial & TVC Actor', 'Child Artist'],
   Influencer: ['All Subcategories', 'Fashion & Lifestyle', 'Fitness & Health', 'Tech & Gaming', 'Travel & Food', 'Beauty & Makeup'],
   Photographer: ['All Subcategories', 'Fashion & Editorial', 'Commercial & Product', 'Event & Concert', 'Portrait & Headshots'],
   'Makeup Artist': ['All Subcategories', 'SFX & Prosthetics', 'Bridal & High Fashion', 'Film & TV Makeup', 'Hair Stylist'],
+  Stylist: ['All Subcategories', 'Fashion Stylist', 'Celebrity Stylist', 'Wardrobe & Costume Stylist', 'Commercial & Editorial Stylist'],
+  'Voice Over Artist': ['All Subcategories', 'Dubbing Artist (Films & Series)', 'Commercial Voiceover', 'Audiobook Narrator', 'Radio Jockey (RJ)', 'IVR / Corporate Voice'],
+  'Voice Artist': ['All Subcategories', 'Dubbing Artist (Films & Series)', 'Commercial Voiceover', 'Audiobook Narrator', 'Radio Jockey (RJ)', 'IVR / Corporate Voice'],
+  Dancer: ['All Subcategories', 'Bollywood & Commercial', 'Classical / Kathak / Bharatanatyam', 'Hip Hop / Street Dance', 'Contemporary / Modern', 'Salsa / Ballroom'],
   Singer: ['All Subcategories', 'Playback Singer', 'Classical / Semi-Classical', 'Indie & Pop', 'Live Band / Gig Lead', 'Rapper / Hip Hop']
 };
 
 export default function ExploreTalentPage() {
   const { companyUser } = useCompanyAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlCategory = searchParams.get('category');
   const [talents, setTalents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState(urlCategory || 'All');
   const [selectedSubCategory, setSelectedSubCategory] = useState('All Subcategories');
   const [selectedLocation, setSelectedLocation] = useState('All Cities');
   const [selectedGender, setSelectedGender] = useState('All');
@@ -49,11 +53,18 @@ export default function ExploreTalentPage() {
 
   // Dynamic Metadata state from database
   const [dynamicMetadata, setDynamicMetadata] = useState({
-    categories: ['Actor', 'Model', 'Dancer', 'Voice Artist', 'Influencer', 'Singer', 'Photographer', 'Makeup Artist'],
+    categories: ['Model', 'Actor', 'Influencer', 'Photographer', 'Makeup Artist', 'Stylist', 'Voice Over Artist', 'Dancer', 'Singer'],
     subCategories: [],
     cities: ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Goa', 'Jaipur', 'Chennai', 'Kolkata'],
     genders: ['Male', 'Female', 'Non-Binary']
   });
+
+  useEffect(() => {
+    const qCat = searchParams.get('category');
+    if (qCat) {
+      setSelectedCategory(qCat);
+    }
+  }, [searchParams]);
 
   // Fetch real talent data & DB metadata
   useEffect(() => {
@@ -99,9 +110,13 @@ export default function ExploreTalentPage() {
   const filteredTalents = useMemo(() => {
     return talents.filter((t) => {
       // Primary Category Match
+      const sCat = selectedCategory.toLowerCase();
+      const tCat = (t.category || '').toLowerCase();
+      const tRole = (t.role || '').toLowerCase();
       const matchCat = selectedCategory === 'All' ||
-        t.category?.toLowerCase() === selectedCategory.toLowerCase() ||
-        t.role?.toLowerCase().includes(selectedCategory.toLowerCase());
+        tCat === sCat ||
+        (sCat.includes('voice') && (tCat.includes('voice') || tRole.includes('voice'))) ||
+        tRole.includes(sCat);
       
       // Subcategory Match
       const matchSubCat = selectedSubCategory === 'All Subcategories' ||
@@ -133,6 +148,17 @@ export default function ExploreTalentPage() {
     });
   }, [talents, selectedCategory, selectedSubCategory, selectedLocation, selectedGender, verifiedOnly, searchQuery]);
 
+  // Select category helper
+  const handleSelectCategory = (cat) => {
+    setSelectedCategory(cat);
+    setSelectedSubCategory('All Subcategories');
+    if (cat === 'All') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ category: cat });
+    }
+  };
+
   // Reset all filters helper
   const handleResetFilters = () => {
     setSearchQuery('');
@@ -141,6 +167,7 @@ export default function ExploreTalentPage() {
     setSelectedLocation('All Cities');
     setSelectedGender('All');
     setVerifiedOnly(false);
+    setSearchParams({});
   };
 
   return (
@@ -187,10 +214,7 @@ export default function ExploreTalentPage() {
               <div className="sm:col-span-2">
                 <select
                   value={selectedCategory}
-                  onChange={(e) => {
-                    setSelectedCategory(e.target.value);
-                    setSelectedSubCategory('All Subcategories');
-                  }}
+                  onChange={(e) => handleSelectCategory(e.target.value)}
                   className="w-full px-3 py-3 bg-white/95 border border-white/40 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
                 >
                   <option value="All" className="text-slate-900">Category: All</option>
@@ -265,10 +289,7 @@ export default function ExploreTalentPage() {
           {/* Category Tabs Bar */}
           <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-none mb-8">
             <button
-              onClick={() => {
-                setSelectedCategory('All');
-                setSelectedSubCategory('All Subcategories');
-              }}
+              onClick={() => handleSelectCategory('All')}
               className={`px-5 py-2.5 rounded-full text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
                 selectedCategory === 'All'
                   ? 'bg-slate-900 text-white shadow-lg shadow-slate-950/20 scale-105'
@@ -280,10 +301,7 @@ export default function ExploreTalentPage() {
             {dynamicMetadata.categories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => {
-                  setSelectedCategory(cat);
-                  setSelectedSubCategory('All Subcategories');
-                }}
+                onClick={() => handleSelectCategory(cat)}
                 className={`px-5 py-2.5 rounded-full text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer ${
                   selectedCategory === cat
                     ? 'bg-slate-900 text-white shadow-lg shadow-slate-950/20 scale-105'

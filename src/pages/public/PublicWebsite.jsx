@@ -6,7 +6,8 @@ import {
   Crown, MapPin, Maximize2, Pause, Play, RotateCcw, Search, ShieldCheck,
   Sparkles, Star, Users, Volume2, VolumeX, Zap,
   Camera, Eye, X, Phone, Mail, Globe, Calendar, Share2, Check, ExternalLink, Film, Award, DollarSign, User, Briefcase,
-  Lock, Heart, MessageCircle, Send, MoreVertical
+  Lock, Heart, MessageCircle, Send, MoreVertical,
+  Palette, Scissors, Mic, TrendingUp
 } from 'lucide-react';
 import PublicLayout from '../../components/public/PublicLayout';
 
@@ -184,10 +185,8 @@ export default function PublicWebsite() {
   }, [data.castings, query]);
 
   const displayedPlans = useMemo(() => {
-    const list = data.plans || [];
-    if (audienceFilter === 'All') return list;
-    return list.filter((p) => p.targetAudience === audienceFilter || p.targetAudience === 'Both');
-  }, [data.plans, audienceFilter]);
+    return (data.plans || []).slice(0, 3);
+  }, [data.plans]);
 
   const approvedCompanies = useMemo(() => {
     return Array.isArray(data.companies) ? data.companies : [];
@@ -267,21 +266,30 @@ export default function PublicWebsite() {
         <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Hire Top Talent by Category</h2>
         <p className="mt-3 text-slate-600 text-sm sm:text-base max-w-2xl mx-auto">Explore our diverse pool of verified professionals ready to bring your creative vision to life.</p>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3.5 sm:gap-4">
         {[
-          { name: 'Actors', icon: Film, color: 'bg-rose-50 text-rose-600 border-rose-100', hover: 'hover:border-rose-300 hover:shadow-rose-100' },
-          { name: 'Models', icon: Camera, color: 'bg-violet-50 text-violet-600 border-violet-100', hover: 'hover:border-violet-300 hover:shadow-violet-100' },
-          { name: 'Voiceover', icon: Volume2, color: 'bg-blue-50 text-blue-600 border-blue-100', hover: 'hover:border-blue-300 hover:shadow-blue-100' },
-          { name: 'Dancers', icon: Sparkles, color: 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100', hover: 'hover:border-fuchsia-300 hover:shadow-fuchsia-100' },
-          { name: 'Creators', icon: Play, color: 'bg-emerald-50 text-emerald-600 border-emerald-100', hover: 'hover:border-emerald-300 hover:shadow-emerald-100' },
-          { name: 'Crew', icon: Briefcase, color: 'bg-amber-50 text-amber-600 border-amber-100', hover: 'hover:border-amber-300 hover:shadow-amber-100' },
-        ].map((cat) => (
-          <Link key={cat.name} to="/talents" className={`group flex flex-col items-center justify-center p-6 rounded-3xl border border-slate-200 bg-white hover:-translate-y-1 hover:shadow-xl ${cat.hover} transition-all duration-300`}>
-            <div className={`p-4 rounded-2xl ${cat.color} mb-4 transition-transform group-hover:scale-110`}>
-              <cat.icon size={26} strokeWidth={2.5} />
+          { name: 'Model', icon: Crown, color: 'bg-violet-50 text-violet-600 border-violet-100', hover: 'hover:border-violet-300 hover:shadow-violet-100' },
+          { name: 'Actor', icon: Film, color: 'bg-rose-50 text-rose-600 border-rose-100', hover: 'hover:border-rose-300 hover:shadow-rose-100' },
+          { name: 'Influencer', icon: TrendingUp, color: 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100', hover: 'hover:border-fuchsia-300 hover:shadow-fuchsia-100' },
+          { name: 'Photographer', icon: Camera, color: 'bg-sky-50 text-sky-600 border-sky-100', hover: 'hover:border-sky-300 hover:shadow-sky-100' },
+          { name: 'Makeup Artist', icon: Palette, color: 'bg-pink-50 text-pink-600 border-pink-100', hover: 'hover:border-pink-300 hover:shadow-pink-100' },
+          { name: 'Stylist', icon: Scissors, color: 'bg-amber-50 text-amber-600 border-amber-100', hover: 'hover:border-amber-300 hover:shadow-amber-100' },
+          { name: 'Voice Over Artist', icon: Mic, color: 'bg-indigo-50 text-indigo-600 border-indigo-100', hover: 'hover:border-indigo-300 hover:shadow-indigo-100' },
+        ].map((cat, idx) => (
+          <Link
+            key={cat.name}
+            to={`/talents?category=${encodeURIComponent(cat.name)}`}
+            className={`group flex flex-col items-center justify-center p-5 sm:p-6 rounded-3xl border border-slate-200 bg-white hover:-translate-y-1 hover:shadow-xl ${cat.hover} transition-all duration-300 ${idx === 6 ? 'col-span-2 sm:col-span-1 max-w-[260px] sm:max-w-none mx-auto w-full' : ''}`}
+          >
+            <div className={`p-4 rounded-2xl ${cat.color} mb-3.5 sm:mb-4 transition-transform group-hover:scale-110 shadow-xs`}>
+              <cat.icon size={26} strokeWidth={2.2} />
             </div>
-            <h3 className="font-bold text-slate-900 group-hover:text-slate-950">{cat.name}</h3>
-            <span className="text-[11px] text-slate-400 mt-1 font-semibold flex items-center gap-1 group-hover:text-slate-600 transition-colors">Explore <ArrowRight size={10} /></span>
+            <h3 className="font-bold text-slate-900 text-center text-sm sm:text-base group-hover:text-slate-950 leading-tight">
+              {cat.name}
+            </h3>
+            <span className="text-[11px] text-slate-400 mt-1.5 font-semibold flex items-center gap-1 group-hover:text-slate-600 transition-colors">
+              Explore <ArrowRight size={10} />
+            </span>
           </Link>
         ))}
       </div>
@@ -547,23 +555,22 @@ export default function PublicWebsite() {
         <div className="mx-auto max-w-3xl text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-4 py-1.5 text-xs font-extrabold uppercase tracking-widest text-violet-700 shadow-xs">
             <Crown size={14} className="text-violet-600" />
-            <span>Official Subscriptions & Memberships</span>
+            <span>Official Studio Memberships</span>
           </div>
           <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
-            Choose the plan that powers <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">your career.</span>
+            Choose the plan that powers <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">your productions.</span>
           </h2>
           <p className="mt-4 text-base text-slate-600 sm:text-lg">
-            Direct, verified casting with zero middlemen. Choose flexible monthly billing or save 20% with annual plans.
+            Direct, verified talent casting with zero middlemen. Choose flexible monthly billing or save 20% with annual plans.
           </p>
 
-          {/* Billing Toggle & Target Audience Filter */}
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
-            {/* Monthly / Yearly Toggle */}
+          {/* Monthly / Yearly Toggle */}
+          <div className="mt-8 flex items-center justify-center">
             <div className="inline-flex items-center rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
               <button
                 type="button"
                 onClick={() => setBillingCycle('monthly')}
-                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${billingCycle === 'monthly'
+                className={`rounded-xl px-5 py-2.5 text-xs font-bold transition-all cursor-pointer ${billingCycle === 'monthly'
                   ? 'bg-violet-600 text-white shadow-md shadow-violet-200'
                   : 'text-slate-600 hover:text-slate-900'
                   }`}
@@ -573,7 +580,7 @@ export default function PublicWebsite() {
               <button
                 type="button"
                 onClick={() => setBillingCycle('yearly')}
-                className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition-all ${billingCycle === 'yearly'
+                className={`flex items-center gap-1.5 rounded-xl px-5 py-2.5 text-xs font-bold transition-all cursor-pointer ${billingCycle === 'yearly'
                   ? 'bg-violet-600 text-white shadow-md shadow-violet-200'
                   : 'text-slate-600 hover:text-slate-900'
                   }`}
@@ -583,23 +590,6 @@ export default function PublicWebsite() {
                   Save 20%
                 </span>
               </button>
-            </div>
-
-            {/* Audience Filter Tabs */}
-            <div className="inline-flex items-center rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
-              {['All', 'Creator', 'Company'].map((aud) => (
-                <button
-                  key={aud}
-                  type="button"
-                  onClick={() => setAudienceFilter(aud)}
-                  className={`rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${audienceFilter === aud
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                >
-                  {aud === 'All' ? 'All Plans' : aud === 'Creator' ? 'For Creators' : 'For Production'}
-                </button>
-              ))}
             </div>
           </div>
         </div>
@@ -637,11 +627,7 @@ export default function PublicWebsite() {
                     {/* Audience & Trial Tag */}
                     <div className="flex items-center justify-between gap-2">
                       <span className="rounded-lg bg-violet-50 px-2.5 py-1 text-[11px] font-bold text-violet-700">
-                        {plan.targetAudience === 'Creator'
-                          ? 'For Artists & Creators'
-                          : plan.targetAudience === 'Company'
-                            ? 'For Production Houses'
-                            : 'For All Members'}
+                        For Production Studios & Agencies
                       </span>
                       {plan.trialDays > 0 && (
                         <span className="rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">
@@ -733,15 +719,13 @@ export default function PublicWebsite() {
                   {/* Call to action */}
                   <div className="mt-8 pt-4">
                     <Link
-                      to={plan.targetAudience === 'Company' ? '/company/signup' : '/creator/signup'}
+                      to={`/company/signup?plan=${encodeURIComponent(plan.name)}`}
                       className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-xs font-bold shadow-md transition hover:-translate-y-0.5 ${colors.btn}`}
                     >
                       <span>
-                        {isFree
-                          ? 'Get Started Free'
-                          : plan.trialDays > 0
-                            ? `Start ${plan.trialDays}-Day Free Trial`
-                            : 'Choose Plan'}
+                        {plan.trialDays > 0
+                          ? `Start ${plan.trialDays}-Day Free Trial`
+                          : 'Choose Plan'}
                       </span>
                       <ArrowRight size={14} />
                     </Link>

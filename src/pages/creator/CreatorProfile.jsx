@@ -764,10 +764,13 @@ const CreatorProfile = () => {
                 >
                   <option value="Model">Model (Ramp / Print / Commercial)</option>
                   <option value="Actor">Actor (Screen / Theatre / OTT)</option>
-                  <option value="Voice Artist">Voice Artist / Dubbing</option>
-                  <option value="Dancer">Dancer / Choreographer</option>
                   <option value="Influencer">Influencer / Content Creator</option>
-                  <option value="Stylist">Fashion Stylist</option>
+                  <option value="Photographer">Photographer (Fashion / Commercial / Events)</option>
+                  <option value="Makeup Artist">Makeup Artist (Bridal / SFX / Fashion)</option>
+                  <option value="Stylist">Fashion Stylist / Wardrobe</option>
+                  <option value="Voice Over Artist">Voice Over Artist / Dubbing</option>
+                  <option value="Voice Artist">Voice Artist</option>
+                  <option value="Dancer">Dancer / Choreographer</option>
                   <option value="Singer">Singer / Musician</option>
                 </select>
               </div>

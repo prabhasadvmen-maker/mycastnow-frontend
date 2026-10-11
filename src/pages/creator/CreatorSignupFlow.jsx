@@ -26,6 +26,7 @@ const CreatorSignupFlow = () => {
   const [currentStep, setCurrentStep] = useState(creatorUser?.onboardingStep || 1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [photoUploading, setPhotoUploading] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(false);
@@ -310,6 +311,7 @@ const CreatorSignupFlow = () => {
   const handleSelectCategory = (cat) => {
     const nextProf = { ...prof, primaryCategory: cat };
     setProf(nextProf);
+    clearFieldError('primaryCategory');
     triggerAutoSave({
       professionalDetails: {
         ...creatorUser?.professionalDetails,
@@ -323,10 +325,100 @@ const CreatorSignupFlow = () => {
   // Immediate save on Availability selection (Step 7)
   const handleSelectAvailability = (status) => {
     setAvailabilityStatus(status);
+    clearFieldError('availability');
     triggerAutoSave({
       availabilityStatus: status,
       onboardingStep: 7
     });
+  };
+
+  // Clear specific field validation error
+  const clearFieldError = (field) => {
+    setFieldErrors(prev => {
+      if (!prev[field]) return prev;
+      const updated = { ...prev };
+      delete updated[field];
+      return updated;
+    });
+    setError('');
+  };
+
+  // Validate fields for current step
+  const validateCurrentStep = (step) => {
+    const errors = {};
+
+    if (step === 1) {
+      if (!prof.primaryCategory) {
+        errors.primaryCategory = 'Please select a category that describes you best.';
+      }
+    } else if (step === 2) {
+      if (photoUploading) {
+        errors.profilePhoto = 'Please wait for your profile photo to finish uploading.';
+      } else if (!basic.profilePhoto || !basic.profilePhoto.trim()) {
+        errors.profilePhoto = 'Profile photo is required.';
+      }
+      if (!basic.fullName || !basic.fullName.trim()) {
+        errors.fullName = 'Full Name is required.';
+      } else if (basic.fullName.trim().length < 2) {
+        errors.fullName = 'Full Name must be at least 2 characters.';
+      }
+      if (!basic.city || !basic.city.trim()) {
+        errors.city = 'City / Location is required.';
+      }
+      if (!basic.gender) {
+        errors.gender = 'Please select your gender.';
+      }
+      if (!basic.dob) {
+        errors.dob = 'Date of birth is required.';
+      }
+      if (!basic.bio || !basic.bio.trim()) {
+        errors.bio = 'Bio / About Me is required.';
+      } else if (basic.bio.trim().length < 10) {
+        errors.bio = 'Bio must be at least 10 characters long.';
+      }
+      if (basic.email && basic.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(basic.email.trim())) {
+        errors.email = 'Please enter a valid email address.';
+      }
+    } else if (step === 3) {
+      if (!prof.experience) {
+        errors.experience = 'Please select your experience level.';
+      }
+      if (!prof.skills || !prof.skills.trim()) {
+        errors.skills = 'Please enter at least one skill or talent.';
+      }
+    } else if (step === 4) {
+      const isPhysicalStrict = ['Model', 'Actor', 'Influencer'].includes(prof.primaryCategory);
+      if (isPhysicalStrict) {
+        if (!physical.height || !physical.height.trim()) {
+          errors.height = `Height is required for ${prof.primaryCategory || 'this category'}.`;
+        }
+        if (!physical.weight || !physical.weight.trim()) {
+          errors.weight = `Weight is required for ${prof.primaryCategory || 'this category'}.`;
+        }
+      }
+    } else if (step === 5) {
+      if (!portfolioFiles || portfolioFiles.length === 0) {
+        errors.portfolio = 'Please upload at least 1 photo or video to your portfolio.';
+      } else if (portfolioFiles.some(f => f.uploadProgress < 100)) {
+        errors.portfolio = 'Please wait for your media files to finish uploading.';
+      }
+    } else if (step === 6) {
+      const hasHourly = pricing.hourlyRate !== '' && Number(pricing.hourlyRate) > 0;
+      const hasDay = pricing.dayRate !== '' && Number(pricing.dayRate) > 0;
+      if (!hasHourly && !hasDay) {
+        errors.pricing = 'Please enter a valid Day Rate or Hourly Rate (greater than ₹0).';
+      }
+    } else if (step === 7) {
+      if (!availabilityStatus) {
+        errors.availability = 'Please select your current availability status.';
+      }
+    } else if (step === 8) {
+      if (!paymentDone) {
+        errors.payment = 'Please complete the onboarding fee payment to proceed.';
+      }
+    }
+
+    return errors;
   };
 
   // Handle Tab close / minimize / page exit with keepalive fetch
@@ -368,6 +460,15 @@ const CreatorSignupFlow = () => {
 
   const handleNext = async () => {
     setError('');
+    const stepErrors = validateCurrentStep(currentStep);
+    if (Object.keys(stepErrors).length > 0) {
+      setFieldErrors(stepErrors);
+      const firstErrorMessage = Object.values(stepErrors)[0];
+      setError(firstErrorMessage);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    setFieldErrors({});
     setLoading(true);
 
     try {
@@ -556,6 +657,18 @@ const CreatorSignupFlow = () => {
   };
 
   const handlePublish = async () => {
+    setError('');
+    for (let s = 1; s <= 8; s++) {
+      const sErrors = validateCurrentStep(s);
+      if (Object.keys(sErrors).length > 0) {
+        setFieldErrors(sErrors);
+        setError(`Please complete step ${s} (${steps[s - 1]}): ${Object.values(sErrors)[0]}`);
+        setCurrentStep(s);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       await updateProfile({
@@ -564,7 +677,7 @@ const CreatorSignupFlow = () => {
       });
       navigate('/creator/dashboard');
     } catch (err) {
-      setError('Failed to publish profile.');
+      setError(err.response?.data?.message || 'Failed to publish profile.');
     }
     setLoading(false);
   };
@@ -644,29 +757,50 @@ const CreatorSignupFlow = () => {
             {/* Step 1: Category */}
             {currentStep === 1 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">What describes you best?</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                <div className="mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
+                    What describes you best? <span className="text-rose-500">*</span>
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Select your primary talent category. This helps brands, studios, and casting directors find you.
+                  </p>
+                </div>
+                <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 p-1 rounded-2xl ${fieldErrors.primaryCategory ? 'ring-2 ring-rose-500/50 bg-rose-50/20' : ''}`}>
                   {categories.map(cat => (
                     <button
                       key={cat}
-                      onClick={() => handleSelectCategory(cat)}
-                      className={`p-4 border-2 rounded-2xl text-center font-bold transition-all ${prof.primaryCategory === cat ? 'border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                      type="button"
+                      onClick={() => {
+                        handleSelectCategory(cat);
+                        clearFieldError('primaryCategory');
+                      }}
+                      className={`p-4 border-2 rounded-2xl text-center font-bold transition-all cursor-pointer ${prof.primaryCategory === cat ? 'border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700 shadow-sm' : 'border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'}`}
                     >
                       {cat}
                     </button>
                   ))}
                 </div>
+                {fieldErrors.primaryCategory && (
+                  <p className="text-xs text-rose-500 mt-2 font-medium flex items-center gap-1">
+                    <AlertCircle size={14} /> {fieldErrors.primaryCategory}
+                  </p>
+                )}
               </div>
             )}
 
             {/* Step 2: Basic Details */}
             {currentStep === 2 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-4 sm:space-y-5">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Basic Details</h2>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">Basic Details</h2>
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    Fields marked with <span className="text-rose-500 font-bold">*</span> are required for creator verification.
+                  </p>
+                </div>
 
-                <div className="flex flex-col sm:flex-row gap-6 mb-6 sm:items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                <div className={`flex flex-col sm:flex-row gap-6 mb-6 sm:items-center bg-gray-50 p-4 rounded-2xl border ${fieldErrors.profilePhoto ? 'border-rose-400 bg-rose-50/30' : 'border-gray-100'}`}>
                   <div className="flex flex-col items-center gap-2 shrink-0">
-                    <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white shadow-md overflow-hidden flex items-center justify-center relative group">
+                    <div className={`w-24 h-24 rounded-full bg-gray-200 border-4 ${fieldErrors.profilePhoto ? 'border-rose-500 ring-2 ring-rose-300' : 'border-white'} shadow-md overflow-hidden flex items-center justify-center relative group`}>
                       {basic.profilePhoto ? (
                         <img src={basic.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
                       ) : (
@@ -688,6 +822,7 @@ const CreatorSignupFlow = () => {
                               const file = e.target.files[0];
                               const previewUrl = URL.createObjectURL(file);
                               setBasic(prev => ({ ...prev, profilePhoto: previewUrl }));
+                              clearFieldError('profilePhoto');
                               setPhotoUploading(true);
                               try {
                                 const formData = new FormData();
@@ -696,6 +831,7 @@ const CreatorSignupFlow = () => {
                                 if (res.data.success) {
                                   const uploadedUrl = res.data.url;
                                   setBasic(prev => ({ ...prev, profilePhoto: uploadedUrl }));
+                                  clearFieldError('profilePhoto');
                                   triggerAutoSave({
                                     basicDetails: { ...basic, profilePhoto: uploadedUrl },
                                     onboardingStep: 2
@@ -716,61 +852,168 @@ const CreatorSignupFlow = () => {
                         />
                       </label>
                     </div>
-                    <span className="text-xs font-bold text-gray-500">Upload Profile Image</span>
+                    <span className="text-xs font-bold text-gray-600 flex items-center gap-0.5">
+                      Profile Photo <span className="text-rose-500">*</span>
+                    </span>
+                    {fieldErrors.profilePhoto && (
+                      <p className="text-[11px] text-rose-500 font-semibold">{fieldErrors.profilePhoto}</p>
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Full Name</label>
-                    <input type="text" value={basic.fullName} onChange={e => setBasic({ ...basic, fullName: e.target.value })} className="w-full p-3 bg-white border border-gray-200 rounded-xl shadow-sm" placeholder="John Doe" />
+                  <div className="flex-1 w-full">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Full Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={basic.fullName}
+                      onChange={e => {
+                        setBasic({ ...basic, fullName: e.target.value });
+                        clearFieldError('fullName');
+                      }}
+                      className={`w-full p-3 bg-white border ${fieldErrors.fullName ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-200' : 'border-gray-200'} rounded-xl shadow-sm`}
+                      placeholder="e.g. Aarav Sharma"
+                    />
+                    {fieldErrors.fullName && <p className="text-xs text-rose-500 mt-1 font-medium">{fieldErrors.fullName}</p>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">City / Location</label>
-                    <input type="text" value={basic.city} onChange={e => setBasic({ ...basic, city: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Mumbai" />
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      City / Location <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={basic.city}
+                      onChange={e => {
+                        setBasic({ ...basic, city: e.target.value });
+                        clearFieldError('city');
+                      }}
+                      className={`w-full p-3 bg-gray-50 border ${fieldErrors.city ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-200' : 'border-gray-200'} rounded-xl`}
+                      placeholder="e.g. Mumbai"
+                    />
+                    {fieldErrors.city && <p className="text-xs text-rose-500 mt-1 font-medium">{fieldErrors.city}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Gender</label>
-                    <select value={basic.gender} onChange={e => setBasic({ ...basic, gender: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl">
-                      <option value="">Select</option>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Gender <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={basic.gender}
+                      onChange={e => {
+                        setBasic({ ...basic, gender: e.target.value });
+                        clearFieldError('gender');
+                      }}
+                      className={`w-full p-3 bg-gray-50 border ${fieldErrors.gender ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-200' : 'border-gray-200'} rounded-xl`}
+                    >
+                      <option value="">Select Gender</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                       <option value="Other">Other</option>
                     </select>
+                    {fieldErrors.gender && <p className="text-xs text-rose-500 mt-1 font-medium">{fieldErrors.gender}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Date of Birth</label>
-                    <input type="date" value={basic.dob} onChange={e => setBasic({ ...basic, dob: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" />
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Date of Birth <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={basic.dob}
+                      onChange={e => {
+                        setBasic({ ...basic, dob: e.target.value });
+                        clearFieldError('dob');
+                      }}
+                      className={`w-full p-3 bg-gray-50 border ${fieldErrors.dob ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-200' : 'border-gray-200'} rounded-xl`}
+                    />
+                    {fieldErrors.dob && <p className="text-xs text-rose-500 mt-1 font-medium">{fieldErrors.dob}</p>}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Bio / About Me</label>
-                  <textarea value={basic.bio} onChange={e => setBasic({ ...basic, bio: e.target.value })} rows="4" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Tell brands about yourself..."></textarea>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Bio / About Me <span className="text-rose-500">*</span>
+                  </label>
+                  <textarea
+                    value={basic.bio}
+                    onChange={e => {
+                      setBasic({ ...basic, bio: e.target.value });
+                      clearFieldError('bio');
+                    }}
+                    rows="4"
+                    className={`w-full p-3 bg-gray-50 border ${fieldErrors.bio ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-200' : 'border-gray-200'} rounded-xl`}
+                    placeholder="Tell brands and casting directors about your work, background, and special talents (at least 10 characters)..."
+                  />
+                  {fieldErrors.bio && <p className="text-xs text-rose-500 mt-1 font-medium">{fieldErrors.bio}</p>}
                 </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
-                    <input type="email" value={basic.email} onChange={e => setBasic({ ...basic, email: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="johndoe@example.com" />
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Email Address <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={basic.email}
+                      onChange={e => {
+                        setBasic({ ...basic, email: e.target.value });
+                        clearFieldError('email');
+                      }}
+                      className={`w-full p-3 bg-gray-50 border ${fieldErrors.email ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-200' : 'border-gray-200'} rounded-xl`}
+                      placeholder="johndoe@example.com"
+                    />
+                    {fieldErrors.email && <p className="text-xs text-rose-500 mt-1 font-medium">{fieldErrors.email}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Languages Spoken</label>
-                    <input type="text" value={basic.languages} onChange={e => setBasic({ ...basic, languages: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="English, Hindi, Marathi" />
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Languages Spoken <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={basic.languages}
+                      onChange={e => setBasic({ ...basic, languages: e.target.value })}
+                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl"
+                      placeholder="English, Hindi, Marathi"
+                    />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Instagram Link</label>
-                    <input type="url" value={basic.instagram} onChange={e => setBasic({ ...basic, instagram: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="https://instagram.com/..." />
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Instagram Link <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={basic.instagram}
+                      onChange={e => setBasic({ ...basic, instagram: e.target.value })}
+                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl"
+                      placeholder="https://instagram.com/..."
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">LinkedIn Link</label>
-                    <input type="url" value={basic.linkedin} onChange={e => setBasic({ ...basic, linkedin: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="https://linkedin.com/in/..." />
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      LinkedIn Link <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={basic.linkedin}
+                      onChange={e => setBasic({ ...basic, linkedin: e.target.value })}
+                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl"
+                      placeholder="https://linkedin.com/in/..."
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Portfolio Link</label>
-                    <input type="url" value={basic.portfolioLink} onChange={e => setBasic({ ...basic, portfolioLink: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="https://yourportfolio.com" />
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Portfolio Link <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={basic.portfolioLink}
+                      onChange={e => setBasic({ ...basic, portfolioLink: e.target.value })}
+                      className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl"
+                      placeholder="https://yourportfolio.com"
+                    />
                   </div>
                 </div>
               </div>
@@ -779,78 +1022,173 @@ const CreatorSignupFlow = () => {
             {/* Step 3: Professional */}
             {currentStep === 3 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-4 sm:space-y-5">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Professional Experience</h2>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">Professional Experience</h2>
+                  <p className="text-xs sm:text-sm text-gray-500">Provide details about your experience and primary skill set.</p>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Years of Experience</label>
-                    <select value={prof.experience} onChange={e => setProf({ ...prof, experience: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl">
-                      <option value="">Select</option>
-                      <option value="Fresher">Fresher</option>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Years of Experience <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={prof.experience}
+                      onChange={e => {
+                        setProf({ ...prof, experience: e.target.value });
+                        clearFieldError('experience');
+                      }}
+                      className={`w-full p-3 bg-gray-50 border ${fieldErrors.experience ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-200' : 'border-gray-200'} rounded-xl`}
+                    >
+                      <option value="">Select Experience</option>
+                      <option value="Fresher">Fresher (New to industry)</option>
                       <option value="1-3 Years">1-3 Years</option>
                       <option value="3-5 Years">3-5 Years</option>
                       <option value="5+ Years">5+ Years</option>
                     </select>
+                    {fieldErrors.experience && <p className="text-xs text-rose-500 mt-1 font-medium">{fieldErrors.experience}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Skills</label>
-                    <input type="text" value={prof.skills} onChange={e => setProf({ ...prof, skills: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Acting, Dancing, Modeling" />
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Skills & Talents <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={prof.skills}
+                      onChange={e => {
+                        setProf({ ...prof, skills: e.target.value });
+                        clearFieldError('skills');
+                      }}
+                      className={`w-full p-3 bg-gray-50 border ${fieldErrors.skills ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-200' : 'border-gray-200'} rounded-xl`}
+                      placeholder="Acting, Dancing, Modeling, Commercials"
+                    />
                     <p className="text-xs text-gray-400 mt-1">Separate multiple skills with commas</p>
+                    {fieldErrors.skills && <p className="text-xs text-rose-500 mt-1 font-medium">{fieldErrors.skills}</p>}
                   </div>
                 </div>
               </div>
             )}
 
             {/* Step 4: Physical Attributes */}
-            {currentStep === 4 && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-4 sm:space-y-5">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Physical Attributes</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+            {currentStep === 4 && (() => {
+              const isPhysicalStrict = ['Model', 'Actor', 'Influencer'].includes(prof.primaryCategory);
+              return (
+                <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-4 sm:space-y-5">
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Height</label>
-                    <input type="text" value={physical.height} onChange={e => setPhysical({ ...physical, height: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="5'10&quot;" />
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">Physical Attributes</h2>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      {isPhysicalStrict
+                        ? `Height & weight are required for ${prof.primaryCategory || 'your category'} casting calls.`
+                        : `Physical measurements are optional for ${prof.primaryCategory || 'your category'}.`}
+                    </p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Weight</label>
-                    <input type="text" value={physical.weight} onChange={e => setPhysical({ ...physical, weight: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="70 kg" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Eye Color</label>
-                    <input type="text" value={physical.eyeColor} onChange={e => setPhysical({ ...physical, eyeColor: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Brown" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Hair Color</label>
-                    <input type="text" value={physical.hairColor} onChange={e => setPhysical({ ...physical, hairColor: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="Black" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Chest / Bust</label>
-                    <input type="text" value={physical.chest} onChange={e => setPhysical({ ...physical, chest: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="40&quot;" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Waist</label>
-                    <input type="text" value={physical.waist} onChange={e => setPhysical({ ...physical, waist: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="32&quot;" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Hips</label>
-                    <input type="text" value={physical.hips} onChange={e => setPhysical({ ...physical, hips: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="38&quot;" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        Height {isPhysicalStrict && <span className="text-rose-500">*</span>}
+                      </label>
+                      <input
+                        type="text"
+                        value={physical.height}
+                        onChange={e => {
+                          setPhysical({ ...physical, height: e.target.value });
+                          clearFieldError('height');
+                        }}
+                        className={`w-full p-3 bg-gray-50 border ${fieldErrors.height ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-200' : 'border-gray-200'} rounded-xl`}
+                        placeholder="5'10&quot; or 178 cm"
+                      />
+                      {fieldErrors.height && <p className="text-xs text-rose-500 mt-1 font-medium">{fieldErrors.height}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        Weight {isPhysicalStrict && <span className="text-rose-500">*</span>}
+                      </label>
+                      <input
+                        type="text"
+                        value={physical.weight}
+                        onChange={e => {
+                          setPhysical({ ...physical, weight: e.target.value });
+                          clearFieldError('weight');
+                        }}
+                        className={`w-full p-3 bg-gray-50 border ${fieldErrors.weight ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-200' : 'border-gray-200'} rounded-xl`}
+                        placeholder="70 kg"
+                      />
+                      {fieldErrors.weight && <p className="text-xs text-rose-500 mt-1 font-medium">{fieldErrors.weight}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Eye Color</label>
+                      <input
+                        type="text"
+                        value={physical.eyeColor}
+                        onChange={e => setPhysical({ ...physical, eyeColor: e.target.value })}
+                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl"
+                        placeholder="Brown"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Hair Color</label>
+                      <input
+                        type="text"
+                        value={physical.hairColor}
+                        onChange={e => setPhysical({ ...physical, hairColor: e.target.value })}
+                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl"
+                        placeholder="Black"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Chest / Bust</label>
+                      <input
+                        type="text"
+                        value={physical.chest}
+                        onChange={e => setPhysical({ ...physical, chest: e.target.value })}
+                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl"
+                        placeholder="40&quot;"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Waist</label>
+                      <input
+                        type="text"
+                        value={physical.waist}
+                        onChange={e => setPhysical({ ...physical, waist: e.target.value })}
+                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl"
+                        placeholder="32&quot;"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Hips</label>
+                      <input
+                        type="text"
+                        value={physical.hips}
+                        onChange={e => setPhysical({ ...physical, hips: e.target.value })}
+                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl"
+                        placeholder="38&quot;"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Step 5: Portfolio */}
             {currentStep === 5 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Upload Portfolio</h2>
-                <p className="text-sm sm:text-base text-gray-500 mb-6">Add your best photos and videos to showcase your work.</p>
+                <div className="mb-4">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
+                    Upload Portfolio <span className="text-rose-500">*</span>
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-500">
+                    Upload at least 1 photo or video to showcase your work to casting directors and production houses.
+                  </p>
+                </div>
 
-                <label className="border-2 border-dashed border-gray-300 rounded-3xl p-8 sm:p-12 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer flex flex-col items-center justify-center relative">
+                <label className={`border-2 border-dashed ${fieldErrors.portfolio ? 'border-rose-400 bg-rose-50/20' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'} rounded-3xl p-8 sm:p-12 transition-colors cursor-pointer flex flex-col items-center justify-center relative`}>
                   <input
                     type="file"
                     multiple
                     accept="image/*,video/*"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     onChange={(e) => {
-                      if (e.target.files.length > 0) {
+                      if (e.target.files && e.target.files.length > 0) {
                         const newFiles = Array.from(e.target.files).map(file => ({
                           file,
                           url: URL.createObjectURL(file),
@@ -858,13 +1196,20 @@ const CreatorSignupFlow = () => {
                           uploadProgress: 0
                         }));
                         setPortfolioFiles(prev => [...prev, ...newFiles]);
+                        clearFieldError('portfolio');
                       }
                     }}
                   />
-                  <UploadCloud className="w-12 h-12 text-gray-400 mb-4" />
-                  <p className="text-gray-600 font-medium">Click to browse or drag and drop files here</p>
-                  <p className="text-xs text-gray-400 mt-2">JPG, PNG, MP4 up to 50MB</p>
+                  <UploadCloud className={`w-12 h-12 mb-4 ${fieldErrors.portfolio ? 'text-rose-400' : 'text-gray-400'}`} />
+                  <p className="text-gray-700 font-semibold">Click to browse or drag and drop files here</p>
+                  <p className="text-xs text-gray-400 mt-2">JPG, PNG, MP4 up to 50MB (At least 1 file required)</p>
                 </label>
+
+                {fieldErrors.portfolio && (
+                  <p className="text-xs text-rose-500 mt-2 font-medium flex items-center gap-1">
+                    <AlertCircle size={14} /> {fieldErrors.portfolio}
+                  </p>
+                )}
 
                 {portfolioFiles.length > 0 && (
                   <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
@@ -889,6 +1234,7 @@ const CreatorSignupFlow = () => {
                           </div>
                         )}
                         <button
+                          type="button"
                           onClick={() => setPortfolioFiles(prev => prev.filter((_, i) => i !== idx))}
                           className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
@@ -904,35 +1250,112 @@ const CreatorSignupFlow = () => {
             {/* Step 6: Pricing */}
             {currentStep === 6 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-4 sm:space-y-5">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Pricing Setup</h2>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
+                    Pricing Setup <span className="text-rose-500">*</span>
+                  </h2>
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    Set your commercial rates so brands and production houses know your booking fees (at least Day Rate or Hourly Rate is required).
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Day Rate (₹) <span className="text-rose-500 font-semibold">* (Recommended)</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={pricing.dayRate}
+                    onChange={e => {
+                      setPricing({ ...pricing, dayRate: e.target.value });
+                      clearFieldError('pricing');
+                    }}
+                    className={`w-full p-3 bg-gray-50 border ${fieldErrors.pricing ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-200' : 'border-gray-200'} rounded-xl`}
+                    placeholder="e.g. 5000"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Full-day shoot or commercial booking rate</p>
+                </div>
 
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Hourly Rate (₹)</label>
-                  <input type="number" value={pricing.hourlyRate} onChange={e => setPricing({ ...pricing, hourlyRate: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="e.g. 500" />
+                  <input
+                    type="number"
+                    min="1"
+                    value={pricing.hourlyRate}
+                    onChange={e => {
+                      setPricing({ ...pricing, hourlyRate: e.target.value });
+                      clearFieldError('pricing');
+                    }}
+                    className={`w-full p-3 bg-gray-50 border ${fieldErrors.pricing ? 'border-rose-500 bg-rose-50/20 ring-1 ring-rose-200' : 'border-gray-200'} rounded-xl`}
+                    placeholder="e.g. 800"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Per hour charge for short shoots or voice sessions</p>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Day Rate (₹)</label>
-                  <input type="number" value={pricing.dayRate} onChange={e => setPricing({ ...pricing, dayRate: e.target.value })} className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl" placeholder="e.g. 4000" />
-                </div>
+                {fieldErrors.pricing && (
+                  <p className="text-xs text-rose-500 mt-2 font-medium flex items-center gap-1">
+                    <AlertCircle size={14} /> {fieldErrors.pricing}
+                  </p>
+                )}
               </div>
             )}
 
             {/* Step 7: Availability */}
             {currentStep === 7 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Current Availability</h2>
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                  <button onClick={() => handleSelectAvailability('Available')} className={`flex-1 py-4 border-2 rounded-2xl font-bold ${availabilityStatus === 'Available' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-600'}`}>Available Now</button>
-                  <button onClick={() => handleSelectAvailability('Unavailable')} className={`flex-1 py-4 border-2 rounded-2xl font-bold ${availabilityStatus === 'Unavailable' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 text-gray-600'}`}>Unavailable</button>
+                <div className="mb-6">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
+                    Current Availability <span className="text-rose-500">*</span>
+                  </h2>
+                  <p className="text-xs sm:text-sm text-gray-500">
+                    Let casting directors know if you are currently open for new projects and bookings.
+                  </p>
                 </div>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleSelectAvailability('Available');
+                      clearFieldError('availability');
+                    }}
+                    className={`flex-1 py-4 border-2 rounded-2xl font-bold transition-all cursor-pointer ${
+                      availabilityStatus === 'Available'
+                        ? 'border-green-500 bg-green-50 text-green-700 shadow-sm'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    Available Now
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleSelectAvailability('Unavailable');
+                      clearFieldError('availability');
+                    }}
+                    className={`flex-1 py-4 border-2 rounded-2xl font-bold transition-all cursor-pointer ${
+                      availabilityStatus === 'Unavailable'
+                        ? 'border-red-500 bg-red-50 text-red-700 shadow-sm'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    Unavailable
+                  </button>
+                </div>
+                {fieldErrors.availability && (
+                  <p className="text-xs text-rose-500 mt-2 font-medium flex items-center gap-1">
+                    <AlertCircle size={14} /> {fieldErrors.availability}
+                  </p>
+                )}
               </div>
             )}
 
             {/* Step 8: Payment */}
             {currentStep === 8 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500 px-2 sm:px-0">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Onboarding Fee</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
+                  Onboarding Fee <span className="text-rose-500">*</span>
+                </h2>
                 <p className="text-sm sm:text-base text-gray-500 mb-8">One-time fee to activate your creator profile on MyCastNow.</p>
 
                 {paymentDone ? (
@@ -1000,14 +1423,19 @@ const CreatorSignupFlow = () => {
                   <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12" />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">You're all set, {basic.fullName}!</h2>
-                <p className="text-gray-600 mb-8 max-w-md mx-auto">Your profile looks great. Hit publish to submit your profile to our admin team for verification.</p>
+                <p className="text-gray-600 mb-8 max-w-md mx-auto">Your profile is complete with all required information. Hit publish to submit your profile to our admin team for verification.</p>
 
-                <div className="bg-gray-50 p-6 rounded-2xl text-left max-w-md mx-auto mb-8 border border-gray-100">
-                  <p className="font-bold text-gray-800 mb-2">Profile Summary</p>
-                  <ul className="text-sm text-gray-600 space-y-2">
-                    <li><strong>Category:</strong> {prof.primaryCategory}</li>
-                    <li><strong>Phone:</strong> {creatorUser?.phone}</li>
-                    <li><strong>Location:</strong> {basic.city || 'Not specified'}</li>
+                <div className="bg-gray-50 p-6 rounded-2xl text-left max-w-md mx-auto mb-8 border border-gray-100 shadow-sm">
+                  <p className="font-bold text-gray-800 mb-3 text-base border-b border-gray-200 pb-2">Profile Summary</p>
+                  <ul className="text-sm text-gray-600 space-y-2.5">
+                    <li className="flex justify-between"><strong>Full Name:</strong> <span>{basic.fullName || 'N/A'}</span></li>
+                    <li className="flex justify-between"><strong>Category:</strong> <span className="font-semibold text-fuchsia-700">{prof.primaryCategory}</span></li>
+                    <li className="flex justify-between"><strong>Location:</strong> <span>{basic.city || 'Not specified'}</span></li>
+                    <li className="flex justify-between"><strong>Gender:</strong> <span>{basic.gender || 'Not specified'}</span></li>
+                    <li className="flex justify-between"><strong>Experience:</strong> <span>{prof.experience || 'Not specified'}</span></li>
+                    <li className="flex justify-between"><strong>Day Rate:</strong> <span>{pricing.dayRate ? `₹${pricing.dayRate}` : (pricing.hourlyRate ? `₹${pricing.hourlyRate}/hr` : 'Not specified')}</span></li>
+                    <li className="flex justify-between"><strong>Portfolio Files:</strong> <span>{portfolioFiles.length} item(s)</span></li>
+                    <li className="flex justify-between"><strong>Onboarding Fee:</strong> <span className="text-emerald-600 font-semibold flex items-center gap-1"><CheckCircle2 size={14} /> Completed</span></li>
                   </ul>
                 </div>
               </div>
@@ -1018,24 +1446,35 @@ const CreatorSignupFlow = () => {
           {/* Footer Controls */}
           <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
             {currentStep > 1 ? (
-              <button onClick={() => setCurrentStep(prev => prev - 1)} disabled={loading} className="px-4 sm:px-6 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base">
+              <button
+                type="button"
+                onClick={() => {
+                  setError('');
+                  setFieldErrors({});
+                  setCurrentStep(prev => prev - 1);
+                }}
+                disabled={loading}
+                className="px-4 sm:px-6 py-3 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-colors flex items-center gap-1 sm:gap-2 text-sm sm:text-base cursor-pointer"
+              >
                 <ChevronLeft size={18} /> <span className="hidden sm:inline">Back</span>
               </button>
             ) : <div></div>}
 
             {currentStep < steps.length ? (
               <button
+                type="button"
                 onClick={handleNext}
-                disabled={loading || (currentStep === 1 && !prof.primaryCategory) || (currentStep === 8 && !paymentDone)}
-                className="px-6 sm:px-8 py-3 rounded-xl font-bold bg-gray-900 text-white hover:bg-black transition-colors flex items-center gap-2 disabled:opacity-50 text-sm sm:text-base"
+                disabled={loading || (currentStep === 8 && !paymentDone)}
+                className="px-6 sm:px-8 py-3 rounded-xl font-bold bg-gray-900 text-white hover:bg-black transition-colors flex items-center gap-2 disabled:opacity-50 text-sm sm:text-base cursor-pointer"
               >
                 {loading ? 'Saving...' : 'Next'} <ChevronRight size={18} />
               </button>
             ) : (
               <button
+                type="button"
                 onClick={handlePublish}
                 disabled={loading}
-                className="px-6 sm:px-8 py-3 rounded-xl font-bold bg-fuchsia-600 text-white hover:bg-fuchsia-700 shadow-lg shadow-fuchsia-500/30 transition-all flex items-center gap-2 text-sm sm:text-base"
+                className="px-6 sm:px-8 py-3 rounded-xl font-bold bg-fuchsia-600 text-white hover:bg-fuchsia-700 shadow-lg shadow-fuchsia-500/30 transition-all flex items-center gap-2 text-sm sm:text-base cursor-pointer"
               >
                 {loading ? 'Publishing...' : <><span className="hidden sm:inline">Publish Profile</span><span className="sm:hidden">Publish</span></>} <CheckCircle2 size={18} />
               </button>

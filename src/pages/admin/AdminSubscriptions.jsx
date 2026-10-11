@@ -5,7 +5,7 @@ import {
   MonitorPlay, Plus, Edit2, Trash2, Power, X, Check,
   IndianRupee, Users, Star, Zap, Shield, Crown, Sparkles,
   CheckCircle, XCircle, ToggleLeft, ToggleRight,
-  ChevronDown, ChevronUp, Tag, Calendar, Building2, UserCircle
+  ChevronDown, ChevronUp, Tag, Calendar, Building2, UserCircle, RotateCcw
 } from 'lucide-react';
 
 const API = import.meta.env.VITE_API_URL;
@@ -160,13 +160,18 @@ const AdminSubscriptions = () => {
   const [newFeature, setNewFeature]     = useState('');
   const [filterAudience, setFilterAudience] = useState('All'); // 'All' | 'Both' | 'Creator' | 'Company'
 
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchPlans = async () => {
     setLoading(true);
     try {
       const [plansRes, statsRes] = await Promise.all([
-        axios.get(`${API}/admin/subscriptions/plans`),
-        axios.get(`${API}/admin/subscriptions/plans/stats`)
+        axios.get(`${API}/admin/subscriptions/plans`, { headers: getAuthHeaders() }),
+        axios.get(`${API}/admin/subscriptions/plans/stats`, { headers: getAuthHeaders() })
       ]);
       setPlans(plansRes.data);
       setStats(statsRes.data);
@@ -179,7 +184,7 @@ const AdminSubscriptions = () => {
 
   const fetchSubscribers = async () => {
     try {
-      const res = await axios.get(`${API}/admin/subscriptions/subscribers`);
+      const res = await axios.get(`${API}/admin/subscriptions/subscribers`, { headers: getAuthHeaders() });
       setSubscribers(res.data);
     } catch (e) {
       console.error('Failed to fetch subscribers:', e);
@@ -190,6 +195,24 @@ const AdminSubscriptions = () => {
     fetchPlans();
     fetchSubscribers();
   }, []);
+
+  // ── Reset to 3 Standard Studio Plans ──────────────────────────────────────
+  const handleResetDefaults = async () => {
+    if (!window.confirm('Reset plans to the 3 standard Production Studio plans (Starter, Pro, Enterprise)?')) return;
+    setLoading(true);
+    try {
+      const res = await axios.post(`${API}/admin/subscriptions/plans/reset-defaults`, {}, { headers: getAuthHeaders() });
+      if (res.data?.plans) {
+        setPlans(res.data.plans);
+        toast.success('Successfully reset to 3 standard Production Studio plans!');
+      }
+      fetchPlans();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to reset plans');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ── Open Modal ─────────────────────────────────────────────────────────────
   const openCreate = () => {
@@ -259,9 +282,9 @@ const AdminSubscriptions = () => {
       };
 
       if (editPlan) {
-        await axios.put(`${API}/admin/subscriptions/plans/${editPlan._id}`, payload);
+        await axios.put(`${API}/admin/subscriptions/plans/${editPlan._id}`, payload, { headers: getAuthHeaders() });
       } else {
-        await axios.post(`${API}/admin/subscriptions/plans`, payload);
+        await axios.post(`${API}/admin/subscriptions/plans`, payload, { headers: getAuthHeaders() });
       }
       setIsModalOpen(false);
       fetchPlans();
@@ -275,7 +298,7 @@ const AdminSubscriptions = () => {
   // ── Toggle active ──────────────────────────────────────────────────────────
   const handleToggle = async (planId) => {
     try {
-      const res = await axios.put(`${API}/admin/subscriptions/plans/${planId}/toggle`);
+      const res = await axios.put(`${API}/admin/subscriptions/plans/${planId}/toggle`, {}, { headers: getAuthHeaders() });
       setPlans(prev => prev.map(p => p._id === planId ? res.data : p));
     } catch {
       toast.error('Failed to toggle plan');
@@ -286,7 +309,7 @@ const AdminSubscriptions = () => {
   const handleDelete = async (planId, planName) => {
     if (!window.confirm(`Delete plan "${planName}"? This cannot be undone.`)) return;
     try {
-      await axios.delete(`${API}/admin/subscriptions/plans/${planId}`);
+      await axios.delete(`${API}/admin/subscriptions/plans/${planId}`, { headers: getAuthHeaders() });
       setPlans(prev => prev.filter(p => p._id !== planId));
     } catch {
       toast.error('Failed to delete plan');
@@ -297,7 +320,7 @@ const AdminSubscriptions = () => {
   const handleCancelSub = async (subId) => {
     if (!window.confirm('Cancel this subscription?')) return;
     try {
-      const res = await axios.put(`${API}/admin/subscriptions/subscribers/${subId}`, { status: 'Cancelled' });
+      const res = await axios.put(`${API}/admin/subscriptions/subscribers/${subId}`, { status: 'Cancelled' }, { headers: getAuthHeaders() });
       setSubscribers(prev => prev.map(s => s._id === subId ? res.data : s));
     } catch {
       toast.error('Failed to cancel subscription');
@@ -324,20 +347,31 @@ const AdminSubscriptions = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
             <MonitorPlay className="text-purple-600" size={26} />
-            Subscription Management
+            Subscription & Pricing Plans
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Create and manage subscription plans for Creators and Companies.
+            Manage the official 3 casting studio subscription plans for Production Houses & Agencies.
           </p>
         </div>
-        {activeTab === 'plans' && (
+        <div className="flex items-center gap-2.5">
           <button
-            onClick={openCreate}
-            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-md hover:opacity-90 transition-opacity"
+            type="button"
+            onClick={handleResetDefaults}
+            title="Reset to 3 standard Production Studio plans"
+            className="flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-3.5 py-2.5 rounded-xl font-semibold text-xs shadow-xs transition cursor-pointer"
           >
-            <Plus size={18} /> Create Plan
+            <RotateCcw size={14} className="text-gray-500" />
+            <span>Reset 3 Studio Plans</span>
           </button>
-        )}
+          {activeTab === 'plans' && (
+            <button
+              onClick={openCreate}
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-md hover:opacity-90 transition-opacity cursor-pointer"
+            >
+              <Plus size={18} /> Create Plan
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Stats ── */}
