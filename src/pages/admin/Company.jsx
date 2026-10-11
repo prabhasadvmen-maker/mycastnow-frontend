@@ -20,8 +20,22 @@ export default function Company() {
    // { type: 'success' | 'error' | 'info', text: string }
   const { adminLoginAsCompany } = useCompanyAuth();
   const navigate = useNavigate();
+  const [existingLogoUrl, setExistingLogoUrl] = useState('');
 
-  
+  const getCompanyLogoUrl = (url) => {
+    if (!url) return null;
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
+    // If it's a pub-mycastnow.r2.dev URL that fails directly in browser, proxy via backend
+    if (url.includes('pub-mycastnow.r2.dev')) {
+      const key = url.split('pub-mycastnow.r2.dev/')[1];
+      return `${apiUrl}/upload/file/${key}`;
+    }
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    const base = apiUrl.replace(/\/api\/?$/, '');
+    return `${base}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -186,6 +200,7 @@ export default function Company() {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditCompanyId(null);
+    setExistingLogoUrl('');
     setFormData({
       name: '', logo: null, email: '', password: '', industry: '', website: '', location: ''
     });
@@ -193,6 +208,7 @@ export default function Company() {
 
   const openAddModal = () => {
     setEditCompanyId(null);
+    setExistingLogoUrl('');
     setFormData({
       name: '', logo: null, email: '', password: '', industry: '', website: '', location: ''
     });
@@ -201,6 +217,7 @@ export default function Company() {
 
   const openEditModal = (company) => {
     setEditCompanyId(company._id);
+    setExistingLogoUrl(company.logo || '');
     setFormData({
       name: company.name || '',
       logo: null,
@@ -324,14 +341,24 @@ export default function Company() {
                       <div className="flex items-center gap-2">
                         <div 
                           onClick={() => openReviewModal(company)}
-                          className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 overflow-hidden shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all"
+                          className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 overflow-hidden shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all relative"
                           title="Click to view full company details"
                         >
                           {company.logo ? (
-                            <img src={company.logo.startsWith('http') ? company.logo : `${import.meta.env.VITE_API_URL}${company.logo}`} alt="Logo" className="w-full h-full object-cover" />
-                          ) : (
+                            <img 
+                              src={getCompanyLogoUrl(company.logo)} 
+                              alt={company.name || 'Logo'} 
+                              className="w-full h-full object-cover" 
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                const fallback = e.currentTarget.parentElement?.querySelector('.logo-fallback');
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div className="logo-fallback w-full h-full items-center justify-center" style={{ display: company.logo ? 'none' : 'flex' }}>
                             <Building2 size={16} />
-                          )}
+                          </div>
                         </div>
                         <div className="min-w-0">
                           <button
@@ -571,11 +598,22 @@ export default function Company() {
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Company Logo</label>
                 <div className="flex items-center gap-4">
-                  {formData.logo && (
+                  {formData.logo ? (
                     <div className="w-16 h-16 rounded-xl border border-gray-200 overflow-hidden shrink-0 bg-gray-50 flex items-center justify-center p-1">
                       <img src={URL.createObjectURL(formData.logo)} alt="Preview" className="w-full h-full object-contain" />
                     </div>
-                  )}
+                  ) : editCompanyId && existingLogoUrl ? (
+                    <div className="w-16 h-16 rounded-xl border border-gray-200 overflow-hidden shrink-0 bg-gray-50 flex items-center justify-center p-1 relative">
+                      <img 
+                        src={getCompanyLogoUrl(existingLogoUrl)} 
+                        alt="Current Logo" 
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  ) : null}
                   <div className="relative flex-1">
                     <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input type="file" name="logo" accept="image/*" onChange={handleInputChange}
@@ -623,12 +661,22 @@ export default function Company() {
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 mb-4">
                 <div className="flex items-end gap-4">
                   <div className="w-20 h-20 rounded-2xl bg-white p-1.5 shadow-xl border-2 border-white overflow-hidden shrink-0">
-                    <div className="w-full h-full rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 overflow-hidden">
+                    <div className="w-full h-full rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 overflow-hidden relative">
                       {reviewCompany.logo ? (
-                        <img src={reviewCompany.logo.startsWith('http') ? reviewCompany.logo : `${import.meta.env.VITE_API_URL}${reviewCompany.logo}`} alt={reviewCompany.name} className="w-full h-full object-cover" />
-                      ) : (
+                        <img 
+                          src={getCompanyLogoUrl(reviewCompany.logo)} 
+                          alt={reviewCompany.name} 
+                          className="w-full h-full object-cover" 
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.parentElement?.querySelector('.modal-logo-fallback');
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div className="modal-logo-fallback w-full h-full items-center justify-center" style={{ display: reviewCompany.logo ? 'none' : 'flex' }}>
                         <Building2 size={32} className="text-gray-400" />
-                      )}
+                      </div>
                     </div>
                   </div>
                   <div>

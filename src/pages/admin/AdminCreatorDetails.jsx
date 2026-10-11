@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { User, CheckCircle, XCircle, Clock, Phone, MapPin, Briefcase, ArrowLeft, Trash2, Mail, Camera, Globe } from 'lucide-react';
+import { User, CheckCircle, XCircle, Clock, Phone, MapPin, Briefcase, ArrowLeft, Trash2, Mail, Camera, Globe, AlertCircle } from 'lucide-react';
 
 const AdminCreatorDetails = () => {
   const { id } = useParams();
@@ -25,11 +25,24 @@ const AdminCreatorDetails = () => {
     setLoading(false);
   };
 
+  const isIncomplete = (c) => {
+    if (!c) return false;
+    return !c.isProfileComplete || c.status === 'incomplete';
+  };
+
   const handleStatusUpdate = async (newStatus, reason = '') => {
+    if (newStatus === 'approved' && isIncomplete(creator)) {
+      const confirmed = window.confirm(
+        `Notice: This profile has NOT completed onboarding yet (Step ${creator.onboardingStep || 1}/9).\n\nAre you sure you want to approve this incomplete profile?`
+      );
+      if (!confirmed) return;
+    }
+
     setStatusLoading(true);
     try {
       await axios.put(`${import.meta.env.VITE_API_URL}/admin/creators/${id}/status`, { status: newStatus, rejectionReason: reason });
       setCreator(prev => ({ ...prev, status: newStatus, isApproved: newStatus === 'approved', rejectionReason: reason }));
+      toast.success(`Status updated to ${newStatus}`);
     } catch (err) {
       toast.error('Failed to update status');
     }
@@ -41,6 +54,7 @@ const AdminCreatorDetails = () => {
     try {
       await axios.put(`${import.meta.env.VITE_API_URL}/admin/creators/${id}/active`, { isActive: newActiveState });
       setCreator(prev => ({ ...prev, isActive: newActiveState }));
+      toast.success(`Account ${newActiveState ? 'enabled' : 'disabled'}`);
     } catch (err) {
       toast.error('Failed to update active status');
     }
@@ -48,32 +62,44 @@ const AdminCreatorDetails = () => {
   };
 
   const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to permanently delete this account?')) return;
     setStatusLoading(true);
     try {
       await axios.delete(`${import.meta.env.VITE_API_URL}/admin/creators/${id}`);
       navigate('/admin/profiles');
+      toast.success('Account deleted successfully');
     } catch (err) {
       toast.error('Failed to delete account');
       setStatusLoading(false);
     }
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
+  const getStatusBadge = (c) => {
+    if (isIncomplete(c)) {
+      return (
+        <span className="px-3.5 py-1.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+          <AlertCircle size={14} className="text-amber-600"/> Incomplete (Step {c.onboardingStep || 1}/9)
+        </span>
+      );
+    }
+    switch (c.status) {
       case 'approved': return <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold flex items-center gap-1"><CheckCircle size={14}/> Approved</span>;
       case 'rejected': return <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center gap-1"><XCircle size={14}/> Rejected</span>;
-      default: return <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold flex items-center gap-1"><Clock size={14}/> Pending</span>;
+      default: return <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold flex items-center gap-1"><Clock size={14}/> Pending Review</span>;
     }
   };
 
   if (loading) return <div className="p-8 text-center text-gray-500">Loading Creator Details...</div>;
   if (!creator) return <div className="p-8 text-center text-red-500">Creator not found.</div>;
 
+  const incomplete = isIncomplete(creator);
+
   return (
     <div className="p-8 max-w-7xl mx-auto">
       
       {/* Header / Back Button */}
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center gap-4 mb-6">
         <button 
           onClick={() => navigate('/admin/profiles')}
           className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-600"
@@ -90,7 +116,7 @@ const AdminCreatorDetails = () => {
             <Trash2 size={18} /> Delete
           </button>
           
-          {creator.status === 'pending' && (
+          {(creator.status === 'pending' || incomplete) && (
             <>
               <button 
                 onClick={() => {
@@ -102,7 +128,7 @@ const AdminCreatorDetails = () => {
                   }
                 }}
                 disabled={statusLoading}
-                className="px-8 py-2.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-2.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold rounded-xl transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 <XCircle size={18} /> Reject
               </button>
@@ -110,7 +136,7 @@ const AdminCreatorDetails = () => {
               <button 
                 onClick={() => handleStatusUpdate('approved')}
                 disabled={statusLoading}
-                className="px-8 py-2.5 bg-green-500 text-white hover:bg-green-600 font-bold rounded-xl transition-colors shadow-lg shadow-green-500/30 disabled:opacity-50 flex items-center gap-2"
+                className="px-6 py-2.5 bg-green-500 text-white hover:bg-green-600 font-bold rounded-xl transition-colors shadow-lg shadow-green-500/30 disabled:opacity-50 flex items-center gap-2"
               >
                 <CheckCircle size={18} /> Approve
               </button>
@@ -133,6 +159,19 @@ const AdminCreatorDetails = () => {
         </div>
       </div>
 
+      {/* Incomplete Drop-off Notice Banner */}
+      {incomplete && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 text-amber-900 shadow-sm">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="flex-1 text-sm">
+            <p className="font-bold">Incomplete Registration Lead — Drop-off at Step {creator.onboardingStep || 1} of 9</p>
+            <p className="text-amber-700 mt-0.5 text-xs">
+              This creator entered and verified their phone number (<strong>+91 {creator.phone}</strong>) but left the onboarding process before completing and submitting their full profile. All information entered so far is shown below.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Top Summary Card */}
       <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm mb-8 flex items-start gap-8">
         <div className="w-40 h-40 rounded-3xl bg-gray-100 overflow-hidden shrink-0 border-4 border-white shadow-xl">
@@ -144,10 +183,12 @@ const AdminCreatorDetails = () => {
         <div className="flex-1">
           <div className="flex justify-between items-start mb-2">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">{creator.basicDetails?.fullName || 'Anonymous'}</h1>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">{creator.basicDetails?.fullName || (
+                <span className="text-amber-800 italic">Incomplete Lead</span>
+              )}</h1>
               <p className="text-blue-600 font-medium text-xl">{creator.professionalDetails?.primaryCategory || 'Category Not Set'}</p>
             </div>
-            {getStatusBadge(creator.status)}
+            {getStatusBadge(creator)}
           </div>
           
           <div className="flex flex-wrap gap-6 mt-6 bg-gray-50 p-4 rounded-2xl">

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCreatorAuth } from '../../context/CreatorAuthContext';
-import { CheckCircle2, ChevronRight, ChevronLeft, UploadCloud, AlertCircle, User, CreditCard, ShieldCheck, IndianRupee } from 'lucide-react';
+import { CheckCircle2, ChevronRight, ChevronLeft, UploadCloud, AlertCircle, User, CreditCard, ShieldCheck, IndianRupee, Check, Cloud } from 'lucide-react';
 import DownloadReceipt from '../../components/DownloadReceipt';
 
 const steps = [
@@ -20,13 +20,20 @@ const steps = [
 const categories = ["Model", "Actor", "Influencer", "Photographer", "Makeup Artist", "Stylist", "Voice Over Artist"];
 
 const CreatorSignupFlow = () => {
-  const { creatorUser, updateProfile } = useCreatorAuth();
+  const { creatorUser, loading: authLoading, updateProfile } = useCreatorAuth();
   const navigate = useNavigate();
 
   const [currentStep, setCurrentStep] = useState(creatorUser?.onboardingStep || 1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState(false);
+
+  // Track if we have already initialized state from creatorUser
+  const hasLoadedUserRef = useRef(false);
+  const debounceTimerRef = useRef(null);
+  const latestPayloadRef = useRef(null);
 
   // 1. Basic Details
   const [basic, setBasic] = useState({
@@ -50,7 +57,7 @@ const CreatorSignupFlow = () => {
     skills: creatorUser?.professionalDetails?.skills?.join(', ') || ''
   });
 
-  // 3. Physical Attributes (New Step)
+  // 3. Physical Attributes
   const [physical, setPhysical] = useState({
     height: creatorUser?.physicalDetails?.height || '',
     weight: creatorUser?.physicalDetails?.weight || '',
@@ -63,8 +70,8 @@ const CreatorSignupFlow = () => {
 
   // 5. Portfolio
   const initialPortfolioFiles = [
-    ...(creatorUser?.portfolio?.photos?.map(url => ({ url, type: 'image/jpeg' })) || []),
-    ...(creatorUser?.portfolio?.videos?.map(url => ({ url, type: 'video/mp4' })) || [])
+    ...(creatorUser?.portfolio?.photos?.map(url => ({ url, type: 'image/jpeg', uploadProgress: 100 })) || []),
+    ...(creatorUser?.portfolio?.videos?.map(url => ({ url, type: 'video/mp4', uploadProgress: 100 })) || [])
   ];
   const [portfolioFiles, setPortfolioFiles] = useState(initialPortfolioFiles);
 
@@ -80,45 +87,308 @@ const CreatorSignupFlow = () => {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [receipt, setReceipt] = useState(null);
 
+  // Redirect completed profiles
   useEffect(() => {
     if (creatorUser?.isProfileComplete) {
       navigate('/creator/dashboard');
     }
   }, [creatorUser, navigate]);
 
+  // Hydrate state once creatorUser is loaded from backend
+  useEffect(() => {
+    if (creatorUser && !hasLoadedUserRef.current) {
+      hasLoadedUserRef.current = true;
+      if (creatorUser.onboardingStep && creatorUser.onboardingStep >= 1) {
+        setCurrentStep(creatorUser.onboardingStep);
+      }
+      if (creatorUser.basicDetails) {
+        setBasic(prev => ({
+          ...prev,
+          fullName: creatorUser.basicDetails.fullName || '',
+          profilePhoto: creatorUser.basicDetails.profilePhoto || '',
+          gender: creatorUser.basicDetails.gender || '',
+          dob: creatorUser.basicDetails.dob ? new Date(creatorUser.basicDetails.dob).toISOString().split('T')[0] : '',
+          city: creatorUser.basicDetails.city || '',
+          bio: creatorUser.basicDetails.bio || '',
+          languages: creatorUser.basicDetails.languages?.join(', ') || ''
+        }));
+      }
+      if (creatorUser.email) {
+        setBasic(prev => ({ ...prev, email: creatorUser.email }));
+      }
+      if (creatorUser.socialLinks) {
+        setBasic(prev => ({
+          ...prev,
+          instagram: creatorUser.socialLinks.instagram || '',
+          linkedin: creatorUser.socialLinks.linkedin || '',
+          portfolioLink: creatorUser.socialLinks.website || ''
+        }));
+      }
+      if (creatorUser.professionalDetails) {
+        setProf({
+          primaryCategory: creatorUser.professionalDetails.primaryCategory || '',
+          experience: creatorUser.professionalDetails.experience || '',
+          skills: creatorUser.professionalDetails.skills?.join(', ') || ''
+        });
+      }
+      if (creatorUser.physicalDetails) {
+        setPhysical({
+          height: creatorUser.physicalDetails.height || '',
+          weight: creatorUser.physicalDetails.weight || '',
+          chest: creatorUser.physicalDetails.chest || '',
+          waist: creatorUser.physicalDetails.waist || '',
+          hips: creatorUser.physicalDetails.hips || '',
+          eyeColor: creatorUser.physicalDetails.eyeColor || '',
+          hairColor: creatorUser.physicalDetails.hairColor || ''
+        });
+      }
+      if (creatorUser.portfolio) {
+        const photos = (creatorUser.portfolio.photos || []).map(url => ({ url, type: 'image/jpeg', uploadProgress: 100 }));
+        const videos = (creatorUser.portfolio.videos || []).map(url => ({ url, type: 'video/mp4', uploadProgress: 100 }));
+        if (photos.length > 0 || videos.length > 0) {
+          setPortfolioFiles([...photos, ...videos]);
+        }
+      }
+      if (creatorUser.pricing) {
+        setPricing({
+          hourlyRate: creatorUser.pricing.hourlyRate ?? '',
+          dayRate: creatorUser.pricing.dayRate ?? ''
+        });
+      }
+      if (creatorUser.availability?.status) {
+        setAvailabilityStatus(creatorUser.availability.status);
+      }
+      if (creatorUser.onboardingFeePaid) {
+        setPaymentDone(true);
+      }
+    }
+  }, [creatorUser]);
+
+  // Helper to compile latest form payload
+  const buildCurrentPayload = (stepOverride = currentStep, customOverrides = {}) => {
+    const s = stepOverride || currentStep;
+    const p = {
+      onboardingStep: s,
+      isProfileComplete: false,
+      ...customOverrides
+    };
+
+    const effectiveProf = customOverrides.professionalDetails || prof;
+    p.professionalDetails = {
+      ...(creatorUser?.professionalDetails || {}),
+      primaryCategory: effectiveProf.primaryCategory || '',
+      experience: effectiveProf.experience || '',
+      skills: typeof effectiveProf.skills === 'string'
+        ? effectiveProf.skills.split(',').map(x => x.trim()).filter(Boolean)
+        : (Array.isArray(effectiveProf.skills) ? effectiveProf.skills : [])
+    };
+
+    const effectiveBasic = customOverrides.basicDetails || basic;
+    p.basicDetails = {
+      ...(creatorUser?.basicDetails || {}),
+      fullName: effectiveBasic.fullName || '',
+      profilePhoto: effectiveBasic.profilePhoto || '',
+      gender: effectiveBasic.gender || '',
+      city: effectiveBasic.city || '',
+      bio: effectiveBasic.bio || '',
+      languages: typeof effectiveBasic.languages === 'string'
+        ? effectiveBasic.languages.split(',').map(x => x.trim()).filter(Boolean)
+        : (Array.isArray(effectiveBasic.languages) ? effectiveBasic.languages : [])
+    };
+    if (effectiveBasic.dob && effectiveBasic.dob.trim() !== '') {
+      p.basicDetails.dob = effectiveBasic.dob;
+    }
+
+    if (effectiveBasic.email && effectiveBasic.email.trim() !== '') {
+      p.email = effectiveBasic.email.trim();
+    } else {
+      p.email = null;
+    }
+
+    p.socialLinks = {
+      ...(creatorUser?.socialLinks || {}),
+      instagram: effectiveBasic.instagram || '',
+      linkedin: effectiveBasic.linkedin || '',
+      website: effectiveBasic.portfolioLink || ''
+    };
+
+    const effectivePhysical = customOverrides.physicalDetails || physical;
+    p.physicalDetails = {
+      ...(creatorUser?.physicalDetails || {}),
+      height: effectivePhysical.height || '',
+      weight: effectivePhysical.weight || '',
+      chest: effectivePhysical.chest || '',
+      waist: effectivePhysical.waist || '',
+      hips: effectivePhysical.hips || '',
+      eyeColor: effectivePhysical.eyeColor || '',
+      hairColor: effectivePhysical.hairColor || ''
+    };
+
+    const effectivePricing = customOverrides.pricing || pricing;
+    p.pricing = {
+      ...(creatorUser?.pricing || {})
+    };
+    if (effectivePricing.hourlyRate !== '' && effectivePricing.hourlyRate !== undefined) {
+      p.pricing.hourlyRate = Number(effectivePricing.hourlyRate);
+    }
+    if (effectivePricing.dayRate !== '' && effectivePricing.dayRate !== undefined) {
+      p.pricing.dayRate = Number(effectivePricing.dayRate);
+    }
+
+    p.availability = {
+      status: customOverrides.availabilityStatus || availabilityStatus
+    };
+
+    const validPhotos = portfolioFiles.filter(f => f.type?.startsWith('image/') && f.url && !f.url.startsWith('blob:')).map(f => f.url);
+    const validVideos = portfolioFiles.filter(f => f.type?.startsWith('video/') && f.url && !f.url.startsWith('blob:')).map(f => f.url);
+    if (validPhotos.length > 0 || validVideos.length > 0) {
+      p.portfolio = {
+        photos: validPhotos,
+        videos: validVideos
+      };
+    }
+
+    return p;
+  };
+
+  // Keep latest payload ref updated for visibilitychange / unload
+  useEffect(() => {
+    latestPayloadRef.current = buildCurrentPayload();
+  }, [basic, prof, physical, pricing, availabilityStatus, currentStep, portfolioFiles]);
+
+  // Method to trigger save to DB immediately
+  const triggerAutoSave = async (customOverrides = {}) => {
+    if (!creatorUser || creatorUser?.isProfileComplete) return;
+    try {
+      setAutoSaving(true);
+      const payload = buildCurrentPayload(currentStep, customOverrides);
+      await updateProfile(payload);
+      setLastSaved(true);
+    } catch (err) {
+      console.warn('Auto-save notice:', err);
+    } finally {
+      setAutoSaving(false);
+    }
+  };
+
+  // Debounce auto-save (800ms) on form input changes
+  useEffect(() => {
+    if (!hasLoadedUserRef.current || creatorUser?.isProfileComplete) return;
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      triggerAutoSave();
+    }, 800);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [basic, prof, physical, pricing, availabilityStatus]);
+
+  // Immediate save on Category selection (Step 1)
+  const handleSelectCategory = (cat) => {
+    const nextProf = { ...prof, primaryCategory: cat };
+    setProf(nextProf);
+    triggerAutoSave({
+      professionalDetails: {
+        ...creatorUser?.professionalDetails,
+        ...nextProf,
+        skills: nextProf.skills ? nextProf.skills.split(',').map(s => s.trim()).filter(Boolean) : []
+      },
+      onboardingStep: 1
+    });
+  };
+
+  // Immediate save on Availability selection (Step 7)
+  const handleSelectAvailability = (status) => {
+    setAvailabilityStatus(status);
+    triggerAutoSave({
+      availabilityStatus: status,
+      onboardingStep: 7
+    });
+  };
+
+  // Handle Tab close / minimize / page exit with keepalive fetch
+  useEffect(() => {
+    const handleExit = () => {
+      const token = localStorage.getItem('creatorToken');
+      if (!token || creatorUser?.isProfileComplete) return;
+      const data = latestPayloadRef.current;
+      if (!data) return;
+      try {
+        fetch(`${import.meta.env.VITE_API_URL}/creatorAuth/update-profile`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(data),
+          keepalive: true
+        });
+      } catch (e) {}
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        handleExit();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleExit);
+    window.addEventListener('pagehide', handleExit);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleExit);
+      window.removeEventListener('pagehide', handleExit);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [creatorUser]);
+
   const handleNext = async () => {
     setError('');
     setLoading(true);
 
     try {
-      // Save progress to DB before moving to next step
-      let updateData = { onboardingStep: currentStep + 1 };
+      const nextStep = currentStep + 1;
+      let stepCustom = {};
 
-      if (currentStep === 1) updateData.professionalDetails = { ...creatorUser?.professionalDetails, ...prof, skills: prof.skills.split(',').map(s => s.trim()).filter(s => s) };
-      if (currentStep === 2) {
-        updateData.basicDetails = { 
-          ...creatorUser?.basicDetails, 
-          ...basic, 
-          languages: basic.languages.split(',').map(s => s.trim()).filter(s => s) 
+      if (currentStep === 1) {
+        stepCustom.professionalDetails = {
+          ...creatorUser?.professionalDetails,
+          ...prof,
+          skills: prof.skills ? prof.skills.split(',').map(s => s.trim()).filter(Boolean) : []
         };
-        if (basic.email && basic.email.trim() !== '') {
-          updateData.email = basic.email.trim();
-        } else {
-          updateData.email = null; // null works well with sparse indexes
-        }
-        updateData.socialLinks = { 
-          ...creatorUser?.socialLinks, 
-          instagram: basic.instagram, 
-          linkedin: basic.linkedin, 
-          website: basic.portfolioLink 
-        };
-        delete updateData.basicDetails.email;
-        delete updateData.basicDetails.instagram;
-        delete updateData.basicDetails.linkedin;
-        delete updateData.basicDetails.portfolioLink;
       }
-      if (currentStep === 3) updateData.professionalDetails = { ...creatorUser?.professionalDetails, ...prof, skills: prof.skills.split(',').map(s => s.trim()).filter(s => s) };
-      if (currentStep === 4) updateData.physicalDetails = { ...creatorUser?.physicalDetails, ...physical };
+      if (currentStep === 2) {
+        stepCustom.basicDetails = {
+          ...creatorUser?.basicDetails,
+          ...basic,
+          languages: basic.languages ? basic.languages.split(',').map(s => s.trim()).filter(Boolean) : []
+        };
+        stepCustom.email = basic.email?.trim() || null;
+        stepCustom.socialLinks = {
+          ...creatorUser?.socialLinks,
+          instagram: basic.instagram,
+          linkedin: basic.linkedin,
+          website: basic.portfolioLink
+        };
+      }
+      if (currentStep === 3) {
+        stepCustom.professionalDetails = {
+          ...creatorUser?.professionalDetails,
+          ...prof,
+          skills: prof.skills ? prof.skills.split(',').map(s => s.trim()).filter(Boolean) : []
+        };
+      }
+      if (currentStep === 4) {
+        stepCustom.physicalDetails = { ...creatorUser?.physicalDetails, ...physical };
+      }
       if (currentStep === 5) {
         const filesToUpload = portfolioFiles.filter(f => f.file);
         let finalPortfolio = [...portfolioFiles];
@@ -128,7 +398,7 @@ const CreatorSignupFlow = () => {
             for (let i = 0; i < filesToUpload.length; i++) {
               const f = filesToUpload[i];
               const fileIndex = finalPortfolio.findIndex(item => item === f);
-              
+
               const formData = new FormData();
               formData.append('file', f.file);
 
@@ -158,23 +428,29 @@ const CreatorSignupFlow = () => {
           }
         }
 
-        updateData.portfolio = {
+        stepCustom.portfolio = {
           photos: finalPortfolio.filter(f => f.type?.startsWith('image/')).map(f => f.url),
           videos: finalPortfolio.filter(f => f.type?.startsWith('video/')).map(f => f.url)
         };
       }
-      if (currentStep === 6) updateData.pricing = { ...creatorUser?.pricing, ...pricing };
-      if (currentStep === 7) updateData.availability = { ...creatorUser?.availability, status: availabilityStatus };
+      if (currentStep === 6) {
+        stepCustom.pricing = { ...creatorUser?.pricing, ...pricing };
+      }
+      if (currentStep === 7) {
+        stepCustom.availability = { ...creatorUser?.availability, status: availabilityStatus };
+      }
       if (currentStep === 8 && !paymentDone) {
         setLoading(false);
         setError('Please complete the onboarding fee payment to proceed.');
         return;
       }
 
-      await updateProfile(updateData);
-      setCurrentStep((prev) => prev + 1);
+      const payload = buildCurrentPayload(nextStep, stepCustom);
+      await updateProfile(payload);
+      setLastSaved(true);
+      setCurrentStep(nextStep);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save progress.');
+      setError(err.response?.data?.message || err.message || 'Failed to save progress.');
     }
     setLoading(false);
   };
@@ -254,15 +530,41 @@ const CreatorSignupFlow = () => {
     setLoading(false);
   };
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-fuchsia-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm font-semibold text-gray-500">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-20">
         <img src="/mycastnow logo.jpeg" alt="Logo" className="h-6 sm:h-8" />
-        <p className="text-xs sm:text-sm font-semibold text-gray-500 text-right">
-          <span className="md:hidden">Step {currentStep}/{steps.length}</span>
-          <span className="hidden md:inline">Step {currentStep} of {steps.length}: {steps[currentStep - 1]}</span>
-        </p>
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-1.5 text-xs">
+            {autoSaving ? (
+              <span className="flex items-center gap-1.5 text-fuchsia-600 font-semibold animate-pulse">
+                <span className="w-2 h-2 rounded-full bg-fuchsia-600 animate-ping"></span>
+                Saving draft...
+              </span>
+            ) : lastSaved ? (
+              <span className="flex items-center gap-1 text-emerald-600 font-medium">
+                <Check size={14} className="text-emerald-500" />
+                Draft auto-saved
+              </span>
+            ) : null}
+          </div>
+          <p className="text-xs sm:text-sm font-semibold text-gray-500 text-right">
+            <span className="md:hidden">Step {currentStep}/{steps.length}</span>
+            <span className="hidden md:inline">Step {currentStep} of {steps.length}: {steps[currentStep - 1]}</span>
+          </p>
+        </div>
       </header>
 
       {/* Progress Bar */}
@@ -308,7 +610,7 @@ const CreatorSignupFlow = () => {
                   {categories.map(cat => (
                     <button
                       key={cat}
-                      onClick={() => setProf({ ...prof, primaryCategory: cat })}
+                      onClick={() => handleSelectCategory(cat)}
                       className={`p-4 border-2 rounded-2xl text-center font-bold transition-all ${prof.primaryCategory === cat ? 'border-fuchsia-600 bg-fuchsia-50 text-fuchsia-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
                     >
                       {cat}
@@ -353,7 +655,12 @@ const CreatorSignupFlow = () => {
                                 formData.append('file', file);
                                 const res = await axios.post(`${import.meta.env.VITE_API_URL}/upload/upload-direct`, formData);
                                 if (res.data.success) {
-                                  setBasic(prev => ({ ...prev, profilePhoto: res.data.url }));
+                                  const uploadedUrl = res.data.url;
+                                  setBasic(prev => ({ ...prev, profilePhoto: uploadedUrl }));
+                                  triggerAutoSave({
+                                    basicDetails: { ...basic, profilePhoto: uploadedUrl },
+                                    onboardingStep: 2
+                                  });
                                 } else {
                                   setError('Profile photo upload failed. Please try again.');
                                   setBasic(prev => ({ ...prev, profilePhoto: previewUrl }));
@@ -577,8 +884,8 @@ const CreatorSignupFlow = () => {
               <div className="animate-in fade-in slide-in-from-right-4 duration-500">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Current Availability</h2>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                  <button onClick={() => setAvailabilityStatus('Available')} className={`flex-1 py-4 border-2 rounded-2xl font-bold ${availabilityStatus === 'Available' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-600'}`}>Available Now</button>
-                  <button onClick={() => setAvailabilityStatus('Unavailable')} className={`flex-1 py-4 border-2 rounded-2xl font-bold ${availabilityStatus === 'Unavailable' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 text-gray-600'}`}>Unavailable</button>
+                  <button onClick={() => handleSelectAvailability('Available')} className={`flex-1 py-4 border-2 rounded-2xl font-bold ${availabilityStatus === 'Available' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-600'}`}>Available Now</button>
+                  <button onClick={() => handleSelectAvailability('Unavailable')} className={`flex-1 py-4 border-2 rounded-2xl font-bold ${availabilityStatus === 'Unavailable' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 text-gray-600'}`}>Unavailable</button>
                 </div>
               </div>
             )}

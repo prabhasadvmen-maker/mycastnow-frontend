@@ -128,34 +128,50 @@ export default function AdminPayments() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {payments.map((p, i) => (
-                  <tr key={p._id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 text-slate-400 font-medium">{(page - 1) * limit + i + 1}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        {p.basicDetails?.profilePhoto ? (
-                          <img src={p.basicDetails.profilePhoto} className="w-8 h-8 rounded-full object-cover" alt="" />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-xs">
-                            {p.basicDetails?.fullName?.[0] || '?'}
+                {payments.map((p, i) => {
+                  const photo = p.basicDetails?.profilePhoto || p.profilePhoto;
+                  const name = p.basicDetails?.fullName || p.creatorName || 'N/A';
+                  const phone = p.phone || p.creatorPhone || '—';
+                  const paymentId = p.paymentId || p.onboardingPaymentId || '—';
+                  const paidDate = p.paidAt || p.onboardingPaidAt;
+                  const amount = p.amount || fee;
+
+                  return (
+                    <tr key={p._id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 text-slate-400 font-medium">{(page - 1) * limit + i + 1}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          {photo ? (
+                            <img src={photo} className="w-8 h-8 rounded-full object-cover" alt="" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-xs">
+                              {name?.[0] || '?'}
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-slate-800">{name}</span>
+                            {p.isCreatorDeleted && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
+                                Profile Deleted
+                              </span>
+                            )}
                           </div>
-                        )}
-                        <span className="font-semibold text-slate-800">{p.basicDetails?.fullName || 'N/A'}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-slate-600">{p.phone}</td>
-                    <td className="px-6 py-4 font-bold text-emerald-600">₹{fee}</td>
-                    <td className="px-6 py-4 text-slate-500 font-mono text-xs">{p.onboardingPaymentId || '—'}</td>
-                    <td className="px-6 py-4 text-slate-500">
-                      {p.onboardingPaidAt ? new Date(p.onboardingPaidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold">
-                        <CheckCircle2 size={12} /> Paid
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">{phone}</td>
+                      <td className="px-6 py-4 font-bold text-emerald-600">₹{amount}</td>
+                      <td className="px-6 py-4 text-slate-500 font-mono text-xs">{paymentId}</td>
+                      <td className="px-6 py-4 text-slate-500">
+                        {paidDate ? new Date(paidDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold">
+                          <CheckCircle2 size={12} /> Paid
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
