@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { CreditCard, Search, IndianRupee, Users, RefreshCcw, CheckCircle2 } from 'lucide-react';
+import { CreditCard, Search, IndianRupee, Users, RefreshCcw, CheckCircle2, Sparkles } from 'lucide-react';
 
 const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
 
 export default function AdminPayments() {
   const [payments, setPayments] = useState([]);
   const [total, setTotal] = useState(0);
+  const [paidCount, setPaidCount] = useState(0);
+  const [freeCount, setFreeCount] = useState(0);
   const [totalRevenue, setTotalRevenue] = useState(0);
-  const [fee, setFee] = useState(499);
+  const [fee, setFee] = useState(99);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -22,10 +24,12 @@ export default function AdminPayments() {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.data.success) {
-        setPayments(res.data.payments);
-        setTotal(res.data.total);
-        setTotalRevenue(res.data.totalRevenue);
-        setFee(res.data.fee);
+        setPayments(res.data.payments || []);
+        setTotal(res.data.total || 0);
+        setTotalRevenue(res.data.totalRevenue ?? 0);
+        setPaidCount(typeof res.data.paidCount === 'number' ? res.data.paidCount : (res.data.payments?.filter(x => x.amount > 0).length || 0));
+        setFreeCount(typeof res.data.freeCount === 'number' ? res.data.freeCount : (res.data.payments?.filter(x => x.amount === 0 || x.paymentId?.startsWith('free_')).length || 0));
+        setFee(res.data.fee ?? 99);
       }
     } catch (err) {
       console.error(err);
@@ -46,42 +50,58 @@ export default function AdminPayments() {
   return (
     <div className="space-y-6 pb-10">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">Payments</h1>
-          <p className="text-sm text-slate-500 mt-1">Creator onboarding fee collections</p>
+          <h1 className="text-2xl font-black text-slate-900">Payments & Transactions</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Creator onboarding fee collections · Active Standard Fee: <span className="font-bold text-violet-600">₹{fee}</span>
+          </p>
         </div>
         <button
           onClick={() => fetchPayments()}
-          className="flex items-center gap-2 bg-white border border-slate-200 hover:border-violet-300 hover:bg-violet-50 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all"
+          className="flex items-center gap-2 bg-white border border-slate-200 hover:border-violet-300 hover:bg-violet-50 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-all cursor-pointer self-start sm:self-auto"
         >
           <RefreshCcw size={16} className={loading ? 'animate-spin' : ''} />
           Refresh
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
           <div className="w-12 h-12 bg-violet-50 rounded-xl flex items-center justify-center mb-4">
             <Users size={22} className="text-violet-600" />
           </div>
           <p className="text-3xl font-black text-slate-900">{total}</p>
-          <p className="text-sm font-bold text-slate-600 mt-1">Total Paid Creators</p>
+          <p className="text-sm font-bold text-slate-600 mt-1">Total Onboarded</p>
+          <p className="text-xs text-slate-400 mt-1">All creators in ledger</p>
         </div>
+
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+          <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-4">
+            <CheckCircle2 size={22} className="text-emerald-600" />
+          </div>
+          <p className="text-3xl font-black text-slate-900">{paidCount}</p>
+          <p className="text-sm font-bold text-slate-600 mt-1">Paid Creators</p>
+          <p className="text-xs text-emerald-600 font-semibold mt-1">₹{fee} per onboarding</p>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+          <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
+            <Sparkles size={22} className="text-blue-600" />
+          </div>
+          <p className="text-3xl font-black text-slate-900">{freeCount}</p>
+          <p className="text-sm font-bold text-slate-600 mt-1">Free Onboarded</p>
+          <p className="text-xs text-blue-600 font-semibold mt-1">₹0 Activation</p>
+        </div>
+
         <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
           <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-4">
             <IndianRupee size={22} className="text-emerald-600" />
           </div>
           <p className="text-3xl font-black text-slate-900">₹{totalRevenue.toLocaleString()}</p>
           <p className="text-sm font-bold text-slate-600 mt-1">Total Revenue Collected</p>
-        </div>
-        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-          <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
-            <CreditCard size={22} className="text-blue-600" />
-          </div>
-          <p className="text-3xl font-black text-slate-900">₹{fee}</p>
-          <p className="text-sm font-bold text-slate-600 mt-1">Onboarding Fee Per Creator</p>
+          <p className="text-xs text-slate-400 mt-1">Verified actual collections</p>
         </div>
       </div>
 
@@ -93,11 +113,11 @@ export default function AdminPayments() {
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search by name or phone..."
+            placeholder="Search by name, phone or payment ID..."
             className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-violet-400"
           />
         </div>
-        <button type="submit" className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-black transition-colors">
+        <button type="submit" className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-black transition-colors cursor-pointer">
           Search
         </button>
       </form>
@@ -134,7 +154,8 @@ export default function AdminPayments() {
                   const phone = p.phone || p.creatorPhone || '—';
                   const paymentId = p.paymentId || p.onboardingPaymentId || '—';
                   const paidDate = p.paidAt || p.onboardingPaidAt;
-                  const amount = p.amount || fee;
+                  const isFree = p.amount === 0 || paymentId.startsWith('free_');
+                  const amount = isFree ? 0 : (typeof p.amount === 'number' ? p.amount : (fee || 0));
 
                   return (
                     <tr key={p._id} className="hover:bg-slate-50 transition-colors">
@@ -159,15 +180,27 @@ export default function AdminPayments() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-slate-600">{phone}</td>
-                      <td className="px-6 py-4 font-bold text-emerald-600">₹{amount}</td>
+                      <td className="px-6 py-4 font-bold">
+                        {isFree ? (
+                          <span className="text-slate-500 font-semibold">₹0</span>
+                        ) : (
+                          <span className="text-emerald-600 font-bold">₹{amount}</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 text-slate-500 font-mono text-xs">{paymentId}</td>
                       <td className="px-6 py-4 text-slate-500">
                         {paidDate ? new Date(paidDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold">
-                          <CheckCircle2 size={12} /> Paid
-                        </span>
+                        {isFree ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200/60 rounded-full text-xs font-bold">
+                            <CheckCircle2 size={12} /> Free Onboarding
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/60 rounded-full text-xs font-bold">
+                            <CheckCircle2 size={12} /> Paid
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );
@@ -183,8 +216,8 @@ export default function AdminPayments() {
         <div className="flex items-center justify-between">
           <p className="text-sm text-slate-500">Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}</p>
           <div className="flex gap-2">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold disabled:opacity-40 hover:bg-slate-50">Prev</button>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold disabled:opacity-40 hover:bg-slate-50">Next</button>
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold disabled:opacity-40 hover:bg-slate-50 cursor-pointer">Prev</button>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold disabled:opacity-40 hover:bg-slate-50 cursor-pointer">Next</button>
           </div>
         </div>
       )}
