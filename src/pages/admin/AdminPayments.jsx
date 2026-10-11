@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { CreditCard, Search, IndianRupee, Users, RefreshCcw, CheckCircle2, Sparkles } from 'lucide-react';
+import { getMediaUrl } from '../../utils/mediaUtils';
 
 const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
 
@@ -149,7 +150,7 @@ export default function AdminPayments() {
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {payments.map((p, i) => {
-                  const photo = p.basicDetails?.profilePhoto || p.profilePhoto;
+                  const photo = getMediaUrl(p.basicDetails?.profilePhoto || p.profilePhoto);
                   const name = p.basicDetails?.fullName || p.creatorName || 'N/A';
                   const phone = p.phone || p.creatorPhone || '—';
                   const paymentId = p.paymentId || p.onboardingPaymentId || '—';

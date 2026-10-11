@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { User, CheckCircle, XCircle, Clock, Phone, MapPin, Briefcase, ArrowLeft, Trash2, Mail, Camera, Globe, AlertCircle } from 'lucide-react';
+import { getMediaUrl } from '../../utils/mediaUtils';
 
 const AdminCreatorDetails = () => {
   const { id } = useParams();
@@ -94,9 +95,10 @@ const AdminCreatorDetails = () => {
   if (!creator) return <div className="p-8 text-center text-red-500">Creator not found.</div>;
 
   const incomplete = isIncomplete(creator);
-  const creatorPhoto = (!creator.basicDetails?.profilePhoto?.startsWith('blob:') && creator.basicDetails?.profilePhoto)
+  const rawCreatorPhoto = (!creator.basicDetails?.profilePhoto?.startsWith('blob:') && creator.basicDetails?.profilePhoto)
     || creator.portfolio?.photos?.[0]
     || null;
+  const creatorPhoto = getMediaUrl(rawCreatorPhoto);
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -312,10 +314,10 @@ const AdminCreatorDetails = () => {
         {creator.portfolio?.photos?.length > 0 || creator.portfolio?.videos?.length > 0 ? (
           <div className="grid grid-cols-3 md:grid-cols-5 gap-6">
             {creator.portfolio?.photos?.map((photo, i) => (
-              <div key={i} className="aspect-square bg-gray-100 rounded-2xl overflow-hidden border border-gray-200 shadow-sm"><img src={photo} className="w-full h-full object-cover" alt="portfolio"/></div>
+              <div key={i} className="aspect-square bg-gray-100 rounded-2xl overflow-hidden border border-gray-200 shadow-sm"><img src={getMediaUrl(photo)} className="w-full h-full object-cover" alt="portfolio"/></div>
             ))}
             {creator.portfolio?.videos?.map((vid, i) => (
-              <div key={i} className="aspect-square bg-gray-900 rounded-2xl overflow-hidden border border-gray-200 shadow-sm"><video src={vid} className="w-full h-full object-cover" controls /></div>
+              <div key={i} className="aspect-square bg-gray-900 rounded-2xl overflow-hidden border border-gray-200 shadow-sm"><video src={getMediaUrl(vid)} className="w-full h-full object-cover" controls /></div>
             ))}
           </div>
         ) : (

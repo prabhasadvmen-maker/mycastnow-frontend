@@ -3,6 +3,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { User, CheckCircle, XCircle, Clock, Search, Eye, Settings, Trash2, AlertCircle, Sparkles } from 'lucide-react';
+import { getMediaUrl } from '../../utils/mediaUtils';
 
 const AdminCreators = () => {
   const navigate = useNavigate();
@@ -255,7 +256,7 @@ const AdminCreators = () => {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center shrink-0">
                           {creator.basicDetails?.profilePhoto ? (
-                            <img src={creator.basicDetails.profilePhoto} alt="" className="w-full h-full object-cover"/>
+                            <img src={getMediaUrl(creator.basicDetails.profilePhoto)} alt="" className="w-full h-full object-cover"/>
                           ) : (
                             <User className="text-gray-400 w-5 h-5" />
                           )}
