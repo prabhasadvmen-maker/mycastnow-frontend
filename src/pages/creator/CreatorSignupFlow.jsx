@@ -507,44 +507,8 @@ const CreatorSignupFlow = () => {
         stepCustom.physicalDetails = { ...creatorUser?.physicalDetails, ...physical };
       }
       if (currentStep === 5) {
-        const filesToUpload = portfolioFiles.filter(f => f.file);
-        let finalPortfolio = [...portfolioFiles];
-
-        if (filesToUpload.length > 0) {
-          try {
-            for (let i = 0; i < filesToUpload.length; i++) {
-              const f = filesToUpload[i];
-              const fileIndex = finalPortfolio.findIndex(item => item === f);
-
-              const formData = new FormData();
-              formData.append('file', f.file);
-
-              await axios.post(`${import.meta.env.VITE_API_URL}/upload/upload-direct`, formData, {
-                onUploadProgress: (progressEvent) => {
-                  const progress = Math.round((progressEvent.loaded / progressEvent.total) * 100);
-                  setPortfolioFiles(prev => {
-                    const updated = [...prev];
-                    if (updated[fileIndex]) {
-                      updated[fileIndex] = { ...updated[fileIndex], uploadProgress: progress };
-                    }
-                    return updated;
-                  });
-                }
-              }).then(res => {
-                if (res.data.success) {
-                  if (fileIndex !== -1) {
-                    finalPortfolio[fileIndex] = { url: res.data.url, type: f.file.type, uploadProgress: 100 };
-                    setPortfolioFiles([...finalPortfolio]);
-                  }
-                }
-              });
-            }
-          } catch (uploadErr) {
-            console.error('Failed to upload files:', uploadErr);
-            throw new Error('Failed to upload files to server.');
-          }
-        }
-
+        // Files are already uploaded eagerly on select — just collect final URLs
+        const finalPortfolio = portfolioFiles.filter(f => f.uploadProgress === 100 && f.url && !f.url.startsWith('blob:'));
         stepCustom.portfolio = {
           photos: finalPortfolio.filter(f => f.type?.startsWith('image/')).map(f => f.url),
           videos: finalPortfolio.filter(f => f.type?.startsWith('video/')).map(f => f.url)
@@ -1187,17 +1151,56 @@ const CreatorSignupFlow = () => {
                     multiple
                     accept="image/*,video/*"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
-                        const newFiles = Array.from(e.target.files).map(file => ({
-                          file,
-                          url: URL.createObjectURL(file),
-                          type: file.type,
-                          uploadProgress: 0
-                        }));
-                        setPortfolioFiles(prev => [...prev, ...newFiles]);
-                        clearFieldError('portfolio');
-                      }
+                    onChange={async (e) => {
+                      if (!e.target.files || e.target.files.length === 0) return;
+                      const selectedFiles = Array.from(e.target.files);
+                      clearFieldError('portfolio');
+
+                      // Add files immediately with progress 0
+                      const newEntries = selectedFiles.map(file => ({
+                        file,
+                        name: file.name,
+                        size: file.size,
+                        url: URL.createObjectURL(file),
+                        type: file.type,
+                        uploadProgress: 0,
+                        error: false
+                      }));
+
+                      setPortfolioFiles(prev => {
+                        const updated = [...prev, ...newEntries];
+                        // Start uploading each new file immediately
+                        newEntries.forEach((entry, i) => {
+                          const globalIdx = prev.length + i;
+                          const formData = new FormData();
+                          formData.append('file', entry.file);
+                          axios.post(`${import.meta.env.VITE_API_URL}/upload/upload-direct`, formData, {
+                            onUploadProgress: (progressEvent) => {
+                              const pct = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+                              setPortfolioFiles(cur => {
+                                const copy = [...cur];
+                                if (copy[globalIdx]) copy[globalIdx] = { ...copy[globalIdx], uploadProgress: pct };
+                                return copy;
+                              });
+                            }
+                          }).then(res => {
+                            if (res.data.success) {
+                              setPortfolioFiles(cur => {
+                                const copy = [...cur];
+                                if (copy[globalIdx]) copy[globalIdx] = { ...copy[globalIdx], url: res.data.url, uploadProgress: 100, file: null };
+                                return copy;
+                              });
+                            }
+                          }).catch(() => {
+                            setPortfolioFiles(cur => {
+                              const copy = [...cur];
+                              if (copy[globalIdx]) copy[globalIdx] = { ...copy[globalIdx], uploadProgress: 0, error: true };
+                              return copy;
+                            });
+                          });
+                        });
+                        return updated;
+                      });
                     }}
                   />
                   <UploadCloud className={`w-12 h-12 mb-4 ${fieldErrors.portfolio ? 'text-rose-400' : 'text-gray-400'}`} />
@@ -1212,36 +1215,108 @@ const CreatorSignupFlow = () => {
                 )}
 
                 {portfolioFiles.length > 0 && (
-                  <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-                    {portfolioFiles.map((fileObj, idx) => (
-                      <div key={idx} className="aspect-square rounded-xl overflow-hidden border border-gray-200 relative group bg-black flex items-center justify-center">
-                        {fileObj.type.startsWith('video/') ? (
-                          <video src={fileObj.url} className="w-full h-full object-cover" autoPlay muted loop />
-                        ) : (
-                          <img src={fileObj.url} className="w-full h-full object-cover" alt="portfolio item" />
-                        )}
-                        {fileObj.uploadProgress > 0 && fileObj.uploadProgress < 100 && (
-                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="w-12 h-12 rounded-full border-4 border-white border-t-fuchsia-500 animate-spin mb-2"></div>
-                              <p className="text-white text-xs font-bold">{fileObj.uploadProgress}%</p>
+                  <div className="mt-6 space-y-3">
+                    {/* Overall upload summary */}
+                    {(() => {
+                      const uploading = portfolioFiles.filter(f => f.uploadProgress > 0 && f.uploadProgress < 100);
+                      const done = portfolioFiles.filter(f => f.uploadProgress === 100);
+                      const failed = portfolioFiles.filter(f => f.error);
+                      if (uploading.length === 0 && done.length === 0) return null;
+                      return (
+                        <div className="flex items-center justify-between text-xs font-semibold px-1">
+                          <span className="text-gray-500">{portfolioFiles.length} file{portfolioFiles.length > 1 ? 's' : ''} selected</span>
+                          <span className="flex items-center gap-3">
+                            {uploading.length > 0 && <span className="text-fuchsia-600 animate-pulse">{uploading.length} uploading...</span>}
+                            {done.length > 0 && <span className="text-emerald-600">{done.length} uploaded</span>}
+                            {failed.length > 0 && <span className="text-rose-500">{failed.length} failed</span>}
+                          </span>
+                        </div>
+                      );
+                    })()}
+
+                    {/* File cards with progress bars */}
+                    {portfolioFiles.map((fileObj, idx) => {
+                      const isUploading = fileObj.uploadProgress > 0 && fileObj.uploadProgress < 100;
+                      const isDone = fileObj.uploadProgress === 100;
+                      const isFailed = fileObj.error;
+                      const isQueued = fileObj.uploadProgress === 0 && !fileObj.error;
+                      const fileName = fileObj.name || fileObj.url?.split('/').pop() || `File ${idx + 1}`;
+                      const fileSizeKB = fileObj.size ? (fileObj.size / 1024).toFixed(0) : null;
+
+                      return (
+                        <div key={idx} className={`rounded-2xl border overflow-hidden ${
+                          isFailed ? 'border-rose-200 bg-rose-50' :
+                          isDone ? 'border-emerald-200 bg-emerald-50/40' :
+                          isUploading ? 'border-fuchsia-200 bg-fuchsia-50/30' :
+                          'border-gray-200 bg-gray-50'
+                        }`}>
+                          <div className="flex items-center gap-3 p-3">
+                            {/* Thumbnail */}
+                            <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-200 shrink-0 relative">
+                              {fileObj.type?.startsWith('video/') ? (
+                                <video src={fileObj.url} className="w-full h-full object-cover" muted />
+                              ) : (
+                                <img src={fileObj.url} className="w-full h-full object-cover" alt="preview" />
+                              )}
+                              {isUploading && (
+                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                  <span className="text-white text-[10px] font-black">{fileObj.uploadProgress}%</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Info + Progress */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="text-xs font-bold text-gray-800 truncate max-w-[160px]">{fileName}</p>
+                                <div className="flex items-center gap-2 shrink-0 ml-2">
+                                  {isDone && <CheckCircle2 size={16} className="text-emerald-500" />}
+                                  {isFailed && <AlertCircle size={16} className="text-rose-500" />}
+                                  {isUploading && (
+                                    <span className="text-[11px] font-black text-fuchsia-600">{fileObj.uploadProgress}%</span>
+                                  )}
+                                  {isQueued && <span className="text-[10px] text-gray-400 font-semibold">Queued</span>}
+                                  <button
+                                    type="button"
+                                    onClick={() => setPortfolioFiles(prev => prev.filter((_, i) => i !== idx))}
+                                    className="text-gray-400 hover:text-rose-500 transition cursor-pointer"
+                                  >
+                                    <AlertCircle size={15} />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Progress bar */}
+                              <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-300 ${
+                                    isFailed ? 'bg-rose-400' :
+                                    isDone ? 'bg-emerald-500' :
+                                    'bg-fuchsia-500'
+                                  }`}
+                                  style={{ width: `${isFailed ? 100 : fileObj.uploadProgress}%` }}
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-between mt-1">
+                                <span className="text-[10px] text-gray-400">
+                                  {fileObj.type?.startsWith('video/') ? '🎬 Video' : '🖼️ Image'}
+                                  {fileSizeKB && ` · ${fileSizeKB > 1024 ? (fileSizeKB / 1024).toFixed(1) + ' MB' : fileSizeKB + ' KB'}`}
+                                </span>
+                                <span className={`text-[10px] font-semibold ${
+                                  isFailed ? 'text-rose-500' :
+                                  isDone ? 'text-emerald-600' :
+                                  isUploading ? 'text-fuchsia-600' :
+                                  'text-gray-400'
+                                }`}>
+                                  {isFailed ? 'Upload failed' : isDone ? 'Uploaded ✓' : isUploading ? 'Uploading...' : 'Waiting'}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        )}
-                        {fileObj.uploadProgress === 100 && (
-                          <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center">
-                            <CheckCircle2 size={24} className="text-green-400" />
-                          </div>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => setPortfolioFiles(prev => prev.filter((_, i) => i !== idx))}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <AlertCircle size={14} />
-                        </button>
-                      </div>
-                    ))}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
