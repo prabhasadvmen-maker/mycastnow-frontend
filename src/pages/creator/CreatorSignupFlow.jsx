@@ -399,7 +399,7 @@ const CreatorSignupFlow = () => {
     } else if (step === 5) {
       if (!portfolioFiles || portfolioFiles.length === 0) {
         errors.portfolio = 'Please upload at least 1 photo or video to your portfolio.';
-      } else if (portfolioFiles.some(f => f.uploadProgress < 100)) {
+      } else if (portfolioFiles.some(f => f.uploadProgress > 0 && f.uploadProgress < 100)) {
         errors.portfolio = 'Please wait for your media files to finish uploading.';
       }
     } else if (step === 6) {
