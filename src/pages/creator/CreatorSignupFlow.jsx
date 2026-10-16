@@ -1654,7 +1654,8 @@ const CreatorSignupFlow = () => {
                     <li className="flex justify-between"><strong>Gender:</strong> <span>{basic.gender || 'Not specified'}</span></li>
                     <li className="flex justify-between"><strong>Experience:</strong> <span>{prof.experience || 'Not specified'}</span></li>
                     <li className="flex justify-between"><strong>Day Rate:</strong> <span>{pricing.dayRate ? `₹${pricing.dayRate}` : (pricing.hourlyRate ? `₹${pricing.hourlyRate}/hr` : 'Not specified')}</span></li>
-                    <li className="flex justify-between"><strong>Portfolio Files:</strong> <span>{portfolioFiles.length} item(s)</span></li>
+                    <li className="flex justify-between"><strong>Photos:</strong> <span>{photoFiles.filter(f => f.url && !f.url.startsWith('blob:')).length} photo(s)</span></li>
+                    <li className="flex justify-between"><strong>Videos:</strong> <span>{portfolioFiles.filter(f => f.type?.startsWith('video/') && f.url && !f.url.startsWith('blob:')).length} video(s)</span></li>
                     <li className="flex justify-between"><strong>Onboarding Fee:</strong> <span className="text-emerald-600 font-semibold flex items-center gap-1"><CheckCircle2 size={14} /> Completed</span></li>
                   </ul>
                 </div>
