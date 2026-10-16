@@ -10,7 +10,8 @@ const steps = [
   "Basic Details",
   "Professional",
   "Physical Attributes",
-  "Portfolio",
+  "Photos",
+  "Videos",
   "Pricing",
   "Availability",
   "Payment",
@@ -69,14 +70,15 @@ const CreatorSignupFlow = () => {
     hairColor: creatorUser?.physicalDetails?.hairColor || ''
   });
 
-  // 5. Portfolio
-  const initialPortfolioFiles = [
-    ...(creatorUser?.portfolio?.photos?.map(url => ({ url, type: 'image/jpeg', uploadProgress: 100 })) || []),
-    ...(creatorUser?.portfolio?.videos?.map(url => ({ url, type: 'video/mp4', uploadProgress: 100 })) || [])
-  ];
-  const [portfolioFiles, setPortfolioFiles] = useState(initialPortfolioFiles);
+  // 5. Photos (max 10)
+  const initialPhotoFiles = (creatorUser?.portfolio?.photos?.map(url => ({ url, type: 'image/jpeg', uploadProgress: 100 })) || []);
+  const [photoFiles, setPhotoFiles] = useState(initialPhotoFiles);
 
-  // 6. Pricing
+  // 6. Videos (max 5)
+  const initialVideoFiles = (creatorUser?.portfolio?.videos?.map(url => ({ url, type: 'video/mp4', uploadProgress: 100 })) || []);
+  const [portfolioFiles, setPortfolioFiles] = useState(initialVideoFiles);
+
+  // 7. Pricing
   const [pricing, setPricing] = useState({
     hourlyRate: creatorUser?.pricing?.hourlyRate || '',
     dayRate: creatorUser?.pricing?.dayRate || ''
@@ -162,9 +164,8 @@ const CreatorSignupFlow = () => {
       if (creatorUser.portfolio) {
         const photos = (creatorUser.portfolio.photos || []).map(url => ({ url, type: 'image/jpeg', uploadProgress: 100 }));
         const videos = (creatorUser.portfolio.videos || []).map(url => ({ url, type: 'video/mp4', uploadProgress: 100 }));
-        if (photos.length > 0 || videos.length > 0) {
-          setPortfolioFiles([...photos, ...videos]);
-        }
+        if (photos.length > 0) setPhotoFiles(photos);
+        if (videos.length > 0) setPortfolioFiles(videos);
       }
       if (creatorUser.pricing) {
         setPricing({
@@ -256,8 +257,8 @@ const CreatorSignupFlow = () => {
       status: customOverrides.availabilityStatus || availabilityStatus
     };
 
-    const validPhotos = portfolioFiles.filter(f => f.type?.startsWith('image/') && f.url && !f.url.startsWith('blob:')).map(f => f.url);
-    const validVideos = portfolioFiles.filter(f => f.type?.startsWith('video/') && f.url && !f.url.startsWith('blob:')).map(f => f.url);
+    const validPhotos = photoFiles.filter(f => f.url && !f.url.startsWith('blob:')).map(f => f.url);
+    const validVideos = portfolioFiles.filter(f => f.url && !f.url.startsWith('blob:')).map(f => f.url);
     if (validPhotos.length > 0 || validVideos.length > 0) {
       p.portfolio = {
         photos: validPhotos,
@@ -271,7 +272,7 @@ const CreatorSignupFlow = () => {
   // Keep latest payload ref updated for visibilitychange / unload
   useEffect(() => {
     latestPayloadRef.current = buildCurrentPayload();
-  }, [basic, prof, physical, pricing, availabilityStatus, currentStep, portfolioFiles]);
+  }, [basic, prof, physical, pricing, availabilityStatus, currentStep, portfolioFiles, photoFiles]);
 
   // Method to trigger save to DB immediately
   const triggerAutoSave = async (customOverrides = {}) => {
@@ -328,7 +329,7 @@ const CreatorSignupFlow = () => {
     clearFieldError('availability');
     triggerAutoSave({
       availabilityStatus: status,
-      onboardingStep: 7
+      onboardingStep: 8
     });
   };
 
@@ -397,22 +398,28 @@ const CreatorSignupFlow = () => {
         }
       }
     } else if (step === 5) {
-      if (!portfolioFiles || portfolioFiles.length === 0) {
-        errors.portfolio = 'Please upload at least 1 photo or video to your portfolio.';
-      } else if (portfolioFiles.some(f => f.uploadProgress > 0 && f.uploadProgress < 100)) {
-        errors.portfolio = 'Please wait for your media files to finish uploading.';
+      if (!photoFiles || photoFiles.length === 0) {
+        errors.photos = 'Please upload at least 1 photo.';
+      } else if (photoFiles.some(f => f.uploadProgress > 0 && f.uploadProgress < 100)) {
+        errors.photos = 'Please wait for your photos to finish uploading.';
       }
     } else if (step === 6) {
+      if (!portfolioFiles || portfolioFiles.length === 0) {
+        errors.portfolio = 'Please upload at least 1 video.';
+      } else if (portfolioFiles.some(f => f.uploadProgress > 0 && f.uploadProgress < 100)) {
+        errors.portfolio = 'Please wait for your videos to finish uploading.';
+      }
+    } else if (step === 7) {
       const hasHourly = pricing.hourlyRate !== '' && Number(pricing.hourlyRate) > 0;
       const hasDay = pricing.dayRate !== '' && Number(pricing.dayRate) > 0;
       if (!hasHourly && !hasDay) {
         errors.pricing = 'Please enter a valid Day Rate or Hourly Rate (greater than ₹0).';
       }
-    } else if (step === 7) {
+    } else if (step === 8) {
       if (!availabilityStatus) {
         errors.availability = 'Please select your current availability status.';
       }
-    } else if (step === 8) {
+    } else if (step === 9) {
       if (!paymentDone) {
         errors.payment = 'Please complete the onboarding fee payment to proceed.';
       }
@@ -507,20 +514,26 @@ const CreatorSignupFlow = () => {
         stepCustom.physicalDetails = { ...creatorUser?.physicalDetails, ...physical };
       }
       if (currentStep === 5) {
-        // Files are already uploaded eagerly on select — just collect final URLs
-        const finalPortfolio = portfolioFiles.filter(f => f.uploadProgress === 100 && f.url && !f.url.startsWith('blob:'));
+        const finalPhotos = photoFiles.filter(f => f.uploadProgress === 100 && f.url && !f.url.startsWith('blob:'));
         stepCustom.portfolio = {
-          photos: finalPortfolio.filter(f => f.type?.startsWith('image/')).map(f => f.url),
-          videos: finalPortfolio.filter(f => f.type?.startsWith('video/')).map(f => f.url)
+          photos: finalPhotos.map(f => f.url),
+          videos: creatorUser?.portfolio?.videos || []
         };
       }
       if (currentStep === 6) {
-        stepCustom.pricing = { ...creatorUser?.pricing, ...pricing };
+        const finalVideos = portfolioFiles.filter(f => f.uploadProgress === 100 && f.url && !f.url.startsWith('blob:'));
+        stepCustom.portfolio = {
+          photos: photoFiles.filter(f => f.uploadProgress === 100 && f.url && !f.url.startsWith('blob:')).map(f => f.url),
+          videos: finalVideos.map(f => f.url)
+        };
       }
       if (currentStep === 7) {
+        stepCustom.pricing = { ...creatorUser?.pricing, ...pricing };
+      }
+      if (currentStep === 8) {
         stepCustom.availability = { ...creatorUser?.availability, status: availabilityStatus };
       }
-      if (currentStep === 8 && !paymentDone) {
+      if (currentStep === 9 && !paymentDone) {
         setLoading(false);
         setError('Please complete the onboarding fee payment to proceed.');
         return;
@@ -622,7 +635,7 @@ const CreatorSignupFlow = () => {
 
   const handlePublish = async () => {
     setError('');
-    for (let s = 1; s <= 8; s++) {
+    for (let s = 1; s <= 9; s++) {
       const sErrors = validateCurrentStep(s);
       if (Object.keys(sErrors).length > 0) {
         setFieldErrors(sErrors);
@@ -637,7 +650,7 @@ const CreatorSignupFlow = () => {
     try {
       await updateProfile({
         isProfileComplete: true,
-        onboardingStep: 9
+        onboardingStep: 10
       });
       navigate('/creator/dashboard');
     } catch (err) {
@@ -1133,80 +1146,212 @@ const CreatorSignupFlow = () => {
               );
             })()}
 
-            {/* Step 5: Portfolio */}
+            {/* Step 5: Photos Upload (Max 10) */}
             {currentStep === 5 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="mb-4">
                   <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
-                    Upload Portfolio <span className="text-rose-500">*</span>
+                    Upload Photos <span className="text-rose-500">*</span>
                   </h2>
-                  <p className="text-sm sm:text-base text-gray-500">
-                    Upload at least 1 photo or video to showcase your work to casting directors and production houses.
+                  <p className="text-sm text-gray-500">
+                    Upload up to <strong>10 photos</strong> to showcase your look to casting directors.
                   </p>
                 </div>
 
-                <label className={`border-2 border-dashed ${fieldErrors.portfolio ? 'border-rose-400 bg-rose-50/20' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'} rounded-3xl p-8 sm:p-12 transition-colors cursor-pointer flex flex-col items-center justify-center relative`}>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*,video/*"
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    onChange={async (e) => {
-                      if (!e.target.files || e.target.files.length === 0) return;
-                      const selectedFiles = Array.from(e.target.files);
-                      clearFieldError('portfolio');
-
-                      // Add files immediately with progress 0
-                      const newEntries = selectedFiles.map(file => ({
-                        file,
-                        name: file.name,
-                        size: file.size,
-                        url: URL.createObjectURL(file),
-                        type: file.type,
-                        uploadProgress: 0,
-                        error: false
-                      }));
-
-                      setPortfolioFiles(prev => {
-                        const updated = [...prev, ...newEntries];
-                        // Start uploading each new file immediately
-                        newEntries.forEach((entry, i) => {
-                          const globalIdx = prev.length + i;
-                          const formData = new FormData();
-                          formData.append('file', entry.file);
-                          axios.post(`${import.meta.env.VITE_API_URL}/upload/upload-direct`, formData, {
-                            onUploadProgress: (progressEvent) => {
-                              const pct = Math.round((progressEvent.loaded / progressEvent.total) * 100);
-                              setPortfolioFiles(cur => {
-                                const copy = [...cur];
-                                if (copy[globalIdx]) copy[globalIdx] = { ...copy[globalIdx], uploadProgress: pct };
-                                return copy;
-                              });
-                            }
-                          }).then(res => {
-                            if (res.data.success) {
-                              setPortfolioFiles(cur => {
-                                const copy = [...cur];
-                                if (copy[globalIdx]) copy[globalIdx] = { ...copy[globalIdx], url: res.data.url, uploadProgress: 100, file: null };
-                                return copy;
-                              });
-                            }
-                          }).catch(() => {
-                            setPortfolioFiles(cur => {
-                              const copy = [...cur];
-                              if (copy[globalIdx]) copy[globalIdx] = { ...copy[globalIdx], uploadProgress: 0, error: true };
-                              return copy;
+                {photoFiles.length < 10 ? (
+                  <label className={`border-2 border-dashed ${fieldErrors.photos ? 'border-rose-400 bg-rose-50/20' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'} rounded-3xl p-8 sm:p-12 transition-colors cursor-pointer flex flex-col items-center justify-center relative`}>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      onChange={async (e) => {
+                        if (!e.target.files || e.target.files.length === 0) return;
+                        const remaining = 10 - photoFiles.length;
+                        const selectedFiles = Array.from(e.target.files).slice(0, remaining);
+                        clearFieldError('photos');
+                        const newEntries = selectedFiles.map(file => ({
+                          file, name: file.name, size: file.size,
+                          url: URL.createObjectURL(file), type: file.type,
+                          uploadProgress: 0, error: false
+                        }));
+                        setPhotoFiles(prev => {
+                          const updated = [...prev, ...newEntries];
+                          newEntries.forEach((entry, i) => {
+                            const globalIdx = prev.length + i;
+                            const formData = new FormData();
+                            formData.append('file', entry.file);
+                            axios.post(`${import.meta.env.VITE_API_URL}/upload/upload-direct`, formData, {
+                              onUploadProgress: (pe) => {
+                                const pct = Math.round((pe.loaded / pe.total) * 100);
+                                setPhotoFiles(cur => { const c = [...cur]; if (c[globalIdx]) c[globalIdx] = { ...c[globalIdx], uploadProgress: pct }; return c; });
+                              }
+                            }).then(res => {
+                              if (res.data.success) {
+                                setPhotoFiles(cur => { const c = [...cur]; if (c[globalIdx]) c[globalIdx] = { ...c[globalIdx], url: res.data.url, uploadProgress: 100, file: null }; return c; });
+                              }
+                            }).catch(() => {
+                              setPhotoFiles(cur => { const c = [...cur]; if (c[globalIdx]) c[globalIdx] = { ...c[globalIdx], uploadProgress: 0, error: true }; return c; });
                             });
                           });
+                          return updated;
                         });
-                        return updated;
-                      });
-                    }}
-                  />
-                  <UploadCloud className={`w-12 h-12 mb-4 ${fieldErrors.portfolio ? 'text-rose-400' : 'text-gray-400'}`} />
-                  <p className="text-gray-700 font-semibold">Click to browse or drag and drop files here</p>
-                  <p className="text-xs text-gray-400 mt-2">JPG, PNG, MP4 up to 50MB (At least 1 file required)</p>
-                </label>
+                      }}
+                    />
+                    <UploadCloud className={`w-12 h-12 mb-4 ${fieldErrors.photos ? 'text-rose-400' : 'text-gray-400'}`} />
+                    <p className="text-gray-700 font-semibold">Click to browse or drag and drop photos here</p>
+                    <p className="text-xs text-gray-400 mt-2">JPG, PNG up to 10MB · {10 - photoFiles.length} photo{10 - photoFiles.length !== 1 ? 's' : ''} remaining</p>
+                  </label>
+                ) : (
+                  <div className="border-2 border-emerald-300 bg-emerald-50 rounded-3xl p-8 flex flex-col items-center justify-center">
+                    <CheckCircle2 className="w-12 h-12 mb-3 text-emerald-500" />
+                    <p className="text-emerald-700 font-bold">Maximum 10 photos uploaded!</p>
+                    <p className="text-xs text-emerald-600 mt-1">Remove a photo below to upload a different one.</p>
+                  </div>
+                )}
+
+                {fieldErrors.photos && (
+                  <p className="text-xs text-rose-500 mt-2 font-medium flex items-center gap-1">
+                    <AlertCircle size={14} /> {fieldErrors.photos}
+                  </p>
+                )}
+
+                {photoFiles.length > 0 && (
+                  <div className="mt-6">
+                    <div className="flex items-center justify-between text-xs font-semibold px-1 mb-3">
+                      <span className="text-gray-500">{photoFiles.length}/10 photos</span>
+                      <span className="flex items-center gap-3">
+                        {photoFiles.filter(f => f.uploadProgress > 0 && f.uploadProgress < 100).length > 0 && <span className="text-fuchsia-600 animate-pulse">{photoFiles.filter(f => f.uploadProgress > 0 && f.uploadProgress < 100).length} uploading...</span>}
+                        {photoFiles.filter(f => f.uploadProgress === 100).length > 0 && <span className="text-emerald-600">{photoFiles.filter(f => f.uploadProgress === 100).length} uploaded</span>}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                      {photoFiles.map((fileObj, idx) => (
+                        <div key={idx} className="relative group aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
+                          <img src={fileObj.url} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                          {fileObj.uploadProgress > 0 && fileObj.uploadProgress < 100 && (
+                            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
+                              <span className="text-white text-xs font-black">{fileObj.uploadProgress}%</span>
+                              <div className="w-3/4 bg-white/30 rounded-full h-1 mt-1">
+                                <div className="bg-fuchsia-400 h-full rounded-full" style={{ width: `${fileObj.uploadProgress}%` }} />
+                              </div>
+                            </div>
+                          )}
+                          {fileObj.error && (
+                            <div className="absolute inset-0 bg-rose-500/70 flex items-center justify-center">
+                              <AlertCircle size={20} className="text-white" />
+                            </div>
+                          )}
+                          {fileObj.uploadProgress === 100 && (
+                            <div className="absolute top-1 left-1">
+                              <CheckCircle2 size={16} className="text-emerald-400 drop-shadow" />
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setPhotoFiles(prev => prev.filter((_, i) => i !== idx))}
+                            className="absolute top-1 right-1 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer text-xs font-bold"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 6: Videos Upload (Max 5) */}
+            {currentStep === 6 && (
+              <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="mb-4">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
+                    Upload Videos <span className="text-rose-500">*</span>
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-500">
+                    Upload up to <strong>5 videos</strong> to showcase your talent to casting directors.
+                  </p>
+                </div>
+
+                {(() => {
+                  const videoFiles = portfolioFiles.filter(f => f.type?.startsWith('video/'));
+                  const canUploadMore = videoFiles.length < 5;
+                  return (
+                    <>
+                      {canUploadMore ? (
+                        <label className={`border-2 border-dashed ${fieldErrors.portfolio ? 'border-rose-400 bg-rose-50/20' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'} rounded-3xl p-8 sm:p-12 transition-colors cursor-pointer flex flex-col items-center justify-center relative`}>
+                          <input
+                            type="file"
+                            multiple
+                            accept="video/*"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            onChange={async (e) => {
+                              if (!e.target.files || e.target.files.length === 0) return;
+                              const currentVideos = portfolioFiles.filter(f => f.type?.startsWith('video/'));
+                              const remaining = 5 - currentVideos.length;
+                              const selectedFiles = Array.from(e.target.files).slice(0, remaining);
+                              clearFieldError('portfolio');
+
+                              const newEntries = selectedFiles.map(file => ({
+                                file,
+                                name: file.name,
+                                size: file.size,
+                                url: URL.createObjectURL(file),
+                                type: file.type,
+                                uploadProgress: 0,
+                                error: false
+                              }));
+
+                              setPortfolioFiles(prev => {
+                                const updated = [...prev, ...newEntries];
+                                newEntries.forEach((entry, i) => {
+                                  const globalIdx = prev.length + i;
+                                  const formData = new FormData();
+                                  formData.append('file', entry.file);
+                                  axios.post(`${import.meta.env.VITE_API_URL}/upload/upload-direct`, formData, {
+                                    onUploadProgress: (progressEvent) => {
+                                      const pct = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+                                      setPortfolioFiles(cur => {
+                                        const copy = [...cur];
+                                        if (copy[globalIdx]) copy[globalIdx] = { ...copy[globalIdx], uploadProgress: pct };
+                                        return copy;
+                                      });
+                                    }
+                                  }).then(res => {
+                                    if (res.data.success) {
+                                      setPortfolioFiles(cur => {
+                                        const copy = [...cur];
+                                        if (copy[globalIdx]) copy[globalIdx] = { ...copy[globalIdx], url: res.data.url, uploadProgress: 100, file: null };
+                                        return copy;
+                                      });
+                                    }
+                                  }).catch(() => {
+                                    setPortfolioFiles(cur => {
+                                      const copy = [...cur];
+                                      if (copy[globalIdx]) copy[globalIdx] = { ...copy[globalIdx], uploadProgress: 0, error: true };
+                                      return copy;
+                                    });
+                                  });
+                                });
+                                return updated;
+                              });
+                            }}
+                          />
+                          <UploadCloud className={`w-12 h-12 mb-4 ${fieldErrors.portfolio ? 'text-rose-400' : 'text-gray-400'}`} />
+                          <p className="text-gray-700 font-semibold">Click to browse or drag and drop videos here</p>
+                          <p className="text-xs text-gray-400 mt-2">MP4, MOV up to 50MB · {5 - videoFiles.length} video{5 - videoFiles.length !== 1 ? 's' : ''} remaining</p>
+                        </label>
+                      ) : (
+                        <div className="border-2 border-emerald-300 bg-emerald-50 rounded-3xl p-8 flex flex-col items-center justify-center">
+                          <CheckCircle2 className="w-12 h-12 mb-3 text-emerald-500" />
+                          <p className="text-emerald-700 font-bold">Maximum 5 videos uploaded!</p>
+                          <p className="text-xs text-emerald-600 mt-1">Remove a video below to upload a different one.</p>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
 
                 {fieldErrors.portfolio && (
                   <p className="text-xs text-rose-500 mt-2 font-medium flex items-center gap-1">
@@ -1214,17 +1359,17 @@ const CreatorSignupFlow = () => {
                   </p>
                 )}
 
-                {portfolioFiles.length > 0 && (
+                {portfolioFiles.filter(f => f.type?.startsWith('video/')).length > 0 && (
                   <div className="mt-6 space-y-3">
                     {/* Overall upload summary */}
                     {(() => {
-                      const uploading = portfolioFiles.filter(f => f.uploadProgress > 0 && f.uploadProgress < 100);
-                      const done = portfolioFiles.filter(f => f.uploadProgress === 100);
-                      const failed = portfolioFiles.filter(f => f.error);
-                      if (uploading.length === 0 && done.length === 0) return null;
+                      const videoFiles = portfolioFiles.filter(f => f.type?.startsWith('video/'));
+                      const uploading = videoFiles.filter(f => f.uploadProgress > 0 && f.uploadProgress < 100);
+                      const done = videoFiles.filter(f => f.uploadProgress === 100);
+                      const failed = videoFiles.filter(f => f.error);
                       return (
                         <div className="flex items-center justify-between text-xs font-semibold px-1">
-                          <span className="text-gray-500">{portfolioFiles.length} file{portfolioFiles.length > 1 ? 's' : ''} selected</span>
+                          <span className="text-gray-500">{videoFiles.length}/5 videos selected</span>
                           <span className="flex items-center gap-3">
                             {uploading.length > 0 && <span className="text-fuchsia-600 animate-pulse">{uploading.length} uploading...</span>}
                             {done.length > 0 && <span className="text-emerald-600">{done.length} uploaded</span>}
@@ -1235,7 +1380,7 @@ const CreatorSignupFlow = () => {
                     })()}
 
                     {/* File cards with progress bars */}
-                    {portfolioFiles.map((fileObj, idx) => {
+                    {portfolioFiles.filter(f => f.type?.startsWith('video/')).map((fileObj, idx) => {
                       const isUploading = fileObj.uploadProgress > 0 && fileObj.uploadProgress < 100;
                       const isDone = fileObj.uploadProgress === 100;
                       const isFailed = fileObj.error;
@@ -1322,8 +1467,8 @@ const CreatorSignupFlow = () => {
               </div>
             )}
 
-            {/* Step 6: Pricing */}
-            {currentStep === 6 && (
+            {/* Step 7: Pricing */}
+            {currentStep === 7 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-4 sm:space-y-5">
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
@@ -1376,8 +1521,8 @@ const CreatorSignupFlow = () => {
               </div>
             )}
 
-            {/* Step 7: Availability */}
-            {currentStep === 7 && (
+            {/* Step 8: Availability */}
+            {currentStep === 8 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500">
                 <div className="mb-6">
                   <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
@@ -1425,8 +1570,8 @@ const CreatorSignupFlow = () => {
               </div>
             )}
 
-            {/* Step 8: Payment */}
-            {currentStep === 8 && (
+            {/* Step 9: Payment */}
+            {currentStep === 9 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500 px-2 sm:px-0">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
                   Onboarding Fee <span className="text-rose-500">*</span>
@@ -1491,8 +1636,8 @@ const CreatorSignupFlow = () => {
               </div>
             )}
 
-            {/* Step 9: Preview */}
-            {currentStep === 9 && (
+            {/* Step 10: Preview */}
+            {currentStep === 10 && (
               <div className="animate-in fade-in slide-in-from-right-4 duration-500 text-center px-2 sm:px-0">
                 <div className="w-20 h-20 sm:w-24 sm:h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
                   <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12" />
@@ -1539,7 +1684,7 @@ const CreatorSignupFlow = () => {
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={loading || (currentStep === 8 && !paymentDone)}
+                disabled={loading || (currentStep === 9 && !paymentDone)}
                 className="px-6 sm:px-8 py-3 rounded-xl font-bold bg-gray-900 text-white hover:bg-black transition-colors flex items-center gap-2 disabled:opacity-50 text-sm sm:text-base cursor-pointer"
               >
                 {loading ? 'Saving...' : 'Next'} <ChevronRight size={18} />

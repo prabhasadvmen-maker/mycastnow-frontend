@@ -100,6 +100,8 @@ const CreatorProfile = () => {
   const [toast, setToast] = useState(null);
   const [copiedLink, setCopiedLink] = useState(false);
   const [newVideoUrl, setNewVideoUrl] = useState('');
+  const [portfolioImages, setPortfolioImages] = useState([]);
+  const [imageUploading, setImageUploading] = useState(false);
 
   // Populate data from creatorUser
   useEffect(() => {
@@ -156,6 +158,10 @@ const CreatorProfile = () => {
           'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
         ]
       });
+      // Load existing portfolio photos
+      if (port.photos && port.photos.length > 0) {
+        setPortfolioImages(port.photos.map(url => ({ url, uploading: false })));
+      }
     }
   }, [creatorUser]);
 
@@ -227,6 +233,7 @@ const CreatorProfile = () => {
         },
         portfolio: {
           ...(creatorUser?.portfolio || {}),
+          photos: portfolioImages.filter(img => img.url && !img.url.startsWith('blob:')).map(img => img.url),
           videos: form.videos
         }
       };
@@ -620,6 +627,27 @@ const CreatorProfile = () => {
                 <p className="text-xs text-gray-400">No audition reels uploaded yet.</p>
               )}
             </div>
+
+            {/* Portfolio Images */}
+            {portfolioImages.length > 0 && (
+              <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                    <Camera size={16} className="text-fuchsia-600" /> Portfolio Images
+                  </h3>
+                  <button onClick={() => setActiveTab('edit')} className="text-xs text-fuchsia-600 font-bold hover:underline cursor-pointer">
+                    Manage ({portfolioImages.length}/10)
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {portfolioImages.slice(0, 10).map((img, idx) => (
+                    <div key={idx} className="aspect-square rounded-xl overflow-hidden bg-gray-100">
+                      <img src={img.url} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1013,6 +1041,79 @@ const CreatorProfile = () => {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Section 6: Portfolio Images (Max 10) */}
+          <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm space-y-5">
+            <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2 pb-3 border-b border-gray-100">
+              <Camera size={16} className="text-fuchsia-600" /> Portfolio Images
+              <span className="ml-auto text-xs font-semibold text-gray-400">{portfolioImages.length}/10 images</span>
+            </h3>
+
+            {portfolioImages.length < 10 && (
+              <label className="border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 rounded-2xl p-6 cursor-pointer flex flex-col items-center justify-center transition relative">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  disabled={imageUploading}
+                  onChange={async (e) => {
+                    if (!e.target.files || e.target.files.length === 0) return;
+                    const remaining = 10 - portfolioImages.length;
+                    const files = Array.from(e.target.files).slice(0, remaining);
+                    setImageUploading(true);
+                    for (const file of files) {
+                      const previewUrl = URL.createObjectURL(file);
+                      setPortfolioImages(prev => [...prev, { url: previewUrl, uploading: true }]);
+                      try {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        const res = await axios.post(`${API}/upload/upload-direct`, formData);
+                        if (res.data.success) {
+                          setPortfolioImages(prev => {
+                            const copy = [...prev];
+                            const idx = copy.findIndex(img => img.url === previewUrl);
+                            if (idx !== -1) copy[idx] = { url: res.data.url, uploading: false };
+                            return copy;
+                          });
+                        }
+                      } catch {
+                        setPortfolioImages(prev => prev.filter(img => img.url !== previewUrl));
+                      }
+                    }
+                    setImageUploading(false);
+                  }}
+                />
+                <Plus size={24} className="text-gray-400 mb-2" />
+                <p className="text-xs font-semibold text-gray-600">Click to upload images</p>
+                <p className="text-[11px] text-gray-400 mt-1">{10 - portfolioImages.length} slot{10 - portfolioImages.length !== 1 ? 's' : ''} remaining · JPG, PNG up to 10MB</p>
+              </label>
+            )}
+
+            {portfolioImages.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {portfolioImages.map((img, idx) => (
+                  <div key={idx} className="relative group aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
+                    <img src={img.url} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover" />
+                    {img.uploading && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-white border-t-fuchsia-400 rounded-full animate-spin"></div>
+                      </div>
+                    )}
+                    {!img.uploading && (
+                      <button
+                        type="button"
+                        onClick={() => setPortfolioImages(prev => prev.filter((_, i) => i !== idx))}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Sticky Bottom Actions */}
