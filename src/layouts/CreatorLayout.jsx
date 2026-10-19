@@ -128,7 +128,7 @@ const CreatorLayout = () => {
           {/* Mobile Close Button */}
           <button 
             onClick={() => setIsMobileMenuOpen(false)}
-            className="md:hidden absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition"
+            className="md:hidden absolute right-3 top-4 p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition z-50"
           >
             <X size={20} />
           </button>
@@ -229,7 +229,7 @@ const CreatorLayout = () => {
                     className="fixed inset-0 z-40" 
                     onClick={() => setDropdownOpen(false)} 
                   />
-                  <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50">
                     {/* Creator Identity Header */}
                     <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-fuchsia-50/50 to-purple-50/40 rounded-t-xl">
                       <div className="flex items-center gap-3">

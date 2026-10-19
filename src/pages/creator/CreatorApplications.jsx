@@ -279,6 +279,15 @@ const CreatorApplications = () => {
                 {getStatusBadge(app.status)}
 
                 <div className="flex items-center gap-2">
+                  {app.company?._id && (
+                    <Link
+                      to={`/creator/dashboard/inbox?companyId=${app.company._id}`}
+                      className="px-3 py-1.5 rounded-xl border border-purple-200 text-purple-700 hover:bg-purple-50 text-xs font-bold transition"
+                      title="Chat with this production house"
+                    >
+                      Message
+                    </Link>
+                  )}
                   <button
                     onClick={() => setSelectedApp(app)}
                     className="px-3 py-1.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 text-xs font-bold transition flex items-center gap-1 cursor-pointer"
@@ -356,6 +365,11 @@ const CreatorApplications = () => {
                 <div className="p-3 bg-purple-50/50 rounded-xl mt-2 border border-purple-100">
                   <span className="font-bold text-purple-900 block mb-1">Your Submission Pitch:</span>
                   <p className="text-purple-800 italic">"{selectedApp.notes}"</p>
+                  {selectedApp.showreelUrl && (
+                    <a href={selectedApp.showreelUrl} target="_blank" rel="noreferrer" className="inline-block mt-2 text-purple-700 font-bold underline">
+                      ▶ Your submitted showreel
+                    </a>
+                  )}
                 </div>
               )}
             </div>

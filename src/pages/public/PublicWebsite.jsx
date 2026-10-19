@@ -44,74 +44,100 @@ const PLAN_STYLES = {
   }
 };
 
-function HeroVideoCard() {
+const HERO_VIDEO = '/My%20cast%20now%20video%20.mp4';
+
+// One collage tile: shows a real talent photo when available, otherwise a still frame of the reel.
+function HeroTile({ talent, frame = 1, playing = false, startAt = 0, className = '', children }) {
+  const [imgFailed, setImgFailed] = useState(false);
   const videoRef = useRef(null);
+  const src = talent?.image && !imgFailed ? mediaUrl(talent.image) : '';
 
   return (
-    <div className="relative w-[220px] mx-auto flex items-center justify-center shrink-0">
-      {/* Ambient glowing background */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-gradient-to-tr from-violet-300/40 via-purple-200/30 to-fuchsia-100/40 rounded-full blur-[80px] pointer-events-none -z-10" />
-
-      {/* Phone Mockup Frame - Fixed dimensions to prevent collapsing */}
-      <div className="relative group overflow-hidden rounded-[2rem] border-[10px] border-[#121212] bg-[#121212] shadow-2xl shadow-violet-900/20 w-[220px] h-[440px] rotate-[4deg] hover:rotate-[1deg] transition-all duration-500 ease-out shrink-0">
-        {/* Video Background */}
+    <div className={`absolute overflow-hidden rounded-[1.1rem] sm:rounded-3xl border-[3px] sm:border-[5px] border-white bg-slate-900 shadow-xl shadow-violet-900/15 ring-1 ring-violet-100 ${className}`}>
+      {src ? (
+        <img src={src} alt={talent?.name || 'MyCastNow talent'} loading="lazy" onError={() => setImgFailed(true)} className="h-full w-full object-cover" />
+      ) : (
         <video
           ref={videoRef}
-          src="/My%20cast%20now%20video%20.mp4"
-          autoPlay
-          loop
+          src={playing ? HERO_VIDEO : `${HERO_VIDEO}#t=${frame}`}
           muted
+          loop={playing}
+          autoPlay={playing}
           playsInline
-          className="absolute inset-0 w-full h-full object-cover rounded-[1.4rem] bg-slate-900"
+          preload={playing ? 'auto' : 'metadata'}
+          onLoadedMetadata={() => { if (playing && startAt && videoRef.current) videoRef.current.currentTime = startAt; }}
+          className="h-full w-full object-cover"
         />
+      )}
+      {children}
+    </div>
+  );
+}
 
-        {/* Top Gradient for text readability */}
-        <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none rounded-t-[1.4rem]" />
-        {/* Bottom Gradient */}
-        <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-black/60 to-transparent pointer-events-none rounded-b-[1.4rem]" />
+function HeroChip({ icon: Icon, label, className = '', delay = '0s' }) {
+  return (
+    <div style={{ animationDelay: delay }} className={`hero-float absolute z-30 flex items-center gap-1.5 rounded-full border border-violet-200 bg-white/95 py-1 pl-1 pr-2.5 shadow-lg shadow-violet-200/60 backdrop-blur sm:gap-2 sm:py-1.5 sm:pl-1.5 sm:pr-4 ${className}`}>
+      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-violet-100 text-violet-600 sm:h-6 sm:w-6"><Icon size={12} strokeWidth={2.4} /></span>
+      <span className="text-[10px] font-bold text-slate-700 sm:text-xs">{label}</span>
+    </div>
+  );
+}
 
-        {/* Top Header */}
-        <div className="absolute top-4 left-4 right-3 flex items-center justify-between z-10 pointer-events-none">
-          <div className="flex items-center gap-1.5">
-            <div className="h-2 w-2 rounded-full bg-[#8B5CF6] shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
-            <span className="text-white text-xs font-bold tracking-wide drop-shadow-md">MyCastNow Reel</span>
-          </div>
-          <MoreVertical size={16} className="text-white drop-shadow-md" />
+function HeroCollage({ talents = [] }) {
+  const mainRef = useRef(null);
+  const [paused, setPaused] = useState(false);
+  const photos = talents.filter((t) => t?.image);
+
+  const togglePlay = () => {
+    const v = mainRef.current;
+    if (!v) return;
+    if (v.paused) { v.play().catch(() => { }); setPaused(false); } else { v.pause(); setPaused(true); }
+  };
+
+  return (
+    <div className="relative mx-auto aspect-[540/480] w-full max-w-[540px]">
+      {/* soft glow + big play-triangle backdrop */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[90%] w-[90%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-tr from-violet-300/40 via-indigo-200/30 to-fuchsia-100/40 blur-3xl" />
+      <div
+        className="pointer-events-none absolute left-[26%] top-[6%] h-[84%] w-[70%] bg-gradient-to-br from-violet-300/70 via-violet-200/60 to-indigo-300/50"
+        style={{ clipPath: 'polygon(0 0, 100% 50%, 0 100%)' }}
+      />
+
+      {/* dashed connector lines */}
+      <svg className="pointer-events-none absolute inset-0 z-0 h-full w-full" viewBox="0 0 540 480" fill="none" aria-hidden="true">
+        <path d="M70 215 C 70 250, 120 262, 168 262" stroke="#8B5CF6" strokeWidth="1.5" strokeDasharray="4 5" opacity=".55" />
+        <path d="M300 22 C 380 22, 400 60, 420 100" stroke="#8B5CF6" strokeWidth="1.5" strokeDasharray="4 5" opacity=".55" />
+        <path d="M385 430 C 440 430, 470 400, 470 360" stroke="#8B5CF6" strokeWidth="1.5" strokeDasharray="4 5" opacity=".55" />
+      </svg>
+
+      {/* top-left photo */}
+      <HeroTile talent={photos[0]} frame={4} className="left-[4%] top-[7%] z-10 h-[34%] w-[25%]" />
+      {/* bottom-left photo */}
+      <HeroTile talent={photos[1]} frame={12} className="left-[6%] top-[52%] z-10 h-[38%] w-[25%]" />
+      {/* top-right video */}
+      <HeroTile playing startAt={9} className="left-[76%] top-[5%] z-10 h-[31%] w-[21%]">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow sm:h-8 sm:w-8"><Play size={12} className="ml-0.5 fill-current" /></span>
         </div>
+      </HeroTile>
+      {/* bottom-right photo */}
+      <HeroTile talent={photos[2]} frame={20} className="left-[74%] top-[48%] z-10 h-[40%] w-[23%]" />
 
-        {/* Right Side Social Actions */}
-        <div className="absolute right-3 bottom-20 flex flex-col items-center gap-5 z-10">
-          <div className="flex flex-col items-center gap-1 cursor-pointer hover:scale-110 transition-transform">
-            <div className="bg-black/20 backdrop-blur-md p-1.5 rounded-full">
-              <Heart size={20} className="text-white fill-white drop-shadow-md" />
-            </div>
-            <span className="text-white text-[10px] font-black drop-shadow-md">12.4K</span>
-          </div>
-          <div className="flex flex-col items-center gap-1 cursor-pointer hover:scale-110 transition-transform">
-            <div className="bg-black/20 backdrop-blur-md p-1.5 rounded-full">
-              <MessageCircle size={18} className="text-white fill-white drop-shadow-md" />
-            </div>
-            <span className="text-white text-[10px] font-black drop-shadow-md">320</span>
-          </div>
-          <div className="flex flex-col items-center gap-1 cursor-pointer hover:scale-110 transition-transform">
-            <div className="bg-black/20 backdrop-blur-md p-1.5 rounded-full pl-2">
-              <Send size={18} className="text-white fill-white drop-shadow-md -ml-0.5" />
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Progress Bar & Controls */}
-        <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 z-10">
-          <Play size={14} className="text-white fill-white drop-shadow-md shrink-0 cursor-pointer hover:scale-110 transition-transform" />
-          <div className="text-white text-[9px] font-bold drop-shadow-md tracking-wider shrink-0">
-            0:16 / 0:28
-          </div>
-          <div className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden cursor-pointer relative backdrop-blur-sm">
-            <div className="absolute top-0 left-0 w-[57%] h-full bg-[#8B5CF6] rounded-full shadow-[0_0_10px_rgba(139,92,246,0.8)]" />
-          </div>
-          <Maximize2 size={12} className="text-white drop-shadow-md shrink-0 cursor-pointer hover:scale-110 transition-transform" />
+      {/* main video */}
+      <div className="absolute left-[31%] top-[13%] z-20 h-[69%] w-[42%] overflow-hidden rounded-[1.4rem] border-[3px] border-white bg-slate-900 shadow-2xl shadow-violet-900/25 ring-1 ring-violet-100 sm:rounded-[2rem] sm:border-[5px]">
+        <video ref={mainRef} src={HERO_VIDEO} autoPlay loop muted playsInline className="h-full w-full object-cover" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent" />
+        <div className="absolute inset-x-2 bottom-2 flex items-center gap-2 rounded-full bg-white/90 px-1.5 py-1 shadow backdrop-blur sm:inset-x-3 sm:bottom-3 sm:py-1.5">
+          <button type="button" onClick={togglePlay} aria-label={paused ? 'Play reel' : 'Pause reel'} className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-600 text-white transition hover:bg-violet-700 sm:h-6 sm:w-6">
+            {paused ? <Play size={10} className="ml-0.5 fill-current" /> : <Pause size={10} className="fill-current" />}
+          </button>
+          <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-violet-200"><div className="hero-progress absolute inset-y-0 left-0 rounded-full bg-violet-600" /></div>
         </div>
       </div>
+
+      <HeroChip icon={User} label="Actors" className="left-[44%] top-[1%]" />
+      <HeroChip icon={Camera} label="Models" className="left-[0%] top-[42%]" delay="-1.2s" />
+      <HeroChip icon={Sparkles} label="Creators" className="left-[60%] top-[87%]" delay="-2.4s" />
     </div>
   );
 }
@@ -184,6 +210,12 @@ export default function PublicWebsite() {
     return data.castings.filter((c) => !term || [c.title, c.roleType, c.projectType, c.location].filter(Boolean).some((v) => v.toLowerCase().includes(term))).slice(0, 6);
   }, [data.castings, query]);
 
+  // Featured talents with a photo first, used by the hero collage
+  const heroTalents = useMemo(() => {
+    const withPhoto = (data.talents || []).filter((t) => t?.image);
+    return [...withPhoto.filter((t) => t.featured), ...withPhoto.filter((t) => !t.featured)].slice(0, 3);
+  }, [data.talents]);
+
   const displayedPlans = useMemo(() => {
     return (data.plans || []).slice(0, 3);
   }, [data.plans]);
@@ -212,49 +244,43 @@ export default function PublicWebsite() {
   return <PublicLayout>
     <section className="relative overflow-hidden bg-gradient-to-br from-violet-50 via-white to-sky-50">
       <div className="absolute -left-20 top-0 h-80 w-80 rounded-full bg-violet-200/40 blur-3xl" /><div className="absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-sky-200/50 blur-3xl" />
-      <div className="relative mx-auto flex flex-col lg:flex-row items-center justify-between gap-10 max-w-[1050px] px-5 pt-16 pb-20 md:pt-20 md:pb-24 lg:pb-28 md:px-8">
-        {/* LEFT COLUMN: HERO TEXT & ACTIONS */}
-        <div className="flex-1 w-full max-w-lg lg:max-w-none flex flex-col justify-center mt-4 lg:-mt-20">
-          <div>
-            <h1 style={{ fontFamily: "'Permanent Marker', cursive" }} className="text-4xl font-black leading-[1.1] tracking-tight text-slate-900 sm:text-5xl lg:text-[3.75rem] font-normal">
-              Discover & Hire <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Premium Talent.</span>
+      <div className="relative mx-auto max-w-[1240px] px-5 pb-16 pt-12 md:px-8 md:pb-20 md:pt-16">
+        <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-8">
+          {/* LEFT COLUMN: HERO TEXT & ACTIONS */}
+          <div className="flex flex-col justify-center">
+            <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[.25em] text-violet-600">
+              <span className="h-px w-8 bg-violet-400" />
+              Casting <span className="text-violet-300">•</span> Talent <span className="text-violet-300">•</span> Opportunity
+            </div>
+            <h1 style={{ fontFamily: "'Permanent Marker', cursive" }} className="mt-5 text-[2.6rem] font-normal leading-[1.08] tracking-tight text-slate-900 sm:text-6xl lg:text-[3.6rem] xl:text-[4rem]">
+              Your Talent.<br />
+              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">Your Next Big<br />Opportunity.</span>
             </h1>
-            <p style={{ fontFamily: "'Handlee', cursive" }} className="mt-6 max-w-lg text-[20px] leading-relaxed text-slate-700 font-medium tracking-wide">
-              MyCastNow brings verified actors, models, and creators together with top production houses in one direct, secure ecosystem.
+            <p style={{ fontFamily: "'Handlee', cursive" }} className="mt-6 max-w-md text-[19px] font-medium leading-relaxed tracking-wide text-slate-700">
+              Connect actors, models and creators with casting opportunities that move careers forward.
             </p>
-            <div style={{ fontFamily: "'Handlee', cursive" }} className="mt-6 inline-flex items-center gap-2 rounded-full bg-emerald-100/60 px-4 py-2 text-[13px] font-bold tracking-wide text-emerald-600 shadow-sm border border-emerald-200/50 uppercase">
-              <Sparkles size={15} /> INDIA'S VERIFIED CASTING NETWORK
+            <div className="mt-8 flex flex-wrap gap-3 sm:gap-4">
+              <Link to="/castings" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-300/60 transition hover:-translate-y-0.5 hover:from-violet-700 hover:to-indigo-700">
+                Explore Casting Calls <ArrowRight size={16} />
+              </Link>
+              <Link to="/creator/signup" className="inline-flex items-center rounded-full border border-violet-200 bg-white px-6 py-3.5 text-sm font-bold text-violet-700 shadow-sm transition hover:-translate-y-0.5 hover:border-violet-400 hover:bg-violet-50">
+                Join as Talent
+              </Link>
             </div>
           </div>
 
-          <div style={{ fontFamily: "'Handlee', cursive" }} className="mt-12 flex flex-wrap gap-x-6 gap-y-3 text-[16px] font-bold text-slate-800 tracking-wide">
-            <span className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-50 text-[#8B5CF6] shadow-sm">
-                <ShieldCheck size={14} />
-              </div>
-              Verified Artists
-            </span>
-            <span className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-50 text-[#8B5CF6] shadow-sm">
-                <Users size={14} />
-              </div>
-              Zero Middlemen
-            </span>
-            <span className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-50 text-[#8B5CF6] shadow-sm">
-                <Lock size={14} />
-              </div>
-              100% Secure
-            </span>
-          </div>
-
-
+          {/* RIGHT COLUMN: VIDEO + PHOTO COLLAGE */}
+          <HeroCollage talents={heroTalents} />
         </div>
 
-        {/* RIGHT COLUMN: HERO VIDEO CARD */}
-        <div className="flex flex-col justify-center lg:justify-end shrink-0 w-full lg:w-auto">
-          <HeroVideoCard />
+        {/* AUDIENCE STRIP */}
+        <div className="mt-12 flex items-center justify-center gap-4 rounded-2xl border border-violet-100 bg-white/70 px-4 py-3.5 shadow-sm backdrop-blur md:mt-14">
+          <span className="hidden h-px flex-1 bg-gradient-to-r from-transparent to-violet-200 sm:block" />
+          <span className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs font-bold text-slate-700 sm:text-sm">
+            <Users size={18} className="text-violet-600" />
+            For Actors <span className="text-violet-300">•</span> Models <span className="text-violet-300">•</span> Creators <span className="text-violet-300">•</span> Casting Professionals
+          </span>
+          <span className="hidden h-px flex-1 bg-gradient-to-l from-transparent to-violet-200 sm:block" />
         </div>
       </div>
     </section>

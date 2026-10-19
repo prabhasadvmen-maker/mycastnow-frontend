@@ -10,6 +10,11 @@ import {
 const AdminCasting = () => {
   const [castings, setCastings] = useState([]);
   const [pendingCastings, setPendingCastings] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [appSearch, setAppSearch] = useState('');
+  const [appStatusFilter, setAppStatusFilter] = useState('All');
+  const [appUpdating, setAppUpdating] = useState(null);
+  const [viewApp, setViewApp] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
@@ -42,6 +47,7 @@ const AdminCasting = () => {
   useEffect(() => {
     fetchCastings();
     fetchPendingCastings();
+    fetchApplications();
     
     // Close dropdown when clicking outside
     const handleClickOutside = (e) => {
@@ -61,6 +67,31 @@ const AdminCasting = () => {
       console.error('Error fetching castings:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchApplications = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/admin/casting/applications`);
+      setApplications(res.data.applications || []);
+    } catch (error) {
+      console.error('Error fetching applications:', error);
+    }
+  };
+
+  const handleApplicationStatus = async (app, status) => {
+    const creatorId = app.creator?._id;
+    if (!creatorId) return;
+    setAppUpdating(app._id);
+    try {
+      await axios.put(`${import.meta.env.VITE_API_URL}/admin/casting/${app.castingId}/applicant/status`, { creatorId, status });
+      setApplications(prev => prev.map(a => a._id === app._id ? { ...a, status } : a));
+      setViewApp(prev => (prev && prev._id === app._id ? { ...prev, status } : prev));
+      showToast('success', `Application marked as ${status}`);
+    } catch (error) {
+      showToast('error', error.response?.data?.message || 'Failed to update application');
+    } finally {
+      setAppUpdating(null);
     }
   };
 
@@ -352,6 +383,7 @@ const AdminCasting = () => {
           { key: 'all', label: 'All Castings', count: castings.length },
           { key: 'open', label: 'Open', count: castings.filter(c => c.status === 'Open').length },
           { key: 'closed', label: 'Closed', count: castings.filter(c => c.status === 'Closed').length },
+          { key: 'applications', label: 'Applications', count: applications.length },
         ].map(tab => (
           <button
             key={tab.key}
@@ -369,7 +401,318 @@ const AdminCasting = () => {
       </div>
 
 
+      {/* Creator Applications */}
+      {activeTab === 'applications' && (() => {
+        const STAGES = [
+          { key: 'Applied', label: 'New', dot: 'bg-gray-400', chip: 'bg-gray-100 text-gray-700', hint: 'Just applied, not reviewed yet' },
+          { key: 'Shortlisted', label: 'Shortlisted', dot: 'bg-indigo-500', chip: 'bg-indigo-50 text-indigo-700', hint: 'Liked the profile' },
+          { key: 'Audition Scheduled', label: 'Audition', dot: 'bg-amber-500', chip: 'bg-amber-50 text-amber-700', hint: 'Called for audition' },
+          { key: 'Selected', label: 'Selected', dot: 'bg-emerald-500', chip: 'bg-emerald-50 text-emerald-700', hint: 'Finalised for the role' },
+          { key: 'Rejected', label: 'Rejected', dot: 'bg-red-500', chip: 'bg-red-50 text-red-700', hint: 'Not suitable' }
+        ];
+        const stageOf = (key) => STAGES.find(st => st.key === key) || STAGES[0];
+        const countOf = (key) => applications.filter(a => a.status === key).length;
+        const q = appSearch.trim().toLowerCase();
+        const list = applications.filter(a => {
+          if (appStatusFilter !== 'All' && a.status !== appStatusFilter) return false;
+          if (!q) return true;
+          return [a.creator?.basicDetails?.fullName, a.creator?.phone, a.castingTitle, a.companyName]
+            .some(v => (v || '').toLowerCase().includes(q));
+        });
+        const fmt = (d) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+        return (
+          <div className="space-y-4">
+            {/* How it works */}
+            <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-900">
+              <Sparkles size={18} className="text-blue-600 shrink-0 mt-0.5" />
+              <p>
+                Jab koi creator kisi casting par apply karta hai, uski application yahan aati hai.
+                <strong> View</strong> dabakar poora pitch dekho, phir <strong>Shortlist → Audition → Selected</strong> ya <strong>Reject</strong> karo.
+                Status badalte hi creator aur company dono ko naya status dikhta hai.
+              </p>
+            </div>
+
+            {/* Stage filter chips */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setAppStatusFilter('All')}
+                className={`px-3.5 py-2 rounded-xl text-sm font-semibold border transition ${appStatusFilter === 'All' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+              >
+                All <span className="ml-1 opacity-70">{applications.length}</span>
+              </button>
+              {STAGES.map(st => (
+                <button
+                  key={st.key}
+                  onClick={() => setAppStatusFilter(st.key)}
+                  className={`px-3.5 py-2 rounded-xl text-sm font-semibold border transition flex items-center gap-2 ${appStatusFilter === st.key ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${st.dot}`} />
+                  {st.label}
+                  <span className="opacity-70">{countOf(st.key)}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="p-4 border-b border-gray-100">
+                <div className="relative max-w-md">
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={appSearch}
+                    onChange={e => setAppSearch(e.target.value)}
+                    placeholder="Search by creator, phone, casting or company..."
+                    className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-gray-600">
+                  <thead className="bg-gray-50/80 border-b border-gray-100 text-gray-700 font-semibold">
+                    <tr className="whitespace-nowrap">
+                      <th className="py-3.5 px-4">Creator</th>
+                      <th className="py-3.5 px-4">Applied For</th>
+                      <th className="py-3.5 px-4">Pitch</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4 text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {list.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="py-12 text-center text-gray-500">
+                          <User size={32} className="mx-auto mb-2 text-gray-300" />
+                          No applications found
+                        </td>
+                      </tr>
+                    ) : list.map(app => {
+                      const cr = app.creator || {};
+                      const stage = stageOf(app.status);
+                      const busy = appUpdating === app._id || !cr._id;
+                      return (
+                        <tr key={app._id} className="hover:bg-gray-50/60 align-middle">
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-3 min-w-[170px]">
+                              {cr.basicDetails?.profilePhoto ? (
+                                <img src={cr.basicDetails.profilePhoto} alt="" className="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0" />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0"><User size={18} className="text-gray-400" /></div>
+                              )}
+                              <div className="min-w-0">
+                                <p className="font-bold text-gray-900 truncate">{cr.basicDetails?.fullName || 'Unknown creator'}</p>
+                                <p className="text-xs text-gray-500">{cr.professionalDetails?.primaryCategory || 'Talent'}{cr.phone ? ` · ${cr.phone}` : ''}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <p className="font-semibold text-gray-900 max-w-[220px] truncate" title={app.castingTitle}>{app.castingTitle}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">Applied {fmt(app.appliedAt)}</p>
+                          </td>
+                          <td className="py-3.5 px-4 max-w-[220px]">
+                            {app.notes
+                              ? <p className="text-xs italic text-gray-600 line-clamp-2" title={app.notes}>"{app.notes}"</p>
+                              : <span className="text-gray-300">—</span>}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap ${stage.chip}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${stage.dot}`} /> {stage.label}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => setViewApp(app)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold transition"
+                                title="View full pitch & details"
+                              >
+                                <Eye size={14} /> View
+                              </button>
+                              {app.status === 'Applied' && (
+                                <button
+                                  disabled={busy}
+                                  onClick={() => handleApplicationStatus(app, 'Shortlisted')}
+                                  className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-bold transition disabled:opacity-50"
+                                  title="Move to shortlist"
+                                >
+                                  Shortlist
+                                </button>
+                              )}
+                              {app.status !== 'Rejected' && app.status !== 'Selected' && (
+                                <button
+                                  disabled={busy}
+                                  onClick={() => handleApplicationStatus(app, 'Rejected')}
+                                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-50"
+                                  title="Reject"
+                                >
+                                  <XCircle size={18} />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* View application modal */}
+            {viewApp && (() => {
+              const app = viewApp;
+              const cr = app.creator || {};
+              const busy = appUpdating === app._id || !cr._id;
+              const flow = ['Applied', 'Shortlisted', 'Audition Scheduled', 'Selected'];
+              const idx = flow.indexOf(app.status);
+              const rejected = app.status === 'Rejected';
+              const next = {
+                'Applied': { to: 'Shortlisted', label: 'Shortlist this creator', cls: 'bg-indigo-600 hover:bg-indigo-700' },
+                'Shortlisted': { to: 'Audition Scheduled', label: 'Schedule audition', cls: 'bg-amber-500 hover:bg-amber-600' },
+                'Audition Scheduled': { to: 'Selected', label: 'Select for the role', cls: 'bg-emerald-600 hover:bg-emerald-700' }
+              }[app.status];
+              return (
+                <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setViewApp(null)}>
+                  <div className="bg-white rounded-2xl w-full max-w-xl max-h-[92vh] overflow-hidden shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-3 px-6 py-5 border-b border-gray-100 shrink-0">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {cr.basicDetails?.profilePhoto ? (
+                          <img src={cr.basicDetails.profilePhoto} alt="" className="w-14 h-14 rounded-2xl object-cover border border-gray-200 shrink-0" />
+                        ) : (
+                          <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center shrink-0"><User size={24} className="text-gray-400" /></div>
+                        )}
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-lg text-gray-900 truncate">{cr.basicDetails?.fullName || 'Unknown creator'}</h3>
+                          <p className="text-xs text-gray-500">
+                            {cr.professionalDetails?.primaryCategory || 'Talent'}{cr.basicDetails?.city ? ` · ${cr.basicDetails.city}` : ''}
+                          </p>
+                          <p className="text-xs text-gray-500">{cr.phone}{cr.email ? ` · ${cr.email}` : ''}</p>
+                        </div>
+                      </div>
+                      <button onClick={() => setViewApp(null)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 shrink-0">
+                        <X size={20} />
+                      </button>
+                    </div>
+
+                    {/* Body */}
+                    <div className="px-6 py-5 space-y-5 overflow-y-auto">
+                      {/* Progress */}
+                      <div>
+                        <p className="text-[11px] font-bold text-gray-400 uppercase mb-2">Application progress</p>
+                        {rejected ? (
+                          <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-700 text-sm font-semibold">
+                            <XCircle size={16} /> This application was rejected
+                          </div>
+                        ) : (
+                          <div className="flex items-center">
+                            {flow.map((st, i) => {
+                              const done = i <= idx;
+                              return (
+                                <React.Fragment key={st}>
+                                  <div className="flex flex-col items-center gap-1 w-20 shrink-0">
+                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${done ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                                      {done ? <Check size={14} /> : i + 1}
+                                    </div>
+                                    <span className={`text-[10px] font-semibold text-center leading-tight ${done ? 'text-gray-900' : 'text-gray-400'}`}>
+                                      {st === 'Applied' ? 'New' : st === 'Audition Scheduled' ? 'Audition' : st}
+                                    </span>
+                                  </div>
+                                  {i < flow.length - 1 && <div className={`h-0.5 flex-1 -mt-5 ${i < idx ? 'bg-blue-600' : 'bg-gray-200'}`} />}
+                                </React.Fragment>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Applied for */}
+                      <div className="p-4 bg-gray-50 rounded-xl text-sm">
+                        <p className="text-[11px] font-bold text-gray-400 uppercase mb-1">Applied for</p>
+                        <p className="font-bold text-gray-900">{app.castingTitle}</p>
+                        <p className="text-xs text-gray-500 mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                          <span className="flex items-center gap-1"><Building2 size={11} /> {app.companyName}</span>
+                          <span>{app.roleType}</span>
+                          <span className="flex items-center gap-1"><MapPin size={11} /> {app.location}</span>
+                          <span>{app.budget}</span>
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">Applied on {fmt(app.appliedAt)}</p>
+                      </div>
+
+                      {/* Pitch */}
+                      <div>
+                        <p className="text-[11px] font-bold text-gray-400 uppercase mb-1.5">Creator's pitch</p>
+                        <div className="p-4 rounded-xl border border-purple-100 bg-purple-50/40 text-sm text-gray-700 leading-relaxed whitespace-pre-line break-words">
+                          {app.notes || <span className="text-gray-400 italic">No pitch written.</span>}
+                        </div>
+                      </div>
+
+                      {/* Showreel */}
+                      <div>
+                        <p className="text-[11px] font-bold text-gray-400 uppercase mb-1.5">Audition tape / showreel</p>
+                        {app.showreelUrl ? (
+                          <a
+                            href={app.showreelUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold transition"
+                          >
+                            <ExternalLink size={15} /> Open showreel
+                          </a>
+                        ) : (
+                          <p className="text-sm text-gray-400 italic">No showreel link shared.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Footer actions */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 px-6 py-4 border-t border-gray-100 bg-white shrink-0">
+                      {cr._id ? (
+                        <a href={`/admin/profiles/${cr._id}`} className="text-sm font-semibold text-blue-600 hover:underline">
+                          View full profile
+                        </a>
+                      ) : <span />}
+                      <div className="flex items-center gap-2">
+                        {!rejected && app.status !== 'Selected' && (
+                          <button
+                            disabled={busy}
+                            onClick={() => handleApplicationStatus(app, 'Rejected')}
+                            className="px-4 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-sm font-bold transition disabled:opacity-50"
+                          >
+                            Reject
+                          </button>
+                        )}
+                        {rejected && (
+                          <button
+                            disabled={busy}
+                            onClick={() => handleApplicationStatus(app, 'Applied')}
+                            className="px-4 py-2 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-bold transition disabled:opacity-50"
+                          >
+                            Reopen
+                          </button>
+                        )}
+                        {next && (
+                          <button
+                            disabled={busy}
+                            onClick={() => handleApplicationStatus(app, next.to)}
+                            className={`px-4 py-2 rounded-xl text-white text-sm font-bold transition disabled:opacity-50 ${next.cls}`}
+                          >
+                            {appUpdating === app._id ? 'Updating...' : next.label}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        );
+      })()}
+
       {/* Castings Table */}
+      {activeTab !== 'applications' && (
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto min-h-[300px]">
           <table className="w-full text-left text-sm text-gray-600">
@@ -491,6 +834,8 @@ const AdminCasting = () => {
           </table>
         </div>
       </div>
+
+      )}
 
       {/* Modal Form */}
       {isModalOpen && (

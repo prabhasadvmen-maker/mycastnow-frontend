@@ -11,6 +11,22 @@ const CreatorLogin = ({ isSignup = false }) => {
   const planParam = searchParams.get('plan');
   const isSignupMode = isSignup || location.pathname.includes('signup') || searchParams.get('mode') === 'signup';
 
+  // Shared coupon link (e.g. /creator/signup?coupon=CODE): remember it for the payment step
+  useEffect(() => {
+    const c = new URLSearchParams(location.search).get('coupon');
+    if (c) {
+      try { localStorage.setItem('creatorCoupon', c.trim().toUpperCase()); } catch { /* ignore */ }
+    }
+  }, [location.search]);
+
+  // Shared coupon link (e.g. /creator/signup?coupon=CODE): remember it for the payment step
+  useEffect(() => {
+    const c = new URLSearchParams(location.search).get('coupon');
+    if (c) {
+      try { localStorage.setItem('creatorCoupon', c.trim().toUpperCase()); } catch { /* ignore */ }
+    }
+  }, [location.search]);
+
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState(1);
@@ -41,10 +57,13 @@ const CreatorLogin = ({ isSignup = false }) => {
 
   // Auto-send OTP when 10 digits are entered
   useEffect(() => {
-    if (phone.length === 10 && step === 1 && !loading) {
-      handleSendOtp();
-    }
-  }, [phone]);
+    const timer = setTimeout(() => {
+      if (phone.length === 10 && step === 1 && !loading) {
+        handleSendOtp();
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [phone, step, loading]);
 
   const handleSendOtp = async (e) => {
     if (e) e.preventDefault();
@@ -58,20 +77,18 @@ const CreatorLogin = ({ isSignup = false }) => {
     try {
       const res = await sendOtp(phone);
       if (res.success) {
-        setStep(2); // Show the OTP screen first
+        setStep(2);
         setResendTimer(30);
 
-        // Auto-fill and auto-verify magic (with visual delay so they can see it happen)
         if (res.devOtp) {
-          // Wait 1.5 seconds so they read "Verify OTP" and see the empty box
-          setTimeout(() => {
-            setOtp(res.devOtp); // Box fills up magically!
-
-            // Wait another 1 second so they see the filled OTP before it logs them in
-            setTimeout(() => {
+          const timer1 = setTimeout(() => {
+            setOtp(res.devOtp);
+            const timer2 = setTimeout(() => {
               handleVerifyOtp(null, res.devOtp);
             }, 1000);
+            return () => clearTimeout(timer2);
           }, 1500);
+          return () => clearTimeout(timer1);
         }
       } else {
         setError(res.message || 'Failed to send OTP');
@@ -91,12 +108,14 @@ const CreatorLogin = ({ isSignup = false }) => {
       if (res.success) {
         setResendTimer(30);
         if (res.devOtp) {
-          setTimeout(() => {
+          const timer1 = setTimeout(() => {
             setOtp(res.devOtp);
-            setTimeout(() => {
+            const timer2 = setTimeout(() => {
               handleVerifyOtp(null, res.devOtp);
             }, 1000);
+            return () => clearTimeout(timer2);
           }, 1500);
+          return () => clearTimeout(timer1);
         }
       } else {
         setError(res.message || 'Failed to resend OTP');
@@ -110,9 +129,10 @@ const CreatorLogin = ({ isSignup = false }) => {
   const handleOtpChange = (index, value) => {
     if (value && !/^\d+$/.test(value)) return;
     
-    let otpArray = (otp || '').padEnd(6, ' ').split('');
-    otpArray[index] = value || ' ';
-    setOtp(otpArray.join(''));
+    let otpArray = (otp || '').split('');
+    while (otpArray.length < 6) otpArray.push('');
+    otpArray[index] = value || '';
+    setOtp(otpArray.slice(0, 6).join(''));
 
     if (value && index < 5) {
       const nextInput = document.getElementById(`otp-${index + 1}`);
@@ -121,8 +141,9 @@ const CreatorLogin = ({ isSignup = false }) => {
   };
 
   const handleOtpKeyDown = (index, e) => {
-    let otpArray = (otp || '').padEnd(6, ' ').split('');
-    if (e.key === 'Backspace' && otpArray[index] === ' ' && index > 0) {
+    let otpArray = (otp || '').split('');
+    while (otpArray.length < 6) otpArray.push('');
+    if (e.key === 'Backspace' && otpArray[index] === '' && index > 0) {
       const prevInput = document.getElementById(`otp-${index - 1}`);
       if (prevInput) prevInput.focus();
     }
@@ -130,7 +151,7 @@ const CreatorLogin = ({ isSignup = false }) => {
 
   const handleVerifyOtp = async (e, autoOtp = null) => {
     if (e) e.preventDefault();
-    const currentOtp = (autoOtp || otp).replace(/\s/g, '');
+    const currentOtp = (autoOtp || otp || '').trim();
 
     if (currentOtp.length !== 6) {
       setError('Please enter the 6-digit OTP');
@@ -256,7 +277,7 @@ const CreatorLogin = ({ isSignup = false }) => {
                       id={`otp-${index}`}
                       type="text"
                       maxLength="1"
-                      value={(otp || '').padEnd(6, ' ')[index] !== ' ' ? (otp || '').padEnd(6, ' ')[index] : ''}
+                      value={(otp || '').split('')[index] || ''}
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
                       className="w-12 h-14 text-center text-2xl font-bold bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-800"
@@ -279,7 +300,7 @@ const CreatorLogin = ({ isSignup = false }) => {
 
               <button
                 type="submit"
-                disabled={loading || (otp || '').replace(/\s/g, '').length !== 6}
+                disabled={loading || (otp || '').length !== 6}
                 className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-fuchsia-600 hover:from-blue-700 hover:to-fuchsia-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg"
               >
                 {loading ? 'Verifying...' : 'Verify & Continue'}

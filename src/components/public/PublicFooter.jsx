@@ -122,6 +122,22 @@ const PublicFooter = () => {
           </div>
         </div>
 
+        {/* Contact Details Row */}
+        <div className="pt-8 pb-6 border-b border-slate-800 flex flex-col sm:flex-row items-center justify-center gap-6 text-xs text-slate-400">
+          <div className="flex items-center gap-2">
+            <Mail size={14} className="text-purple-400" />
+            <span>info@mycastnow.com</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Phone size={14} className="text-purple-400" />
+            <span>+91-9918309983</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <MapPin size={14} className="text-purple-400" />
+            <span>Greater Noida, NX One</span>
+          </div>
+        </div>
+
         {/* Bottom Copyright Row */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <p>© {new Date().getFullYear()} MyCastNow Technologies India Pvt Ltd. All rights reserved.</p>

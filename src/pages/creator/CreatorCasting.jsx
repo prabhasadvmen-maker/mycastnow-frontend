@@ -4,10 +4,14 @@ import { useCreatorAuth } from '../../context/CreatorAuthContext';
 import {
   Video, Search, Filter, MapPin, Calendar, DollarSign,
   Briefcase, CheckCircle2, Clock, Sparkles, AlertCircle,
-  ExternalLink, ArrowRight, UserCheck, X, Film, Info
+  ExternalLink, ArrowRight, UserCheck, X, Film, Eye
 } from 'lucide-react';
 
 const API = import.meta.env.VITE_API_URL;
+
+// Descriptions may be stored with literal "\n" text — turn them into real line breaks
+const formatDescription = (text = '') =>
+  String(text).replace(/\\r\\n|\\n|\\r/g, '\n').replace(/\r\n/g, '\n').trim();
 
 const PROJECT_TYPES = ['All', 'Ad Film', 'Web Series', 'Movie', 'Short Film', 'Music Video', 'Brand Shoot', 'Fashion Show'];
 const LOCATIONS = ['All', 'Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Pan-India'];
@@ -27,6 +31,7 @@ const CreatorCasting = () => {
   const [pitchNotes, setPitchNotes] = useState('');
   const [showreelUrl, setShowreelUrl] = useState('');
   const [applying, setApplying] = useState(false);
+  const [applyError, setApplyError] = useState('');
   const [toast, setToast] = useState(null);
 
   const fetchCastings = async () => {
@@ -69,7 +74,20 @@ const CreatorCasting = () => {
   // Submit Application
   const handleApplySubmit = async (e) => {
     e.preventDefault();
-    if (!applyCasting) return;
+    if (!applyCasting || applying) return;
+
+    const pitch = pitchNotes.trim();
+    const link = showreelUrl.trim();
+    if (pitch.length < 10) {
+      setApplyError('Please write a short pitch (at least 10 characters).');
+      return;
+    }
+    if (link) {
+      let ok = false;
+      try { ok = ['http:', 'https:'].includes(new URL(link).protocol); } catch { ok = false; }
+      if (!ok) { setApplyError('Please enter a valid link starting with http:// or https://'); return; }
+    }
+    setApplyError('');
 
     try {
       setApplying(true);
@@ -77,8 +95,8 @@ const CreatorCasting = () => {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       const res = await axios.post(`${API}/creator/portal/castings/${applyCasting._id}/apply`, {
-        notes: pitchNotes,
-        showreelUrl
+        notes: pitch,
+        showreelUrl: link
       }, { headers });
 
       if (res.data?.success) {
@@ -98,10 +116,17 @@ const CreatorCasting = () => {
         setApplyCasting(null);
         setPitchNotes('');
         setShowreelUrl('');
+        setApplyError('');
         showToast('Application submitted successfully! Casting director will review your profile.');
       }
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to submit application', 'error');
+      const msg = err.response?.data?.message || 'Failed to submit application';
+      setApplyError(msg);
+      if (/already applied/i.test(msg)) {
+        setCastings(prev => prev.map(c => c._id === applyCasting._id ? { ...c, hasApplied: true, myApplicationStatus: 'Applied' } : c));
+        setApplyCasting(null);
+      }
+      showToast(msg, 'error');
     } finally {
       setApplying(false);
     }
@@ -296,7 +321,7 @@ const CreatorCasting = () => {
                       {c.title}
                     </h3>
                     <p className="text-xs text-gray-500 line-clamp-2 mt-1 leading-relaxed">
-                      {c.description || 'Prominent commercial campaign audition for pan-India OTT release and television broadcast.'}
+                      {formatDescription(c.description).replace(/\s+/g, ' ') || 'Prominent commercial campaign audition for pan-India OTT release and television broadcast.'}
                     </p>
                   </div>
 
@@ -333,7 +358,7 @@ const CreatorCasting = () => {
                   className="p-2.5 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition cursor-pointer"
                   title="View Full Details"
                 >
-                  <Info size={16} />
+                  <Eye size={16} />
                 </button>
 
                 {c.hasApplied ? (
@@ -361,154 +386,225 @@ const CreatorCasting = () => {
       )}
 
       {/* MODAL 1: CASTING DETAILS MODAL */}
-      {selectedCasting && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-150">
-            <div className="flex items-start justify-between border-b border-gray-100 pb-3">
-              <div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-purple-100 text-purple-700">
-                  {selectedCasting.projectType}
-                </span>
-                <h3 className="font-black text-lg text-gray-900 mt-1">{selectedCasting.title}</h3>
-              </div>
+      {selectedCasting && (() => {
+        const c = selectedCasting;
+        const desc = formatDescription(c.description);
+        const deadline = c.deadline ? new Date(c.deadline) : null;
+        const deadlinePassed = deadline && deadline < new Date();
+        const fmtDate = (d) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+        const details = [
+          { label: 'Role Type', value: `${c.roleType || '—'}${c.gender ? ` (${c.gender})` : ''}` },
+          { label: 'Compensation', value: c.budget || '—', accent: true },
+          { label: 'Age Range', value: c.ageRange || '—' },
+          { label: 'Shoot Location', value: c.location || '—' },
+          { label: 'Shoot Dates', value: c.shootDates || 'To be scheduled' },
+          { label: 'Apply Before', value: deadline ? fmtDate(deadline) : '—', danger: deadlinePassed }
+        ];
+        return (
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setSelectedCasting(null)}>
+            <div
+              className="relative bg-white rounded-3xl max-w-xl w-full max-h-[92vh] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-150 flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close button (stays visible) */}
               <button
                 onClick={() => setSelectedCasting(null)}
-                className="p-1 rounded-xl text-gray-400 hover:text-gray-700"
+                className="absolute top-3 right-3 z-10 p-1.5 rounded-xl bg-black/60 hover:bg-black/80 text-white transition"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3 p-3.5 bg-gray-50 rounded-2xl text-xs">
-              <div>
-                <span className="text-gray-400 block text-[10px] uppercase font-bold">Role Type</span>
-                <span className="font-bold text-gray-800">{selectedCasting.roleType} ({selectedCasting.gender})</span>
-              </div>
-              <div>
-                <span className="text-gray-400 block text-[10px] uppercase font-bold">Compensation</span>
-                <span className="font-black text-emerald-600">{selectedCasting.budget}</span>
-              </div>
-              <div>
-                <span className="text-gray-400 block text-[10px] uppercase font-bold">Shoot Location</span>
-                <span className="font-bold text-gray-800">{selectedCasting.location}</span>
-              </div>
-              <div>
-                <span className="text-gray-400 block text-[10px] uppercase font-bold">Shoot Dates</span>
-                <span className="font-bold text-gray-800">{selectedCasting.shootDates || 'To be scheduled'}</span>
-              </div>
-            </div>
+              {/* Scrollable body: poster (full, uncropped) + details */}
+              <div className="overflow-y-auto">
+                {c.image && (
+                  <div className="bg-gray-900">
+                    <img src={c.image} alt={c.title} className="w-full h-auto max-h-[60vh] object-contain mx-auto" />
+                  </div>
+                )}
 
-            <div>
-              <h4 className="font-bold text-xs text-gray-900 mb-1">Project Synopsis & Description</h4>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                {selectedCasting.description || 'Full casting details, costume requirements, and audition sides will be provided upon profile shortlisting.'}
-              </p>
-            </div>
+                <div className={`p-5 ${c.image ? '' : 'pr-14'} border-b border-gray-100`}>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-purple-100 text-purple-700">
+                    {c.projectType}
+                  </span>
+                  <h3 className="font-black text-lg mt-1.5 leading-snug text-gray-900">{c.title}</h3>
+                  {c.company?.name && (
+                    <p className="text-xs mt-0.5 text-gray-500">
+                      by <strong>{c.company.name}</strong>{c.company.city ? ` · ${c.company.city}` : ''}
+                    </p>
+                  )}
+                </div>
 
-            {selectedCasting.requirements && selectedCasting.requirements.length > 0 && (
-              <div>
-                <h4 className="font-bold text-xs text-gray-900 mb-1.5">Key Requirements</h4>
-                <ul className="list-disc pl-4 space-y-1 text-xs text-gray-600">
-                  {selectedCasting.requirements.map((req, i) => (
-                    <li key={i}>{req}</li>
+              <div className="p-5 space-y-5">
+                <div className="grid grid-cols-2 gap-3 p-4 bg-gray-50 rounded-2xl text-xs">
+                  {details.map(d => (
+                    <div key={d.label}>
+                      <span className="text-gray-400 block text-[10px] uppercase font-bold">{d.label}</span>
+                      <span className={`${d.accent ? 'font-black text-emerald-600' : d.danger ? 'font-bold text-rose-600' : 'font-bold text-gray-800'}`}>
+                        {d.value}{d.danger ? ' (closed)' : ''}
+                      </span>
+                    </div>
                   ))}
-                </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-xs text-gray-900 mb-1.5">Project Synopsis & Description</h4>
+                  <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-line break-words">
+                    {desc || 'Full casting details, costume requirements, and audition sides will be provided upon profile shortlisting.'}
+                  </p>
+                </div>
+
+                {c.requirements && c.requirements.length > 0 && (
+                  <div>
+                    <h4 className="font-bold text-xs text-gray-900 mb-1.5">Key Requirements</h4>
+                    <ul className="list-disc pl-4 space-y-1 text-xs text-gray-600">
+                      {c.requirements.map((req, i) => (
+                        <li key={i}>{req}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <p className="text-[11px] text-gray-400 flex items-center gap-1.5">
+                  <UserCheck size={13} /> {c.applicantsCount || 0} applicant{(c.applicantsCount || 0) === 1 ? '' : 's'} so far
+                  {c.hasApplied && <span className="ml-2 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold">You applied · {c.myApplicationStatus || 'Applied'}</span>}
+                </p>
               </div>
-            )}
+              </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
-              <button
-                onClick={() => setSelectedCasting(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100"
-              >
-                Close
-              </button>
-
-              {!selectedCasting.hasApplied && (
+              {/* Footer */}
+              <div className="flex items-center justify-end gap-2 px-5 py-4 border-t border-gray-100 bg-white shrink-0">
                 <button
-                  onClick={() => {
-                    const c = selectedCasting;
-                    setSelectedCasting(null);
-                    setApplyCasting(c);
-                  }}
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-md"
+                  onClick={() => setSelectedCasting(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100"
                 >
-                  Proceed to Apply
+                  Close
                 </button>
-              )}
+                {!c.hasApplied && !deadlinePassed && (
+                  <button
+                    onClick={() => {
+                      setSelectedCasting(null);
+                      setApplyCasting(c);
+                    }}
+                    className="px-5 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-md"
+                  >
+                    Proceed to Apply
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* MODAL 2: APPLY NOW MODAL */}
       {applyCasting && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => !applying && setApplyCasting(null)}>
           <form
             onSubmit={handleApplySubmit}
-            className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl max-w-lg w-full max-h-[92vh] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-150 flex flex-col"
           >
-            <div className="flex items-start justify-between border-b border-gray-100 pb-3">
-              <div>
-                <span className="text-[10px] font-bold text-purple-600 uppercase">Apply for role</span>
-                <h3 className="font-black text-base text-gray-900">{applyCasting.title}</h3>
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3 px-6 pt-5 pb-4 border-b border-gray-100 shrink-0">
+              <div className="min-w-0">
+                <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Apply for role</span>
+                <h3 className="font-black text-base text-gray-900 truncate">{applyCasting.title}</h3>
+                {applyCasting.company?.name && (
+                  <p className="text-[11px] text-gray-500 mt-0.5 truncate">by {applyCasting.company.name}</p>
+                )}
               </div>
               <button
                 type="button"
                 onClick={() => setApplyCasting(null)}
-                className="p-1 rounded-xl text-gray-400 hover:text-gray-700"
+                disabled={applying}
+                className="p-1.5 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 shrink-0"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="p-3 bg-purple-50/60 rounded-xl text-xs text-purple-900 flex items-center justify-between">
-              <span>Role: <strong className="font-bold">{applyCasting.roleType}</strong></span>
-              <span>Budget: <strong className="font-bold text-emerald-700">{applyCasting.budget}</strong></span>
+            {/* Body */}
+            <div className="px-6 py-5 space-y-4 overflow-y-auto">
+              {/* Role summary */}
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="p-3 bg-purple-50/70 rounded-xl">
+                  <p className="text-[10px] font-bold text-purple-400 uppercase">Role</p>
+                  <p className="font-bold text-purple-900 mt-0.5">{applyCasting.roleType || '—'}</p>
+                </div>
+                <div className="p-3 bg-emerald-50/70 rounded-xl">
+                  <p className="text-[10px] font-bold text-emerald-500 uppercase">Budget</p>
+                  <p className="font-bold text-emerald-800 mt-0.5">{applyCasting.budget || '—'}</p>
+                </div>
+                {applyCasting.deadline && (
+                  <div className="p-3 bg-amber-50/70 rounded-xl col-span-2">
+                    <p className="text-[10px] font-bold text-amber-500 uppercase">Apply before</p>
+                    <p className="font-bold text-amber-800 mt-0.5">
+                      {new Date(applyCasting.deadline).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Pitch */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-gray-700">
+                    Audition Note / Pitch to Director <span className="text-rose-500">*</span>
+                  </label>
+                  <span className={`text-[10px] font-semibold ${pitchNotes.length > 1000 ? 'text-rose-500' : 'text-gray-400'}`}>
+                    {pitchNotes.length}/1000
+                  </span>
+                </div>
+                <textarea
+                  rows={4}
+                  maxLength={1000}
+                  placeholder="Mention your relevant experience, commercial brands worked with, or why you are ideal for this role..."
+                  value={pitchNotes}
+                  onChange={(e) => { setPitchNotes(e.target.value); setApplyError(''); }}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Showreel */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                  Audition Tape / Showreel Link <span className="text-gray-400 font-medium">(Optional)</span>
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://youtube.com/watch?v=... or Google Drive link"
+                  value={showreelUrl}
+                  onChange={(e) => { setShowreelUrl(e.target.value); setApplyError(''); }}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+
+              {applyError && (
+                <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 border border-rose-100 text-xs font-semibold text-rose-700">
+                  <AlertCircle size={14} className="shrink-0 mt-0.5" />
+                  <span>{applyError}</span>
+                </div>
+              )}
+
+              <p className="text-[11px] text-gray-400 leading-normal">
+                Your verified profile, physical measurements, and portfolio photos will be automatically shared with the casting team.
+              </p>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">
-                Audition Note / Pitch to Director
-              </label>
-              <textarea
-                rows={3}
-                placeholder="Mention your relevant experience, commercial brands worked with, or why you are ideal for this role..."
-                value={pitchNotes}
-                onChange={(e) => setPitchNotes(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">
-                Audition Tape / Showreel Link (Optional)
-              </label>
-              <input
-                type="url"
-                placeholder="https://youtube.com/watch?v=... or Google Drive link"
-                value={showreelUrl}
-                onChange={(e) => setShowreelUrl(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-
-            <p className="text-[11px] text-gray-400 leading-normal">
-              Your verified profile, physical measurements, and high-res portfolio photos will be automatically shared with the casting team.
-            </p>
-
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-white shrink-0">
               <button
                 type="button"
                 onClick={() => setApplyCasting(null)}
+                disabled={applying}
                 className="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={applying}
-                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-md disabled:opacity-50"
+                disabled={applying || pitchNotes.trim().length < 10}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {applying ? 'Submitting...' : 'Submit Application'}
               </button>

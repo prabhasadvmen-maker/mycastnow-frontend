@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, Users, UserCircle, Video, CalendarCheck, 
   CreditCard, MonitorPlay, Rocket, Star, 
-  BarChart3, Settings, HelpCircle, LogOut, Building2, Globe
+  BarChart3, Settings, HelpCircle, LogOut, Building2, Globe, Tag
 } from 'lucide-react';
 
 const Sidebar = ({ isCollapsed }) => {
@@ -16,6 +16,7 @@ const Sidebar = ({ isCollapsed }) => {
     { name: 'Bookings', path: '/admin/bookings', icon: <CalendarCheck size={20} /> },
     { name: 'Payments', path: '/admin/payments', icon: <CreditCard size={20} /> },
     { name: 'Subscriptions', path: '/admin/subscriptions', icon: <MonitorPlay size={20} /> },
+    { name: 'Coupons', path: '/admin/coupons', icon: <Tag size={20} /> },
     { name: 'Boost', path: '/admin/boost', icon: <Rocket size={20} /> },
     { name: 'Reviews', path: '/admin/reviews', icon: <Star size={20} /> },
     { name: 'Analytics', path: '/admin/analytics', icon: <BarChart3 size={20} /> },

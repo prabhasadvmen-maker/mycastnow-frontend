@@ -58,6 +58,7 @@ const AdminAnalytics = lazy(() => import('./pages/admin/AdminAnalytics'));
 const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
 const AdminHelp = lazy(() => import('./pages/admin/AdminHelp'));
 const AdminPayments = lazy(() => import('./pages/admin/AdminPayments'));
+const AdminCoupons = lazy(() => import('./pages/admin/AdminCoupons'));
 const PublicWebsite = lazy(() => import('./pages/public/PublicWebsite'));
 const LiveCastingsPage = lazy(() => import('./pages/public/LiveCastingsPage'));
 const ExploreTalentPage = lazy(() => import('./pages/public/ExploreTalentPage'));
@@ -111,6 +112,7 @@ function App() {
                   <Route path="bookings" element={<AdminBookings />} />
                   <Route path="payments" element={<AdminPayments />} />
                   <Route path="subscriptions" element={<AdminSubscriptions />} />
+                  <Route path="coupons" element={<AdminCoupons />} />
                   <Route path="boost" element={<AdminBoost />} />
                   <Route path="reviews" element={<AdminReviews />} />
                   <Route path="analytics" element={<AdminAnalytics />} />

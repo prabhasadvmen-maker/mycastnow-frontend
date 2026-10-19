@@ -55,6 +55,7 @@ const AdminCreators = () => {
   };
 
   const isIncomplete = (creator) => {
+    if (creator.status === 'approved' || creator.status === 'rejected') return false;
     return !creator.isProfileComplete || creator.status === 'incomplete';
   };
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCreatorAuth } from '../../context/CreatorAuthContext';
-import { CheckCircle2, ChevronRight, ChevronLeft, UploadCloud, AlertCircle, User, CreditCard, ShieldCheck, IndianRupee, Check, Cloud } from 'lucide-react';
+import { CheckCircle2, ChevronRight, ChevronLeft, UploadCloud, AlertCircle, User, CreditCard, ShieldCheck, IndianRupee, Check, Cloud, Tag, X } from 'lucide-react';
 import DownloadReceipt from '../../components/DownloadReceipt';
 
 const steps = [
@@ -19,6 +19,9 @@ const steps = [
 ];
 
 const categories = ["Model", "Actor", "Influencer", "Photographer", "Makeup Artist", "Stylist", "Voice Over Artist"];
+
+// Temporary blob: preview URLs die on reload — never persist or trust them
+const stripBlob = (url) => (typeof url === 'string' && !url.startsWith('blob:') ? url : '');
 
 const CreatorSignupFlow = () => {
   const { creatorUser, loading: authLoading, updateProfile } = useCreatorAuth();
@@ -44,7 +47,7 @@ const CreatorSignupFlow = () => {
     instagram: creatorUser?.socialLinks?.instagram || '',
     linkedin: creatorUser?.socialLinks?.linkedin || '',
     portfolioLink: creatorUser?.socialLinks?.website || '',
-    profilePhoto: creatorUser?.basicDetails?.profilePhoto || '',
+    profilePhoto: stripBlob(creatorUser?.basicDetails?.profilePhoto),
     gender: creatorUser?.basicDetails?.gender || '',
     dob: creatorUser?.basicDetails?.dob ? new Date(creatorUser.basicDetails.dob).toISOString().split('T')[0] : '',
     city: creatorUser?.basicDetails?.city || '',
@@ -91,6 +94,57 @@ const CreatorSignupFlow = () => {
   const [receipt, setReceipt] = useState(null);
   const [onboardingFeeConfig, setOnboardingFeeConfig] = useState({ fee: 99, isFree: false, enabled: true });
 
+  // Coupon
+  const [couponInput, setCouponInput] = useState(() => {
+    try { return localStorage.getItem('creatorCoupon') || ''; } catch { return ''; }
+  });
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+  const couponAutoTried = useRef(false);
+
+  const feeIsFree = onboardingFeeConfig.isFree || onboardingFeeConfig.fee === 0;
+  const payableAmount = appliedCoupon ? appliedCoupon.finalAmount : onboardingFeeConfig.fee;
+  const payableIsFree = feeIsFree || payableAmount === 0;
+
+  const applyCoupon = async (codeArg) => {
+    const code = (codeArg ?? couponInput).trim().toUpperCase();
+    if (!code) { setCouponError('Please enter a coupon code'); return; }
+    setCouponLoading(true);
+    setCouponError('');
+    try {
+      const token = localStorage.getItem('creatorToken');
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/payments/validate-coupon`,
+        { code },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAppliedCoupon({ ...res.data.coupon, discountAmount: res.data.discountAmount, finalAmount: res.data.finalAmount });
+      setCouponInput(code);
+    } catch (err) {
+      setAppliedCoupon(null);
+      setCouponError(err.response?.data?.message || 'Failed to apply coupon');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponError('');
+    try { localStorage.removeItem('creatorCoupon'); } catch { /* ignore */ }
+  };
+
+  // Auto-apply a shared coupon once the payment step is reached
+  useEffect(() => {
+    if (currentStep === 9 && !paymentDone && !feeIsFree && couponInput && !appliedCoupon && !couponAutoTried.current) {
+      couponAutoTried.current = true;
+      applyCoupon(couponInput);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, paymentDone, feeIsFree]);
+
   // Fetch live onboarding fee configuration set by Super Admin
   useEffect(() => {
     axios.get(`${import.meta.env.VITE_API_URL}/payments/razorpay-key`)
@@ -124,7 +178,7 @@ const CreatorSignupFlow = () => {
         setBasic(prev => ({
           ...prev,
           fullName: creatorUser.basicDetails.fullName || '',
-          profilePhoto: creatorUser.basicDetails.profilePhoto || '',
+          profilePhoto: stripBlob(creatorUser.basicDetails.profilePhoto),
           gender: creatorUser.basicDetails.gender || '',
           dob: creatorUser.basicDetails.dob ? new Date(creatorUser.basicDetails.dob).toISOString().split('T')[0] : '',
           city: creatorUser.basicDetails.city || '',
@@ -205,7 +259,7 @@ const CreatorSignupFlow = () => {
     p.basicDetails = {
       ...(creatorUser?.basicDetails || {}),
       fullName: effectiveBasic.fullName || '',
-      profilePhoto: effectiveBasic.profilePhoto || '',
+      profilePhoto: stripBlob(effectiveBasic.profilePhoto),
       gender: effectiveBasic.gender || '',
       city: effectiveBasic.city || '',
       bio: effectiveBasic.bio || '',
@@ -355,7 +409,7 @@ const CreatorSignupFlow = () => {
     } else if (step === 2) {
       if (photoUploading) {
         errors.profilePhoto = 'Please wait for your profile photo to finish uploading.';
-      } else if (!basic.profilePhoto || !basic.profilePhoto.trim()) {
+      } else if (!stripBlob(basic.profilePhoto).trim()) {
         errors.profilePhoto = 'Profile photo is required.';
       }
       if (!basic.fullName || !basic.fullName.trim()) {
@@ -556,7 +610,7 @@ const CreatorSignupFlow = () => {
       const token = localStorage.getItem('creatorToken');
       const orderRes = await axios.post(
         `${import.meta.env.VITE_API_URL}/payments/create-onboarding-order`,
-        {},
+        appliedCoupon ? { couponCode: appliedCoupon.code } : {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -564,13 +618,13 @@ const CreatorSignupFlow = () => {
       if (orderRes.data.isFree) {
         const verifyRes = await axios.post(
           `${import.meta.env.VITE_API_URL}/payments/verify-onboarding`,
-          { isFree: true },
+          { isFree: true, couponCode: orderRes.data.couponCode || appliedCoupon?.code },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (verifyRes.data.success) {
           setPaymentDone(true);
           setReceipt({
-            paymentId: 'FREE_ACTIVATION',
+            paymentId: orderRes.data.couponCode ? `FREE_COUPON_${orderRes.data.couponCode}` : 'FREE_ACTIVATION',
             orderId: 'FREE_ONBOARDING',
             amount: 0,
             name: orderRes.data.creatorName || basic.fullName,
@@ -602,7 +656,8 @@ const CreatorSignupFlow = () => {
               {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
+                razorpay_signature: response.razorpay_signature,
+                couponCode: appliedCoupon?.code
               },
               { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -815,12 +870,12 @@ const CreatorSignupFlow = () => {
                                   });
                                 } else {
                                   setError('Profile photo upload failed. Please try again.');
-                                  setBasic(prev => ({ ...prev, profilePhoto: previewUrl }));
+                                  setBasic(prev => ({ ...prev, profilePhoto: '' }));
                                 }
                               } catch (err) {
                                 console.error('Failed to upload profile photo', err);
                                 setError('Profile photo upload failed. Please try again.');
-                                setBasic(prev => ({ ...prev, profilePhoto: previewUrl }));
+                                setBasic(prev => ({ ...prev, profilePhoto: '' }));
                               } finally {
                                 setPhotoUploading(false);
                               }
@@ -1592,15 +1647,73 @@ const CreatorSignupFlow = () => {
                     <div className="bg-gradient-to-br from-fuchsia-600 to-purple-700 rounded-3xl p-8 text-white text-center mb-6 shadow-xl shadow-fuchsia-200">
                       <CreditCard className="w-10 h-10 mx-auto mb-4 opacity-80" />
                       <p className="text-sm font-semibold opacity-80 mb-1">
-                        {onboardingFeeConfig.isFree || onboardingFeeConfig.fee === 0 ? 'Special Promotion' : 'One-time Onboarding Fee'}
+                        {feeIsFree ? 'Special Promotion' : appliedCoupon ? `Coupon ${appliedCoupon.code} applied` : 'One-time Onboarding Fee'}
                       </p>
+                      {appliedCoupon && !feeIsFree && (
+                        <p className="text-lg font-bold opacity-70 line-through leading-none mb-1">₹{onboardingFeeConfig.fee}</p>
+                      )}
                       <p className="text-5xl font-black mb-1">
-                        {onboardingFeeConfig.isFree || onboardingFeeConfig.fee === 0 ? 'FREE' : `₹${onboardingFeeConfig.fee}`}
+                        {payableIsFree ? 'FREE' : `₹${payableAmount}`}
                       </p>
                       <p className="text-xs opacity-70">
-                        {onboardingFeeConfig.isFree || onboardingFeeConfig.fee === 0 ? '₹0 activation fee currently active' : 'Includes profile listing + admin verification'}
+                        {feeIsFree
+                          ? '₹0 activation fee currently active'
+                          : appliedCoupon
+                          ? `You save ₹${appliedCoupon.discountAmount}`
+                          : 'Includes profile listing + admin verification'}
                       </p>
                     </div>
+
+                    {!feeIsFree && (
+                      <div className="mb-6">
+                        {appliedCoupon ? (
+                          <div className="flex items-center justify-between gap-3 bg-green-50 border border-green-200 rounded-2xl px-4 py-3">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <CheckCircle2 size={18} className="text-green-600 shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-sm font-bold text-green-700 truncate">{appliedCoupon.code} applied</p>
+                                <p className="text-xs text-green-600">
+                                  {appliedCoupon.discountType === 'percentage' ? `${appliedCoupon.discountValue}% off` : `₹${appliedCoupon.discountValue} off`} · You save ₹{appliedCoupon.discountAmount}
+                                </p>
+                              </div>
+                            </div>
+                            <button onClick={removeCoupon} className="p-1.5 text-green-700 hover:bg-green-100 rounded-lg transition cursor-pointer" title="Remove coupon">
+                              <X size={16} />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Have a coupon code?</label>
+                            <div className="flex gap-2">
+                              <div className="relative flex-1">
+                                <Tag size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                  type="text"
+                                  value={couponInput}
+                                  onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
+                                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); } }}
+                                  placeholder="Enter coupon code"
+                                  maxLength={20}
+                                  className="w-full pl-9 pr-3 py-3 border border-gray-200 rounded-xl text-sm font-semibold tracking-wide focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent"
+                                />
+                              </div>
+                              <button
+                                onClick={() => applyCoupon()}
+                                disabled={couponLoading || !couponInput.trim()}
+                                className="px-5 py-3 bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold rounded-xl transition disabled:opacity-50 cursor-pointer"
+                              >
+                                {couponLoading ? 'Checking...' : 'Apply'}
+                              </button>
+                            </div>
+                            {couponError && (
+                              <p className="text-xs text-rose-600 font-semibold mt-2 flex items-center gap-1">
+                                <AlertCircle size={13} /> {couponError}
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
                     <ul className="space-y-3 mb-8 text-sm text-gray-600">
                       {['Profile listed on MyCastNow platform', 'Admin verification & approval', 'Access to casting calls & bookings', 'Lifetime profile (no renewal)'].map(item => (
                         <li key={item} className="flex items-center gap-2">
@@ -1614,7 +1727,7 @@ const CreatorSignupFlow = () => {
                       disabled={paymentLoading}
                       className="w-full py-4 bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-fuchsia-200 transition-all disabled:opacity-60 cursor-pointer"
                     >
-                      {onboardingFeeConfig.isFree || onboardingFeeConfig.fee === 0 ? (
+                      {payableIsFree ? (
                         <>
                           <CheckCircle2 size={18} />
                           {paymentLoading ? 'Activating Profile...' : 'Activate Profile for Free'}
@@ -1622,12 +1735,12 @@ const CreatorSignupFlow = () => {
                       ) : (
                         <>
                           <IndianRupee size={18} />
-                          {paymentLoading ? 'Opening Payment...' : `Pay ₹${onboardingFeeConfig.fee} Now`}
+                          {paymentLoading ? 'Opening Payment...' : `Pay ₹${payableAmount} Now`}
                         </>
                       )}
                     </button>
                     <p className="text-xs text-center text-gray-400 mt-3">
-                      {onboardingFeeConfig.isFree || onboardingFeeConfig.fee === 0 
+                      {payableIsFree
                         ? '100% Free · No payment required'
                         : 'Secured by Razorpay · UPI, Cards, NetBanking accepted'}
                     </p>

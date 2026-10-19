@@ -29,6 +29,7 @@ const AdminCreatorDetails = () => {
 
   const isIncomplete = (c) => {
     if (!c) return false;
+    if (c.status === 'approved' || c.status === 'rejected') return false;
     return !c.isProfileComplete || c.status === 'incomplete';
   };
 

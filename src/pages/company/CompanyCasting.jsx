@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import {
   Film, Video, Plus, Search, Filter, Calendar, MapPin,
   DollarSign, Users, CheckCircle, Clock, Eye, Sparkles,
@@ -886,11 +887,31 @@ const CompanyCasting = () => {
                               "{app.notes}"
                             </p>
                           )}
+                          {app.showreelUrl && (
+                            <a
+                              href={app.showreelUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-600 hover:text-purple-800 mt-1 underline"
+                            >
+                              ▶ Watch audition tape / showreel
+                            </a>
+                          )}
                         </div>
                       </div>
 
                       {/* Status Action Buttons */}
                       <div className="flex items-center gap-1.5 self-end sm:self-auto flex-wrap">
+                        {creatorId && (
+                          <Link
+                            to={`/company/dashboard/inbox?creatorId=${creatorId}`}
+                            className="px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs transition"
+                            title="Chat with this creator"
+                          >
+                            Message
+                          </Link>
+                        )}
+
                         {app.status !== 'Shortlisted' && (
                           <button
                             onClick={() => handleUpdateApplicantStatus(reviewModalCasting.id, creatorId, 'Shortlisted')}

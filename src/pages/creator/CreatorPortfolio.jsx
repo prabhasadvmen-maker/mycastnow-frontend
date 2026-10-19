@@ -9,6 +9,15 @@ import {
 
 const API = import.meta.env.VITE_API_URL;
 
+// Convert YouTube / Vimeo links to embeddable URLs (null = direct video file)
+const getEmbedUrl = (url = '') => {
+  const yt = url.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+  const vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vm) return `https://player.vimeo.com/video/${vm[1]}`;
+  return null;
+};
+
 const CreatorPortfolio = () => {
   const { creatorUser, setCreatorUser } = useCreatorAuth();
   const [activeTab, setActiveTab] = useState('photos'); // 'photos' | 'videos' | 'campaigns' | 'physical' | 'skills'
@@ -83,6 +92,31 @@ const CreatorPortfolio = () => {
     setTimeout(() => setSaveToast(null), 3500);
   };
 
+  // Change profile (avatar) photo
+  const handleProfilePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      setSaving(true);
+      const token = localStorage.getItem('creatorToken');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const formData = new FormData();
+      formData.append('file', file);
+      const up = await axios.post(`${API}/upload/upload-direct`, formData);
+      if (!up.data?.success) throw new Error('upload failed');
+      const res = await axios.put(`${API}/creator/portal/portfolio`, { basicDetails: { profilePhoto: up.data.url } }, { headers });
+      if (res.data?.success) {
+        setCreatorData(prev => ({ ...prev, basicDetails: { ...prev?.basicDetails, profilePhoto: up.data.url } }));
+        showNotification('Profile photo updated!');
+      }
+    } catch (err) {
+      showNotification('Failed to update profile photo', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // Add Photo
   const handleAddPhoto = async (urlToAdd) => {
     const photo = urlToAdd || newPhotoUrl;
@@ -92,7 +126,7 @@ const CreatorPortfolio = () => {
       setSaving(true);
       const token = localStorage.getItem('creatorToken');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await axios.post(`${API}/creator/portal/photo`, { photoUrl: photo.trim() }, { headers });
+      const res = await axios.post(`${API}/creator/portal/portfolio/photo`, { photoUrl: photo.trim() }, { headers });
       if (res.data?.success) {
         setCreatorData(prev => ({
           ...prev,
@@ -115,7 +149,7 @@ const CreatorPortfolio = () => {
     try {
       const token = localStorage.getItem('creatorToken');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await axios.delete(`${API}/creator/portal/photo`, {
+      const res = await axios.delete(`${API}/creator/portal/portfolio/photo`, {
         headers,
         data: { index, photoUrl }
       });
@@ -139,7 +173,7 @@ const CreatorPortfolio = () => {
       const token = localStorage.getItem('creatorToken');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const updatedVideos = [...(creatorData?.portfolio?.videos || []), videoUrl.trim()];
-      const res = await axios.put(`${API}/creator/portal`, {
+      const res = await axios.put(`${API}/creator/portal/portfolio`, {
         portfolio: { ...creatorData?.portfolio, videos: updatedVideos }
       }, { headers });
       if (res.data?.success) {
@@ -165,7 +199,7 @@ const CreatorPortfolio = () => {
       const token = localStorage.getItem('creatorToken');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const updatedVideos = (creatorData?.portfolio?.videos || []).filter((_, i) => i !== index);
-      const res = await axios.put(`${API}/creator/portal`, {
+      const res = await axios.put(`${API}/creator/portal/portfolio`, {
         portfolio: { ...creatorData?.portfolio, videos: updatedVideos }
       }, { headers });
       if (res.data?.success) {
@@ -189,7 +223,7 @@ const CreatorPortfolio = () => {
       setSaving(true);
       const token = localStorage.getItem('creatorToken');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await axios.post(`${API}/creator/portal/campaign`, {
+      const res = await axios.post(`${API}/creator/portal/portfolio/campaign`, {
         title: campaignForm.title,
         brand: campaignForm.brand,
         supportingDocs: campaignForm.supportingDocs ? [campaignForm.supportingDocs] : []
@@ -216,7 +250,7 @@ const CreatorPortfolio = () => {
     try {
       const token = localStorage.getItem('creatorToken');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await axios.delete(`${API}/creator/portal/campaign/${index}`, { headers });
+      const res = await axios.delete(`${API}/creator/portal/portfolio/campaign/${index}`, { headers });
       if (res.data?.success) {
         setCreatorData(prev => ({
           ...prev,
@@ -235,7 +269,7 @@ const CreatorPortfolio = () => {
       setSaving(true);
       const token = localStorage.getItem('creatorToken');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await axios.put(`${API}/creator/portal`, { physicalDetails: physicalForm }, { headers });
+      const res = await axios.put(`${API}/creator/portal/portfolio`, { physicalDetails: physicalForm }, { headers });
       if (res.data?.success) {
         showNotification('Physical stats updated in database!');
       }
@@ -252,7 +286,7 @@ const CreatorPortfolio = () => {
       setSaving(true);
       const token = localStorage.getItem('creatorToken');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await axios.put(`${API}/creator/portal`, {
+      const res = await axios.put(`${API}/creator/portal/portfolio`, {
         professionalDetails: {
           primaryCategory: professionalForm.primaryCategory,
           subCategory: professionalForm.subCategory,
@@ -278,7 +312,7 @@ const CreatorPortfolio = () => {
   const videos = creatorData?.portfolio?.videos || [];
   const campaigns = creatorData?.portfolio?.campaigns || [];
   const fullName = creatorData?.basicDetails?.fullName || creatorUser?.basicDetails?.fullName || 'Creator';
-  const avatar = photos[0] || creatorData?.basicDetails?.profilePhoto || creatorUser?.basicDetails?.profilePhoto;
+  const avatar = creatorData?.basicDetails?.profilePhoto || creatorUser?.basicDetails?.profilePhoto || photos[0];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -306,13 +340,13 @@ const CreatorPortfolio = () => {
                 alt={fullName}
                 className="w-20 h-20 md:w-24 md:md:h-24 rounded-2xl object-cover border-2 border-purple-500/20 shadow-md"
               />
-              <button
-                onClick={() => setShowAddPhotoModal(true)}
-                className="absolute -bottom-1.5 -right-1.5 p-2 rounded-xl bg-purple-600 text-white hover:bg-purple-700 shadow-md transition"
-                title="Add New Photo"
+              <label
+                className={`absolute -bottom-1.5 -right-1.5 p-2 rounded-xl bg-purple-600 text-white hover:bg-purple-700 shadow-md transition cursor-pointer ${saving ? 'opacity-60 pointer-events-none' : ''}`}
+                title="Change Profile Photo"
               >
                 <Camera size={14} />
-              </button>
+                <input type="file" accept="image/*" className="hidden" onChange={handleProfilePhotoChange} />
+              </label>
             </div>
 
             <div className="space-y-1">
@@ -490,17 +524,34 @@ const CreatorPortfolio = () => {
                 </div>
 
                 <div className="aspect-video rounded-xl bg-gray-900 overflow-hidden flex items-center justify-center text-white text-xs relative">
-                  <span className="flex items-center gap-2">
-                    <Film size={20} className="text-red-500" />
-                    <a
-                      href={vid}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline font-bold hover:text-purple-300 flex items-center gap-1"
+                  {getEmbedUrl(vid) ? (
+                    <iframe
+                      src={getEmbedUrl(vid)}
+                      title={`Showreel ${idx + 1}`}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <video
+                      src={vid}
+                      controls
+                      preload="metadata"
+                      playsInline
+                      className="w-full h-full object-contain bg-black"
                     >
-                      Open Video Player <ExternalLink size={12} />
-                    </a>
-                  </span>
+                      <a href={vid} target="_blank" rel="noreferrer" className="underline">Open video</a>
+                    </video>
+                  )}
+                  <a
+                    href={vid}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Open in new tab"
+                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white transition"
+                  >
+                    <ExternalLink size={14} />
+                  </a>
                 </div>
               </div>
             ))}
