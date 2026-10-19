@@ -111,10 +111,10 @@ const CreatorBookings = () => {
       )}
 
       {/* HEADER HERO */}
-      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-[#180a22] rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border border-purple-800/30">
+      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-[#0B2A4A] rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border border-purple-800/30">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-fuchsia-200">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10  border border-white/15 text-xs font-semibold text-fuchsia-200">
               <Sparkles size={13} className="text-yellow-400" />
               <span>Direct Commercial Contracts</span>
             </div>
@@ -126,7 +126,7 @@ const CreatorBookings = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+          <div className="flex items-center gap-4 bg-white/10  p-4 rounded-2xl border border-white/10">
             <div>
               <p className="text-[11px] uppercase font-bold tracking-wider text-purple-200">Total Contract Value</p>
               <h3 className="text-2xl font-black text-white">₹{totalValue.toLocaleString('en-IN')}</h3>

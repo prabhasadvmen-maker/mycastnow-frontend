@@ -163,11 +163,11 @@ const LiveCastingsPage = () => {
                         <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500">Live Casting</span>
                       </div>
                     )}
-                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-slate-950/80 text-white backdrop-blur-md flex items-center gap-1.5">
+                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-extrabold bg-slate-950/80 text-white  flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                       {c.projectType || 'Casting'}
                     </span>
-                    <span className="absolute top-3 right-3 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-600 text-white backdrop-blur-md shadow-xs">
+                    <span className="absolute top-3 right-3 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-600 text-white  shadow-xs">
                       {c.budget || 'Competitive'}
                     </span>
                   </div>

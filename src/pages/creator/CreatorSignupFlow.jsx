@@ -648,7 +648,7 @@ const CreatorSignupFlow = () => {
         image: '/mycastnow logo.jpeg',
         order_id: orderId,
         prefill: { name: creatorName, contact: creatorPhone },
-        theme: { color: '#a21caf' },
+        theme: { color: '#1767B8' },
         handler: async (response) => {
           try {
             const verifyRes = await axios.post(

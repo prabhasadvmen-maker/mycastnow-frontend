@@ -20,7 +20,7 @@ const AdminLayout = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f6f8]">
+      <div className="min-h-screen flex items-center justify-center bg-[#F3F7FC]">
         <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -31,7 +31,7 @@ const AdminLayout = () => {
   }
 
   return (
-    <div className="flex bg-[#f5f6f8] h-screen overflow-hidden relative">
+    <div className="flex bg-[#F3F7FC] h-screen overflow-hidden relative">
       <Sidebar isCollapsed={isSidebarCollapsed} />
       <div className={`flex-1 flex flex-col min-w-0 h-screen transition-all duration-300 ${isSidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
         <Header toggleSidebar={toggleSidebar} />

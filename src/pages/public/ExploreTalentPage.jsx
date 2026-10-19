@@ -184,7 +184,7 @@ export default function ExploreTalentPage() {
         <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#a855f7_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
 
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/20 border border-purple-400/30 text-xs font-bold text-purple-300 mb-6 backdrop-blur-md">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/20 border border-purple-400/30 text-xs font-bold text-purple-300 mb-6 ">
             <Sparkles size={14} className="text-yellow-400 animate-pulse" />
             <span>VERIFIED INDIAN TALENT DIRECTORY</span>
           </div>
@@ -196,7 +196,7 @@ export default function ExploreTalentPage() {
           </p>
 
           {/* DYNAMIC SEARCH & MULTI-FILTER BAR */}
-          <div className="mt-10 max-w-6xl mx-auto bg-white/10 backdrop-blur-xl p-3 sm:p-5 rounded-3xl border border-white/20 shadow-2xl">
+          <div className="mt-10 max-w-6xl mx-auto bg-white/10  p-3 sm:p-5 rounded-3xl border border-white/20 shadow-2xl">
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
               {/* Keyword Search */}
               <div className="sm:col-span-4 relative">
@@ -403,11 +403,11 @@ export default function ExploreTalentPage() {
 
                     {/* Top Badges */}
                     <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
-                      <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold tracking-wide uppercase">
+                      <span className="px-2.5 py-1 rounded-full bg-black/60  border border-white/20 text-white text-[10px] font-bold tracking-wide uppercase">
                         {artist.category}
                       </span>
                       {artist.verified && (
-                        <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/90 text-white text-[10px] font-bold backdrop-blur-md shadow-sm">
+                        <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/90 text-white text-[10px] font-bold  shadow-sm">
                           <BadgeCheck size={12} /> Verified
                         </span>
                       )}
@@ -470,7 +470,7 @@ export default function ExploreTalentPage() {
 
       {/* ────────────────── ARTIST DETAILS MODAL ────────────────── */}
       {selectedTalentModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 bg-slate-950/80  flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-4xl w-full border border-slate-200 shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col relative">
             {/* Modal Header */}
             <div className="p-5 bg-gradient-to-r from-purple-900 to-slate-900 text-white flex items-center justify-between shrink-0">

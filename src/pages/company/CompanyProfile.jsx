@@ -110,7 +110,7 @@ const CompanyProfile = () => {
         <div className="h-44 sm:h-52 bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 relative">
           <div className="absolute inset-0 bg-black/20" />
           <div className="absolute top-4 right-4 flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/20 backdrop-blur-md text-white border border-white/20 flex items-center gap-1.5">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/20  text-white border border-white/20 flex items-center gap-1.5">
               <ShieldCheck size={14} className="text-emerald-400" />
               Verified Production House
             </span>

@@ -11,13 +11,13 @@ export default function DownloadReceipt({ receipt }) {
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:Arial,sans-serif;background:#f3f4f6;display:flex;justify-content:center;padding:40px}
 .card{background:white;border-radius:20px;overflow:hidden;width:480px;box-shadow:0 4px 24px rgba(0,0,0,0.1)}
-.hdr{background:linear-gradient(135deg,#a21caf,#7c3aed);padding:20px 24px;display:flex;justify-content:space-between;align-items:center}
+.hdr{background:linear-gradient(135deg,#1767B8,#1767B8);padding:20px 24px;display:flex;justify-content:space-between;align-items:center}
 .logo-row{display:flex;align-items:center;gap:10px}
 .logo-row img{height:36px;width:36px;border-radius:8px;object-fit:cover}
 .brand{color:white;font-weight:900;font-size:15px}
-.url{color:#e9d5ff;font-size:11px;margin-top:2px}
+.url{color:#CFE0F5;font-size:11px;margin-top:2px}
 .hdr-right{text-align:right}
-.rl{color:#e9d5ff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.rl{color:#CFE0F5;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
 .rd{color:white;font-size:11px;font-weight:700;margin-top:3px}
 .amt-row{background:#f0fdf4;border-bottom:1px solid #dcfce7;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
 .confirmed{color:#15803d;font-weight:700;font-size:13px}

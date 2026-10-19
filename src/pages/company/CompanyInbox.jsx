@@ -281,7 +281,7 @@ const CompanyInbox = () => {
   return (
     <div className="space-y-4">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#0b1120] via-[#121c33] to-[#1e1b4b] rounded-3xl p-5 text-white shadow-xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-[#0B2A4A] via-[#0F3A69] to-[#1767B8] rounded-3xl p-5 text-white shadow-xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1.5 w-fit mb-1.5 ${
             connected

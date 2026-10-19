@@ -215,7 +215,7 @@ const AdminSettings = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-300 pb-12">
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-[#0b1120] via-[#1e1b4b] to-[#0f172a] rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#0B2A4A] via-[#1767B8] to-[#0B2A4A] rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
         <div className="absolute right-0 top-0 translate-x-12 -translate-y-8 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="relative z-[1] flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
@@ -230,7 +230,7 @@ const AdminSettings = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/10 text-right">
+            <div className="bg-white/10  px-4 py-2.5 rounded-xl border border-white/10 text-right">
               <p className="text-xs text-gray-300">Admin Account</p>
               <p className="text-sm font-bold text-white truncate max-w-[200px]">{user?.email}</p>
             </div>

@@ -126,7 +126,7 @@ export default function WatchReelPage() {
       <section className="bg-slate-950 text-white py-16 md:py-20 border-b border-slate-800/80 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-950/40 via-indigo-950/30 to-slate-950 pointer-events-none"></div>
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/20 border border-purple-400/30 text-xs font-bold text-purple-300 mb-6 backdrop-blur-md">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/20 border border-purple-400/30 text-xs font-bold text-purple-300 mb-6 ">
             <Play size={14} className="fill-purple-300 text-purple-300 animate-pulse" />
             <span>HD ARTIST SHOWREELS & AUDITION VIDEOS</span>
           </div>
@@ -198,10 +198,10 @@ export default function WatchReelPage() {
 
                   {/* Top Badges */}
                   <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                    <span className="px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md border border-white/20 text-white text-[10px] font-extrabold uppercase tracking-wide">
+                    <span className="px-2.5 py-1 rounded-full bg-black/75  border border-white/20 text-white text-[10px] font-extrabold uppercase tracking-wide">
                       {reel.category}
                     </span>
-                    <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-950/80 text-purple-300 text-[10px] font-bold backdrop-blur-md border border-purple-800/50">
+                    <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-950/80 text-purple-300 text-[10px] font-bold  border border-purple-800/50">
                       <Eye size={11} /> {reel.views}
                     </span>
                   </div>
@@ -252,7 +252,7 @@ export default function WatchReelPage() {
 
       {/* ────────────────── VIDEO MODAL ────────────────── */}
       {activeVideoModal && (
-        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 bg-black/95  flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
           <div className="bg-slate-900 rounded-3xl max-w-4xl w-full border border-slate-800 shadow-2xl overflow-hidden relative my-auto">
             {/* Modal Top Bar */}
             <div className="p-4 bg-slate-950 flex items-center justify-between border-b border-slate-800">

@@ -276,7 +276,7 @@ const CreatorInbox = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-4 pb-12">
       {/* HEADER BANNER */}
-      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-[#180a22] rounded-3xl p-6 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-purple-800/30">
+      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-[#0B2A4A] rounded-3xl p-6 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-purple-800/30">
         <div>
           <h1 className="text-2xl font-black text-white flex items-center gap-2">
             <MessageSquare size={24} className="text-fuchsia-400" />
@@ -290,7 +290,7 @@ const CreatorInbox = () => {
           </p>
         </div>
 
-        <div className={`flex items-center gap-2 text-xs px-3.5 py-1.5 rounded-xl backdrop-blur-md border ${
+        <div className={`flex items-center gap-2 text-xs px-3.5 py-1.5 rounded-xl  border ${
           connected ? 'text-purple-200 bg-white/10 border-white/10' : 'text-amber-200 bg-amber-500/10 border-amber-400/30'
         }`}>
           {connected ? (
@@ -433,7 +433,7 @@ const CreatorInbox = () => {
               </div>
 
               {/* Message Feed */}
-              <div className="flex-1 p-5 overflow-y-auto space-y-3 bg-[#fbfbfe] min-h-0">
+              <div className="flex-1 p-5 overflow-y-auto space-y-3 bg-[#F8FAFC] min-h-0">
                 {threadLoading && messages.length === 0 ? (
                   <div className="py-16 text-center text-gray-400 text-xs">
                     <RefreshCw size={20} className="animate-spin text-purple-600 mx-auto mb-2" />

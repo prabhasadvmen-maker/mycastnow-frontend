@@ -170,7 +170,7 @@ const CreatorHelp = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-16">
       {/* Top Banner Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-950 via-[#260f38] to-[#0c0824] p-6 md:p-8 text-white shadow-xl border border-white/10">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-950 via-[#0F3A69] to-[#071C33] p-6 md:p-8 text-white shadow-xl border border-white/10">
         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-72 h-72 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="relative z-[1] flex flex-col md:flex-row md:items-center justify-between gap-6">

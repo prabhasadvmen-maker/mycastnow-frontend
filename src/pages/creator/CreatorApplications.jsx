@@ -135,7 +135,7 @@ const CreatorApplications = () => {
       )}
 
       {/* HEADER BANNER */}
-      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-[#180a22] rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border border-purple-800/30">
+      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-[#0B2A4A] rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border border-purple-800/30">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <h1 className="text-2xl md:text-3xl font-black text-white">

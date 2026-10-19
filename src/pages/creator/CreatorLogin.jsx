@@ -239,7 +239,7 @@ const CreatorLogin = ({ isSignup = false }) => {
               <button
                 type="submit"
                 disabled={loading || phone.length !== 10}
-                className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-fuchsia-600 hover:from-blue-700 hover:to-fuchsia-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg mb-6"
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg mb-6"
               >
                 {loading ? 'Sending OTP...' : 'Send OTP'}
                 {!loading && <ArrowRight size={20} />}
@@ -301,7 +301,7 @@ const CreatorLogin = ({ isSignup = false }) => {
               <button
                 type="submit"
                 disabled={loading || (otp || '').length !== 6}
-                className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-fuchsia-600 hover:from-blue-700 hover:to-fuchsia-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg"
               >
                 {loading ? 'Verifying...' : 'Verify & Continue'}
                 {!loading && <ArrowRight size={20} />}

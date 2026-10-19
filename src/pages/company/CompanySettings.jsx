@@ -236,7 +236,7 @@ const CompanySettings = () => {
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-white/10 to-transparent pointer-events-none"></div>
         <div className="relative z-[1] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold text-white mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20  text-xs font-bold text-white mb-2">
               <Sparkles size={13} /> PRODUCTION HOUSE SETTINGS
             </div>
             <h1 className="text-2xl sm:text-3xl font-black">Account & Production Settings</h1>
@@ -244,7 +244,7 @@ const CompanySettings = () => {
               Manage your company information, team contact details, login credentials, and notification preferences.
             </p>
           </div>
-          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 self-start sm:self-auto">
+          <div className="flex items-center gap-3 bg-white/10  px-4 py-2.5 rounded-2xl border border-white/20 self-start sm:self-auto">
             <Building2 size={24} className="text-blue-200" />
             <div>
               <p className="text-xs text-blue-200 font-medium">Logged in as</p>

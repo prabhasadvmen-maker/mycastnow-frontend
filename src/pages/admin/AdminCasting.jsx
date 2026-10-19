@@ -942,7 +942,7 @@ const AdminCasting = () => {
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 px-6 py-4 flex items-center justify-between text-white shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-md border border-white/10 shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center  border border-white/10 shrink-0">
                   <Clapperboard size={20} className="text-amber-400" />
                 </div>
                 <div>

@@ -105,7 +105,7 @@ const CreatorLayout = () => {
     || null;
 
   return (
-    <div className="flex bg-[#f5f6f8] h-screen overflow-hidden">
+    <div className="flex bg-[#F3F7FC] h-screen overflow-hidden">
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
         <div 
@@ -115,7 +115,7 @@ const CreatorLayout = () => {
       )}
       
       {/* Sidebar */}
-      <aside className={`bg-[#170B20] text-white h-screen flex flex-col fixed left-0 top-0 transition-all duration-300 z-50 ${isSidebarCollapsed ? 'md:w-20' : 'md:w-64'} ${isMobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64 md:translate-x-0'}`}>
+      <aside className={`bg-[#0B2A4A] text-white h-screen flex flex-col fixed left-0 top-0 transition-all duration-300 z-50 ${isSidebarCollapsed ? 'md:w-20' : 'md:w-64'} ${isMobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64 md:translate-x-0'}`}>
         <div className="py-4 border-b border-white/10 flex flex-col items-center justify-center min-h-[5rem] shrink-0 gap-1 relative">
           <img 
             src="/mycastnow logo.jpeg" 
@@ -154,7 +154,7 @@ const CreatorLayout = () => {
           </ul>
         </nav>
         
-        <div className="p-4 border-t border-white/10 shrink-0 bg-[#170B20]">
+        <div className="p-4 border-t border-white/10 shrink-0 bg-[#0B2A4A]">
           <ul className="space-y-1">
             {bottomItems.map((item) => {
               const isActive = location.pathname === item.path;

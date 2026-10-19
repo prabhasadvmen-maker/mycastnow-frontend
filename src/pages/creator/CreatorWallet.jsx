@@ -107,10 +107,10 @@ const CreatorWallet = () => {
       )}
 
       {/* HEADER HERO */}
-      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-[#180a22] rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border border-purple-800/30">
+      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-[#0B2A4A] rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border border-purple-800/30">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-fuchsia-200">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10  border border-white/15 text-xs font-semibold text-fuchsia-200">
               <ShieldCheck size={13} className="text-emerald-400" />
               <span>Escrow Protected Talent Wallet</span>
             </div>

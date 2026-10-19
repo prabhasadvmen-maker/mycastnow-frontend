@@ -69,7 +69,7 @@ const CreatorOverview = () => {
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-fuchsia-200">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10  border border-white/15 text-xs font-semibold text-fuchsia-200">
               <Sparkles size={13} className="text-yellow-400" />
               <span>Verified Creator Dashboard</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -100,7 +100,7 @@ const CreatorOverview = () => {
             </Link>
             <Link
               to="/creator/dashboard/portfolio"
-              className="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm backdrop-blur-md border border-white/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+              className="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm  border border-white/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
             >
               <FolderOpen size={16} />
               <span>Edit Portfolio</span>

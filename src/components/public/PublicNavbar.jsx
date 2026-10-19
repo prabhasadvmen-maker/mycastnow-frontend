@@ -36,7 +36,7 @@ const PublicNavbar = () => {
   return (
     <>
       {/* ────────────────── CRISP LIGHT NAVBAR ────────────────── */}
-      <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/95 border-b border-slate-200/80 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] transition-all">
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/95 border-b border-slate-200/80 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] transition-all">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Logo */}
           <Link to="/home" className="flex items-center gap-3 group shrink-0">

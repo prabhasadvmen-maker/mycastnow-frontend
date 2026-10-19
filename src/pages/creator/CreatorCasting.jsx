@@ -149,11 +149,11 @@ const CreatorCasting = () => {
       )}
 
       {/* HEADER RIBBON */}
-      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-[#180a22] rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border border-purple-800/30">
+      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-[#0B2A4A] rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden border border-purple-800/30">
         <div className="absolute top-0 right-0 w-80 h-80 bg-fuchsia-500/15 rounded-full blur-3xl pointer-events-none"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold text-fuchsia-200">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10  border border-white/15 text-xs font-semibold text-fuchsia-200">
               <Sparkles size={13} className="text-yellow-400" />
               <span>Live Verified Casting Calls</span>
             </div>
@@ -165,7 +165,7 @@ const CreatorCasting = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+          <div className="flex items-center gap-4 bg-white/10  p-4 rounded-2xl border border-white/10">
             <div>
               <p className="text-[11px] uppercase font-bold tracking-wider text-purple-200">Available Roles</p>
               <h3 className="text-2xl font-black text-white">{castings.length}</h3>
@@ -290,16 +290,16 @@ const CreatorCasting = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent"></div>
 
                   <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                    <span className="px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wide uppercase bg-black/60 backdrop-blur-md text-white border border-white/20">
+                    <span className="px-2.5 py-1 rounded-lg text-[10px] font-black tracking-wide uppercase bg-black/60  text-white border border-white/20">
                       {c.projectType}
                     </span>
-                    <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-purple-600/90 text-white backdrop-blur-md">
+                    <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-purple-600/90 text-white ">
                       {c.roleType}
                     </span>
                   </div>
 
                   <div className="absolute top-3 right-3">
-                    <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white/90 text-gray-800 backdrop-blur-md">
+                    <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white/90 text-gray-800 ">
                       {c.gender}
                     </span>
                   </div>

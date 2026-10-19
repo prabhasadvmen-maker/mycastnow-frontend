@@ -22,7 +22,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="bg-white p-8 sm:p-10 rounded-[2rem] shadow-2xl shadow-slate-200/50 w-full max-w-md border border-slate-100">
+      <div className="bg-white p-8 sm:p-10 rounded-2xl shadow-2xl shadow-slate-200/50 w-full max-w-md border border-slate-100">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center p-1.5 rounded-2xl bg-white shadow-sm border border-slate-100 mb-5">
             <img src="/mycastnow logo.jpeg" alt="Logo" className="w-20 h-auto object-contain mix-blend-multiply" />

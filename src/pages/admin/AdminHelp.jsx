@@ -117,7 +117,7 @@ const AdminHelp = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-300 pb-12">
       {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-[#0b1120] via-[#1e1b4b] to-[#0f172a] rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#0B2A4A] via-[#1767B8] to-[#0B2A4A] rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
         <div className="absolute right-0 top-0 translate-x-12 -translate-y-8 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="relative z-[1]">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold uppercase tracking-wider mb-2">
@@ -137,7 +137,7 @@ const AdminHelp = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search help questions, bookings, payouts, system..."
-              className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+              className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/10  border border-white/20 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
             />
           </div>
         </div>

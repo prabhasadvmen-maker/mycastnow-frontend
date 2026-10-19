@@ -134,7 +134,7 @@ export default function Overview() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
         {/* Chart Section */}
-        <div className="lg:col-span-2 bg-white rounded-[2rem] p-7 shadow-sm border border-slate-100 hover:shadow-lg transition-shadow">
+        <div className="lg:col-span-2 bg-white rounded-2xl p-7 shadow-sm border border-slate-100 hover:shadow-lg transition-shadow">
           <div className="flex justify-between items-center mb-8">
             <div>
               <h3 className="text-xl font-black text-slate-900">Revenue Growth</h3>
@@ -147,8 +147,8 @@ export default function Overview() {
                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                  <defs>
                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                     <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.25}/>
-                     <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                     <stop offset="5%" stopColor="#2583E8" stopOpacity={0.25}/>
+                     <stop offset="95%" stopColor="#2583E8" stopOpacity={0}/>
                    </linearGradient>
                  </defs>
                  <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#e2e8f0" />
@@ -156,17 +156,17 @@ export default function Overview() {
                  <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b', fontWeight: 600}} tickFormatter={(val) => `₹${val/1000}k`} />
                  <Tooltip 
                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)', padding: '12px' }} 
-                   itemStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+                   itemStyle={{ color: '#0B2A4A', fontWeight: 'bold' }}
                    formatter={(value) => [`₹${value.toLocaleString()}`, 'Revenue']}
                  />
-                 <Area type="monotone" dataKey="Revenue" stroke="#8b5cf6" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
+                 <Area type="monotone" dataKey="Revenue" stroke="#2583E8" strokeWidth={4} fillOpacity={1} fill="url(#colorRev)" />
                </AreaChart>
              </ResponsiveContainer>
           </div>
         </div>
 
         {/* Revenue Breakdown Section */}
-        <div className="bg-white rounded-[2rem] p-7 shadow-sm border border-slate-100 hover:shadow-lg transition-shadow flex flex-col">
+        <div className="bg-white rounded-2xl p-7 shadow-sm border border-slate-100 hover:shadow-lg transition-shadow flex flex-col">
           <div className="flex justify-between items-center mb-8">
             <div>
               <h3 className="text-xl font-black text-slate-900">Revenue Streams</h3>

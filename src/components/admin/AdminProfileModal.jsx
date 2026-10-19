@@ -86,7 +86,7 @@ const AdminProfileModal = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
       <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-lg overflow-hidden transform transition-all">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#0b1120] to-[#1e1b4b] p-6 text-white flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#0B2A4A] to-[#1767B8] p-6 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-600/30 border border-blue-400/30 flex items-center justify-center text-blue-400">
               <User size={22} />

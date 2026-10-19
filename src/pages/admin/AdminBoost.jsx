@@ -286,7 +286,7 @@ const AdminBoost = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         {/* 1. Total Boost Revenue */}
-        <div className="rounded-2xl p-5 bg-gradient-to-br from-[#1c0f24] to-[#2b0c36] text-white border border-rose-500/30 shadow-lg shadow-purple-950/20 flex flex-col justify-between">
+        <div className="rounded-2xl p-5 bg-gradient-to-br from-[#0B2A4A] to-[#0F3A69] text-white border border-rose-500/30 shadow-lg shadow-purple-950/20 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs uppercase font-extrabold tracking-widest text-rose-300/80">Total Boost Revenue</span>

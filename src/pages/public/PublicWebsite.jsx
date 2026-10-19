@@ -124,7 +124,7 @@ function HeroCollage({ talents = [] }) {
       <HeroTile talent={photos[2]} frame={20} className="left-[74%] top-[48%] z-10 h-[40%] w-[23%]" />
 
       {/* main video */}
-      <div className="absolute left-[31%] top-[13%] z-20 h-[69%] w-[42%] overflow-hidden rounded-[1.4rem] border-[3px] border-white bg-slate-900 shadow-2xl shadow-violet-900/25 ring-1 ring-violet-100 sm:rounded-[2rem] sm:border-[5px]">
+      <div className="absolute left-[31%] top-[13%] z-20 h-[69%] w-[42%] overflow-hidden rounded-[1.4rem] border-[3px] border-white bg-slate-900 shadow-2xl shadow-violet-900/25 ring-1 ring-violet-100 sm:rounded-2xl sm:border-[5px]">
         <video ref={mainRef} src={HERO_VIDEO} autoPlay loop muted playsInline className="h-full w-full object-cover" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent" />
         <div className="absolute inset-x-2 bottom-2 flex items-center gap-2 rounded-full bg-white/90 px-1.5 py-1 shadow backdrop-blur sm:inset-x-3 sm:bottom-3 sm:py-1.5">
@@ -252,11 +252,11 @@ export default function PublicWebsite() {
               <span className="h-px w-8 bg-violet-400" />
               Casting <span className="text-violet-300">•</span> Talent <span className="text-violet-300">•</span> Opportunity
             </div>
-            <h1 style={{ fontFamily: "'Permanent Marker', cursive" }} className="mt-5 text-[2.6rem] font-normal leading-[1.08] tracking-tight text-slate-900 sm:text-6xl lg:text-[3.6rem] xl:text-[4rem]">
+            <h1 className="mt-5 text-[2.6rem] font-extrabold leading-[1.08] tracking-tight text-[#0B2A4A] sm:text-6xl lg:text-[3.6rem] xl:text-[4rem]">
               Your Talent.<br />
-              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">Your Next Big<br />Opportunity.</span>
+              <span className="bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">Your Next Big<br />Opportunity.</span>
             </h1>
-            <p style={{ fontFamily: "'Handlee', cursive" }} className="mt-6 max-w-md text-[19px] font-medium leading-relaxed tracking-wide text-slate-700">
+            <p className="mt-6 max-w-md text-lg leading-relaxed text-slate-600">
               Connect actors, models and creators with casting opportunities that move careers forward.
             </p>
             <div className="mt-8 flex flex-wrap gap-3 sm:gap-4">
@@ -481,14 +481,14 @@ export default function PublicWebsite() {
                       {/* Badges Overlay */}
                       <div className="absolute inset-x-3 top-3 flex items-center justify-between pointer-events-none">
                         {talent.photos?.length > 1 ? (
-                          <span className="flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-md px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
+                          <span className="flex items-center gap-1 rounded-full bg-black/60  px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
                             <Camera size={11} />
                             {talent.photos.length} Photos
                           </span>
                         ) : <span />}
 
                         {talent.verified && (
-                          <span className="flex items-center gap-1 rounded-full bg-white/95 backdrop-blur-md px-2.5 py-1 text-[10px] font-bold text-violet-700 shadow-sm">
+                          <span className="flex items-center gap-1 rounded-full bg-white/95  px-2.5 py-1 text-[10px] font-bold text-violet-700 shadow-sm">
                             <BadgeCheck size={12} className="text-violet-600" />
                             Verified
                           </span>
@@ -785,7 +785,7 @@ export default function PublicWebsite() {
     {/* ── TALENT DETAILS & ALL PORTFOLIO PHOTOS MODAL ── */}
     {selectedTalentModal && (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 md:p-8 bg-black/75 backdrop-blur-md animate-in fade-in duration-200"
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 md:p-8 bg-black/75  animate-in fade-in duration-200"
         onClick={() => setSelectedTalentModal(null)}
       >
         <div
@@ -1193,7 +1193,7 @@ export default function PublicWebsite() {
     {/* LIGHTBOX FOR FULL-RESOLUTION IMAGE PREVIEW */}
     {lightboxImage && (
       <div
-        className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-200 cursor-zoom-out"
+        className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90  animate-in fade-in duration-200 cursor-zoom-out"
         onClick={() => setLightboxImage(null)}
       >
         <button

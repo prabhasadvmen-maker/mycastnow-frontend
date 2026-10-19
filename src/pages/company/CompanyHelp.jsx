@@ -135,7 +135,7 @@ const CompanyHelp = () => {
       <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 rounded-3xl p-6 sm:p-10 text-white shadow-lg relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-white/10 to-transparent pointer-events-none"></div>
         <div className="relative z-[1] max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold text-white mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20  text-xs font-bold text-white mb-3">
             <LifeBuoy size={14} /> PRODUCTION DESK SUPPORT
           </div>
           <h1 className="text-2xl sm:text-4xl font-black leading-tight">How can our casting team assist your shoot today?</h1>

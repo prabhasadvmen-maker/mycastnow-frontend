@@ -77,16 +77,14 @@ export default function CompanyPendingApproval({ companyData, onBackToLogin }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 flex items-center justify-center p-3 sm:p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-[#0B2A4A] flex items-center justify-center p-3 sm:p-4 relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-32 -left-32 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl"></div>
       </div>
 
       <div className="relative z-10 w-full max-w-md sm:max-w-lg my-auto">
         {/* Card */}
-        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 text-center">
+        <div className="bg-[#0F3A69] border border-white/15 rounded-xl shadow-lg p-5 sm:p-6 text-center">
           
           {/* Animated Clock Icon */}
           <div className="relative mx-auto w-14 h-14 mb-3">
@@ -110,7 +108,7 @@ export default function CompanyPendingApproval({ companyData, onBackToLogin }) {
           {/* Heading */}
           <h1 className="text-xl sm:text-2xl font-black text-white mb-1.5 leading-snug">
             Your Company Account{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-blue-400">
               is Under Review
             </span>
           </h1>

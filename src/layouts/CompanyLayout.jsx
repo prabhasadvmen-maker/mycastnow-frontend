@@ -21,7 +21,7 @@ const CompanyLayout = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f6f8]">
+      <div className="min-h-screen flex items-center justify-center bg-[#F3F7FC]">
         <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -36,7 +36,7 @@ const CompanyLayout = () => {
 
   if (!isApproved && !isAdminImpersonating) {
     return (
-      <div className="min-h-screen bg-[#f5f6f8] flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-[#F3F7FC] flex flex-col items-center justify-center p-4">
         <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100 text-center">
           <div className="w-20 h-20 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <Building2 size={40} />
@@ -83,9 +83,9 @@ const CompanyLayout = () => {
   const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <div className="flex bg-[#f5f6f8] h-screen overflow-hidden">
+    <div className="flex bg-[#F3F7FC] h-screen overflow-hidden">
       {/* Sidebar (Same styling as Admin Sidebar) */}
-      <aside className={`bg-[#0b1120] text-white h-screen flex flex-col fixed left-0 top-0 transition-all duration-300 z-20 ${isSidebarCollapsed ? 'w-20' : 'w-64'}`}>
+      <aside className={`bg-[#0B2A4A] text-white h-screen flex flex-col fixed left-0 top-0 transition-all duration-300 z-20 ${isSidebarCollapsed ? 'w-20' : 'w-64'}`}>
         <div className="py-4 border-b border-white/10 flex flex-col items-center justify-center min-h-[5rem] shrink-0 gap-1">
           <img 
             src="/mycastnow logo.jpeg" 
@@ -116,7 +116,7 @@ const CompanyLayout = () => {
           </ul>
         </nav>
         
-        <div className="p-4 border-t border-white/10 shrink-0 bg-[#0b1120]">
+        <div className="p-4 border-t border-white/10 shrink-0 bg-[#0B2A4A]">
           <ul className="space-y-1">
             {bottomItems.map((item) => {
               const isActive = location.pathname === item.path;

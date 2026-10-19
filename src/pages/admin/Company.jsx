@@ -649,7 +649,7 @@ export default function Company() {
             }`}>
               <button 
                 onClick={() => { setReviewCompany(null); setReviewMode('review'); }}
-                className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md transition-colors cursor-pointer"
+                className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-black/20 hover:bg-black/40 text-white  transition-colors cursor-pointer"
                 title="Close"
               >
                 <X size={18} />

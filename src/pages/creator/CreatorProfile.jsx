@@ -284,7 +284,7 @@ const CreatorProfile = () => {
       )}
 
       {/* Top Banner Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#170529] via-[#2a0e44] to-[#0c0926] p-6 md:p-8 text-white shadow-xl border border-white/10">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0B2A4A] via-[#0F3A69] to-[#071C33] p-6 md:p-8 text-white shadow-xl border border-white/10">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-80 h-80 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-1/3 -mb-10 w-60 h-60 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -327,7 +327,7 @@ const CreatorProfile = () => {
           <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={handleCopyProfile}
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs backdrop-blur-md transition flex items-center gap-2 cursor-pointer border border-white/10"
+              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs  transition flex items-center gap-2 cursor-pointer border border-white/10"
             >
               <Share2 size={14} />
               {copiedLink ? 'Link Copied!' : 'Share Profile'}

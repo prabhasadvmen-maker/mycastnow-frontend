@@ -30,7 +30,7 @@ const Sidebar = ({ isCollapsed }) => {
   ];
 
   return (
-    <aside className={`bg-[#0b1120] text-white h-screen flex flex-col fixed left-0 top-0 transition-all duration-300 z-20 ${isCollapsed ? 'w-20' : 'w-64'}`}>
+    <aside className={`bg-[#0B2A4A] text-white h-screen flex flex-col fixed left-0 top-0 transition-all duration-300 z-20 ${isCollapsed ? 'w-20' : 'w-64'}`}>
       <div className={`py-4 border-b border-white/10 flex flex-col items-center justify-center min-h-[5rem] shrink-0 gap-1`}>
         <img 
           src="/mycastnow logo.jpeg" 
@@ -63,7 +63,7 @@ const Sidebar = ({ isCollapsed }) => {
       </nav>
       
       {/* Sticky Bottom Section */}
-      <div className="p-4 border-t border-white/10 shrink-0 bg-[#0b1120]">
+      <div className="p-4 border-t border-white/10 shrink-0 bg-[#0B2A4A]">
         <ul className="space-y-1">
           {bottomItems.map((item) => (
             <li key={item.name} title={isCollapsed ? item.name : ''}>

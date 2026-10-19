@@ -60,7 +60,7 @@ export default function CompanySignup() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f6f8] flex items-center justify-center p-4 py-12">
+    <div className="min-h-screen bg-[#F3F7FC] flex items-center justify-center p-4 py-12">
       <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl border border-gray-100">
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-800">Register Company</h2>
@@ -152,7 +152,7 @@ export default function CompanySignup() {
           
           <button 
             type="submit" 
-            className="w-full bg-gradient-to-r from-blue-600 to-fuchsia-600 hover:opacity-90 text-white py-3 rounded-xl font-medium transition-opacity shadow-md"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-opacity shadow-md"
           >
             Register Company
           </button>
