@@ -4,7 +4,8 @@ import { toast } from 'react-toastify';
 import {
   Tag, Plus, Edit2, Trash2, Copy, Check, X, Calendar,
   ToggleRight, ToggleLeft, Percent, Users, TrendingUp,
-  AlertCircle, CheckCircle, XCircle, Eye, MoreVertical, Lock, Unlock
+  AlertCircle, CheckCircle, XCircle, Eye, MoreVertical, Lock, Unlock,
+  Clipboard, User, Building2
 } from 'lucide-react';
 
 const API = import.meta.env.VITE_API_URL;
@@ -14,6 +15,7 @@ const AdminCoupons = () => {
   const [loading, setLoading] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('active');
+  const [filterType, setFilterType] = useState('all'); // 'all', 'creator', 'company'
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editCoupon, setEditCoupon] = useState(null);
   const [copiedCode, setCopiedCode] = useState(null);
@@ -144,16 +146,27 @@ const AdminCoupons = () => {
   const getUsagePercent = (used, max) => max > 0 ? Math.round((used / max) * 100) : 0;
 
   const filteredCoupons = coupons.filter(c => {
-    if (activeTab === 'active') return c.isActive && !isExpired(c.expiryDate);
-    if (activeTab === 'expired') return isExpired(c.expiryDate) || !c.isActive;
-    return true;
+    // Filter by status (active/expired)
+    let statusMatch = true;
+    if (activeTab === 'active') statusMatch = c.isActive && !isExpired(c.expiryDate);
+    if (activeTab === 'expired') statusMatch = isExpired(c.expiryDate) || !c.isActive;
+    
+    // Filter by type (creator/company/both)
+    let typeMatch = true;
+    if (filterType === 'creator') typeMatch = c.applicableTo === 'Creator' || c.applicableTo === 'Both';
+    if (filterType === 'company') typeMatch = c.applicableTo === 'Company' || c.applicableTo === 'Both';
+    
+    return statusMatch && typeMatch;
   });
 
   const stats = {
     total: coupons.length,
     active: coupons.filter(c => c.isActive && !isExpired(c.expiryDate)).length,
     expired: coupons.filter(c => isExpired(c.expiryDate) || !c.isActive).length,
-    totalUsed: coupons.reduce((sum, c) => sum + c.usedCount, 0)
+    totalUsed: coupons.reduce((sum, c) => sum + c.usedCount, 0),
+    creator: coupons.filter(c => c.applicableTo === 'Creator').length,
+    company: coupons.filter(c => c.applicableTo === 'Company').length,
+    both: coupons.filter(c => c.applicableTo === 'Both').length
   };
 
   if (loading) {
@@ -201,7 +214,7 @@ const AdminCoupons = () => {
         ))}
       </div>
 
-      {/* Tabs */}
+      {/* Tabs - Status Filter */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
         {[
           { key: 'active', label: 'Active', count: stats.active },
@@ -227,6 +240,38 @@ const AdminCoupons = () => {
             </span>
           </button>
         ))}
+      </div>
+
+      {/* Tabs - Type Filter */}
+      <div className="flex gap-1 bg-blue-50 p-1 rounded-xl w-fit border border-blue-200">
+        {[
+          { key: 'all', label: 'All Types', icon: Clipboard, count: stats.total },
+          { key: 'creator', label: 'Creator Only', icon: User, count: stats.creator },
+          { key: 'company', label: 'Company Only', icon: Building2, count: stats.company }
+        ].map(tab => {
+          const IconComponent = tab.icon;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setFilterType(tab.key)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                filterType === tab.key
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-blue-700 hover:bg-blue-100'
+              }`}
+            >
+              <IconComponent size={16} />
+              {tab.label}
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                filterType === tab.key
+                  ? 'bg-blue-400 text-white'
+                  : 'bg-blue-200 text-blue-700'
+              }`}>
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Table */}

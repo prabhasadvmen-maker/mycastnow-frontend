@@ -58,6 +58,8 @@ const AdminSettings = () => {
     minWithdrawalAmount: 500,
     creatorOnboardingFee: 99,
     creatorOnboardingFeeEnabled: true,
+    companyRegistrationFee: 199,
+    companyRegistrationFeeEnabled: true,
     currency: 'INR',
     maintenanceMode: false,
     allowNewRegistrations: true,
@@ -274,6 +276,18 @@ const AdminSettings = () => {
         >
           <IndianRupee size={18} />
           Creator Onboarding Fee
+        </button>
+
+        <button
+          onClick={() => setTab('company')}
+          className={`flex items-center gap-2.5 px-5 py-3 text-sm font-semibold rounded-t-xl transition-all border-b-2 whitespace-nowrap ${
+            currentTab === 'company'
+              ? 'border-blue-600 text-blue-600 bg-white shadow-sm'
+              : 'border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100/60'
+          }`}
+        >
+          <CreditCard size={18} />
+          Company Registration Fee
         </button>
 
         <button
@@ -672,7 +686,77 @@ const AdminSettings = () => {
         </div>
       )}
 
-      {/* TAB 4: SYSTEM & MAINTENANCE */}
+      {/* TAB 4: COMPANY REGISTRATION FEE */}
+      {currentTab === 'company' && (
+        <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 animate-in fade-in">
+          <div className="max-w-xl">
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Company Registration Fee</h2>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Manage how much companies are charged during registration (after details fill) or enter 0 to make registration 100% free.
+              </p>
+            </div>
+
+            {settingsMsg.text && (
+              <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm ${
+                settingsMsg.type === 'success' 
+                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
+                  : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
+                {settingsMsg.type === 'success' ? <CheckCircle2 size={18} className="shrink-0 text-emerald-600" /> : <AlertCircle size={18} className="shrink-0 text-red-600" />}
+                <span>{settingsMsg.text}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSettingsSubmit} className="space-y-6">
+              <div className="bg-gray-50/70 p-5 rounded-2xl border border-gray-100">
+                <label className="block text-sm font-semibold text-gray-800 mb-2">
+                  Company Registration Fee Amount (₹)
+                </label>
+                <div className="relative">
+                  <IndianRupee size={18} className="absolute left-3.5 top-3.5 text-gray-500" />
+                  <input
+                    type="number"
+                    min="0"
+                    value={systemSettings.companyRegistrationFee}
+                    onChange={(e) => {
+                      const val = e.target.value === '' ? '' : Math.max(0, Number(e.target.value));
+                      setSystemSettings({ 
+                        ...systemSettings, 
+                        companyRegistrationFee: val,
+                        companyRegistrationFeeEnabled: Number(val) > 0
+                      });
+                    }}
+                    placeholder="e.g. 199 (Enter 0 for free registration)"
+                    className="w-full pl-10 pr-4 py-3 text-base font-semibold text-gray-900 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                  />
+                </div>
+                <div className="mt-2.5 flex items-center justify-between text-xs text-gray-500">
+                  <span>Enter amount manually to increase or decrease. Enter <strong>0</strong> for 100% Free Registration.</span>
+                  {Number(systemSettings.companyRegistrationFee) === 0 ? (
+                    <span className="font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Free Mode</span>
+                  ) : (
+                    <span className="font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">₹{systemSettings.companyRegistrationFee} / Registration</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end">
+                <button
+                  type="submit"
+                  disabled={settingsSaving}
+                  className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md shadow-blue-500/20 disabled:opacity-60 transition-all cursor-pointer"
+                >
+                  {settingsSaving ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
+                  {settingsSaving ? 'Saving...' : 'Save Fee Setting'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: SYSTEM & MAINTENANCE */}
       {currentTab === 'system' && (
         <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-100 animate-in fade-in">
           <div className="max-w-3xl">
