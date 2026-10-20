@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import {
   ArrowRight, BadgeCheck, Building2, CheckCircle2, ChevronLeft, ChevronRight, Clapperboard,
-  Crown, MapPin, Maximize2, Pause, Play, RotateCcw, Search, ShieldCheck,
+  Crown, MapPin, Maximize2, Play, RotateCcw, Search, ShieldCheck,
   Sparkles, Star, Users, Volume2, VolumeX, Zap,
   Camera, Eye, X, Phone, Mail, Globe, Calendar, Share2, Check, ExternalLink, Film, Award, DollarSign, User, Briefcase,
   Lock, Heart, MessageCircle, Send, MoreVertical,
@@ -44,13 +44,16 @@ const PLAN_STYLES = {
   }
 };
 
-const HERO_VIDEO = '/My%20cast%20now%20video%20.mp4';
+const HERO_VIDEO = '/Shoot 2.mp4'; // Middle card video
+const HERO_POSTER = '/hero-reel-poster.jpg';
+const TOP_RIGHT_VIDEO = '/hero-reel.mp4'; // Top-right card video (fallback)
 
 // One collage tile: shows a real talent photo when available, otherwise a still frame of the reel.
-function HeroTile({ talent, frame = 1, playing = false, startAt = 0, className = '', children }) {
+function HeroTile({ talent, frame = 1, playing = false, startAt = 0, className = '', videoSrc = null, children }) {
   const [imgFailed, setImgFailed] = useState(false);
   const videoRef = useRef(null);
-  const src = talent?.image && !imgFailed ? mediaUrl(talent.image) : '';
+  const src = talent?.image && !imgFailed ? (talent.image.startsWith('/') ? talent.image : mediaUrl(talent.image)) : '';
+  const videoSource = videoSrc || HERO_VIDEO;
 
   return (
     <div className={`absolute overflow-hidden rounded-[1.1rem] sm:rounded-3xl border-[3px] sm:border-[5px] border-white bg-slate-900 shadow-xl shadow-violet-900/15 ring-1 ring-violet-100 ${className}`}>
@@ -59,12 +62,13 @@ function HeroTile({ talent, frame = 1, playing = false, startAt = 0, className =
       ) : (
         <video
           ref={videoRef}
-          src={playing ? HERO_VIDEO : `${HERO_VIDEO}#t=${frame}`}
+          src={playing ? videoSource : `${videoSource}#t=${frame}`}
+          poster={HERO_POSTER}
           muted
           loop={playing}
           autoPlay={playing}
           playsInline
-          preload={playing ? 'auto' : 'metadata'}
+          preload={playing ? 'auto' : 'none'}
           onLoadedMetadata={() => { if (playing && startAt && videoRef.current) videoRef.current.currentTime = startAt; }}
           className="h-full w-full object-cover"
         />
@@ -85,14 +89,14 @@ function HeroChip({ icon: Icon, label, className = '', delay = '0s' }) {
 
 function HeroCollage({ talents = [] }) {
   const mainRef = useRef(null);
-  const [paused, setPaused] = useState(false);
-  const photos = talents.filter((t) => t?.image);
-
-  const togglePlay = () => {
-    const v = mainRef.current;
-    if (!v) return;
-    if (v.paused) { v.play().catch(() => { }); setPaused(false); } else { v.pause(); setPaused(true); }
-  };
+  const [videoReady, setVideoReady] = useState(false);
+  
+  // Always use these images
+  const displayPhotos = [
+    { image: '/img1.jpeg', name: 'Talent 1' },
+    { image: '/img2.jpeg', name: 'Talent 2' },
+    { image: '/img3.jpeg', name: 'Talent 3' }
+  ];
 
   return (
     <div className="relative mx-auto aspect-[540/480] w-full max-w-[540px]">
@@ -111,33 +115,40 @@ function HeroCollage({ talents = [] }) {
       </svg>
 
       {/* top-left photo */}
-      <HeroTile talent={photos[0]} frame={4} className="left-[4%] top-[7%] z-10 h-[34%] w-[25%]" />
+      <HeroTile talent={displayPhotos[0]} frame={4} className="left-[4%] top-[7%] z-10 h-[34%] w-[25%]" />
       {/* bottom-left photo */}
-      <HeroTile talent={photos[1]} frame={12} className="left-[6%] top-[52%] z-10 h-[38%] w-[25%]" />
+      <HeroTile talent={displayPhotos[1]} frame={12} className="left-[6%] top-[52%] z-10 h-[38%] w-[25%]" />
       {/* top-right video */}
-      <HeroTile playing startAt={9} className="left-[76%] top-[5%] z-10 h-[31%] w-[21%]">
+      <HeroTile playing startAt={9} videoSrc={TOP_RIGHT_VIDEO} className="left-[76%] top-[5%] z-10 h-[31%] w-[21%]">
         <div className="absolute inset-0 flex items-center justify-center bg-black/10">
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow sm:h-8 sm:w-8"><Play size={12} className="ml-0.5 fill-current" /></span>
         </div>
       </HeroTile>
       {/* bottom-right photo */}
-      <HeroTile talent={photos[2]} frame={20} className="left-[74%] top-[48%] z-10 h-[40%] w-[23%]" />
+      <HeroTile talent={displayPhotos[2]} frame={20} className="left-[74%] top-[48%] z-10 h-[40%] w-[23%]" />
 
       {/* main video */}
       <div className="absolute left-[31%] top-[13%] z-20 h-[69%] w-[42%] overflow-hidden rounded-[1.4rem] border-[3px] border-white bg-slate-900 shadow-2xl shadow-violet-900/25 ring-1 ring-violet-100 sm:rounded-2xl sm:border-[5px]">
-        <video ref={mainRef} src={HERO_VIDEO} autoPlay loop muted playsInline className="h-full w-full object-cover" />
+        <video
+          ref={mainRef}
+          src={HERO_VIDEO}
+          poster={HERO_POSTER}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          onCanPlay={() => setVideoReady(true)}
+          className="h-full w-full object-cover"
+        />
+        {!videoReady && <div className="pointer-events-none absolute inset-0 animate-pulse bg-white/10" />}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent" />
-        <div className="absolute inset-x-2 bottom-2 flex items-center gap-2 rounded-full bg-white/90 px-1.5 py-1 shadow backdrop-blur sm:inset-x-3 sm:bottom-3 sm:py-1.5">
-          <button type="button" onClick={togglePlay} aria-label={paused ? 'Play reel' : 'Pause reel'} className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-600 text-white transition hover:bg-violet-700 sm:h-6 sm:w-6">
-            {paused ? <Play size={10} className="ml-0.5 fill-current" /> : <Pause size={10} className="fill-current" />}
-          </button>
-          <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-violet-200"><div className="hero-progress absolute inset-y-0 left-0 rounded-full bg-violet-600" /></div>
-        </div>
       </div>
 
       <HeroChip icon={User} label="Actors" className="left-[44%] top-[1%]" />
       <HeroChip icon={Camera} label="Models" className="left-[0%] top-[42%]" delay="-1.2s" />
       <HeroChip icon={Sparkles} label="Creators" className="left-[60%] top-[87%]" delay="-2.4s" />
+      <HeroChip icon={ShieldCheck} label="Verified Profiles" className="left-[27%] top-[86%]" delay="-3.6s" />
     </div>
   );
 }
@@ -248,8 +259,8 @@ export default function PublicWebsite() {
         <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-8">
           {/* LEFT COLUMN: HERO TEXT & ACTIONS */}
           <div className="flex flex-col justify-center">
-            <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[.25em] text-violet-600">
-              <span className="h-px w-8 bg-violet-400" />
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-violet-200 bg-white/80 py-1.5 pl-2 pr-4 text-[11px] font-bold uppercase tracking-[.2em] text-violet-700 shadow-sm backdrop-blur">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-violet-600 text-white"><Sparkles size={11} /></span>
               Casting <span className="text-violet-300">•</span> Talent <span className="text-violet-300">•</span> Opportunity
             </div>
             <h1 className="mt-5 text-[2.6rem] font-extrabold leading-[1.08] tracking-tight text-[#0B2A4A] sm:text-6xl lg:text-[3.6rem] xl:text-[4rem]">
@@ -260,13 +271,21 @@ export default function PublicWebsite() {
               Connect actors, models and creators with casting opportunities that move careers forward.
             </p>
             <div className="mt-8 flex flex-wrap gap-3 sm:gap-4">
-              <Link to="/castings" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-300/60 transition hover:-translate-y-0.5 hover:from-violet-700 hover:to-indigo-700">
-                Explore Casting Calls <ArrowRight size={16} />
+              <Link to="/creator/signup" className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-7 py-3.5 text-sm font-bold text-white shadow-lg shadow-violet-300/60 transition hover:-translate-y-0.5 hover:from-violet-700 hover:to-indigo-700">
+                Join as Talent <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
               </Link>
-              <Link to="/creator/signup" className="inline-flex items-center rounded-full border border-violet-200 bg-white px-6 py-3.5 text-sm font-bold text-violet-700 shadow-sm transition hover:-translate-y-0.5 hover:border-violet-400 hover:bg-violet-50">
-                Join as Talent
+              <Link to="/castings" className="inline-flex items-center rounded-full border border-violet-200 bg-white px-7 py-3.5 text-sm font-bold text-violet-700 shadow-sm transition hover:-translate-y-0.5 hover:border-violet-400 hover:bg-violet-50">
+                Explore Casting Calls
               </Link>
             </div>
+            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2.5 text-sm font-semibold text-slate-600">
+              {['Verified casting calls', 'Professional portfolio', 'Get discovered by production houses'].map((t) => (
+                <li key={t} className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><CheckCircle2 size={13} strokeWidth={2.6} /></span>
+                  {t}
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/* RIGHT COLUMN: VIDEO + PHOTO COLLAGE */}

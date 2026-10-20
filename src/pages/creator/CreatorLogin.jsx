@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCreatorAuth } from '../../context/CreatorAuthContext';
-import { ArrowRight, ArrowLeft, ShieldCheck, AlertCircle, Sparkles, User, Play } from 'lucide-react';
+import { ArrowRight, ArrowLeft, ShieldCheck, AlertCircle, Sparkles, Play } from 'lucide-react';
 import CountryPicker from '../../components/CountryPicker';
 import { detectCountry, saveCountry } from '../../utils/countries';
 
@@ -35,16 +35,6 @@ const FALLBACKS = [
   { from: '#dfe3e9', to: '#bcc5d2', skin: '#d6a37e', hair: '#1b130f', shirt: '#14161a', category: 'Actor', long: true },
 ];
 
-const RoleChip = ({ label, sub, className = '' }) => (
-  <div className={`absolute z-20 flex items-center gap-1.5 bg-white rounded-full pl-1.5 pr-3 py-1 shadow-lg shadow-blue-900/10 text-[11px] sm:text-xs font-semibold text-blue-700 max-w-[46%] ${className}`}>
-    <span className="w-5 h-5 shrink-0 rounded-full bg-blue-50 flex items-center justify-center">
-      <User size={11} className="text-blue-600" strokeWidth={2.5} />
-    </span>
-    <span className="truncate">{label}</span>
-    {sub && <span className="hidden sm:inline font-medium text-slate-400 truncate">· {sub}</span>}
-  </div>
-);
-
 // Real creator photo (falls back to the illustrated portrait if missing / broken)
 const TalentPhoto = ({ talent, fallback }) => {
   const [broken, setBroken] = useState(false);
@@ -60,13 +50,13 @@ const TalentPhoto = ({ talent, fallback }) => {
   );
 };
 
-const VIDEO_SRC = '/My%20cast%20now%20video%20.mp4';
+const HERO_VIDEO = '/Shoot 2.mp4';
+const TOP_RIGHT_VIDEO = '/hero-reel.mp4';
+const VIDEO_POSTER = '/hero-reel-poster.jpg';
 
-// Only stream the (large) showreel on desktop, and never on data-saver / reduced motion
 const canPlayVideo = () => {
   try {
     return (
-      window.matchMedia('(min-width: 1024px)').matches &&
       !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
       !navigator.connection?.saveData
     );
@@ -75,15 +65,44 @@ const canPlayVideo = () => {
   }
 };
 
-const HeroCollage = ({ talents = [] }) => {
+const HeroTile = ({ src, videoSrc, isVideo }) => {
+  const [broken, setBroken] = useState(false);
   const [video] = useState(canPlayVideo);
-  const t = (i) => talents[i];
-  const f = (i) => FALLBACKS[i];
-  const label = (i) => {
-    const tal = t(i);
-    return tal ? (tal.name || '').split(' ')[0] : f(i).category;
-  };
-  const sub = (i) => (t(i) ? t(i).category : '');
+
+  if (isVideo && video) {
+    return (
+      <>
+        <video
+          src={videoSrc}
+          poster={VIDEO_POSTER}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-full bg-blue-600 shadow-lg shadow-blue-600/40 flex items-center justify-center">
+            <Play size={14} className="text-white fill-white ml-0.5" />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt="Hero"
+      loading="lazy"
+      onError={() => setBroken(true)}
+      className="w-full h-full object-cover"
+    />
+  );
+};
+
+const HeroCollage = () => {
   const card = 'absolute rounded-xl overflow-hidden border-[3px] border-white shadow-xl shadow-blue-900/15 aspect-[4/5]';
 
   return (
@@ -96,43 +115,17 @@ const HeroCollage = ({ talents = [] }) => {
         <ellipse cx="220" cy="150" rx="205" ry="110" fill="none" stroke="#1767B8" strokeOpacity="0.6" strokeWidth="1.5" strokeDasharray="130 60 30 60" transform="rotate(-8 220 150)" />
       </svg>
 
-      <div className={`${card} cn-float-a left-[6%] top-[3%] w-[27%] -rotate-6`}><TalentPhoto talent={t(0)} fallback={f(0)} /></div>
-      <RoleChip label={label(0)} sub={sub(0)} className="left-[9%] top-[33%] -rotate-6" />
+      <div className={`${card} cn-float-a left-[6%] top-[3%] w-[27%] -rotate-6`}><HeroTile src="/img1.jpeg" /></div>
 
-      <div className={`${card} cn-float-b right-[6%] top-[2%] w-[26%] rotate-6`}><TalentPhoto talent={t(1)} fallback={f(1)} /></div>
-      <RoleChip label={label(1)} sub={sub(1)} className="right-[7%] top-[31%] -rotate-3" />
+      <div className={`${card} cn-float-b right-[6%] top-[2%] w-[26%] rotate-6`}><HeroTile src="/img2.jpeg" /></div>
 
-      <div className={`${card} cn-float-b left-[5%] bottom-[3%] w-[26%] rotate-3`}><TalentPhoto talent={t(2)} fallback={f(2)} /></div>
-      <RoleChip label={label(2)} sub={sub(2)} className="left-[8%] bottom-[2%] -rotate-3" />
+      <div className={`${card} cn-float-b left-[5%] bottom-[3%] w-[26%] rotate-3`}><HeroTile src="/img2.jpeg" /></div>
 
-      <div className={`${card} cn-float-a right-[5%] bottom-[4%] w-[26%] rotate-3`}><TalentPhoto talent={t(3)} fallback={f(3)} /></div>
-      <RoleChip label={label(3)} sub={sub(3)} className="right-[7%] bottom-[1%]" />
+      <div className={`${card} cn-float-a right-[5%] bottom-[4%] w-[26%] rotate-3`}><HeroTile src="/img3.jpeg" /></div>
 
-      {/* centre hero card: showreel video on desktop, creator photo elsewhere */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[38%] aspect-[4/5] rounded-2xl overflow-hidden border-4 border-white shadow-2xl shadow-blue-900/30 rotate-[4deg] z-10 bg-blue-900">
-        {video ? (
-          <video
-            src={VIDEO_SRC}
-            poster={t(4)?.image || undefined}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            aria-label="MyCastNow showreel"
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <TalentPhoto talent={t(4)} fallback={f(4)} />
-        )}
+        <HeroTile src="/img1.jpeg" videoSrc={HERO_VIDEO} isVideo />
       </div>
-      <RoleChip label={video ? 'MyCastNow' : label(4)} sub={video ? 'Showreel' : sub(4)} className="left-1/2 bottom-[14%] translate-x-[-10%] rotate-[-5deg] z-20" />
-
-      {!video && (
-        <div className="absolute right-[26%] bottom-[2%] w-9 h-9 rounded-full bg-blue-600 shadow-lg shadow-blue-600/40 flex items-center justify-center z-20">
-          <Play size={14} className="text-white fill-white ml-0.5" />
-        </div>
-      )}
     </div>
   );
 };
@@ -153,26 +146,7 @@ const CreatorLogin = ({ isSignup = false }) => {
     }
   }, [location.search]);
 
-  const [talents, setTalents] = useState([]);
-  useEffect(() => {
-    const ctrl = new AbortController();
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/public/talents`, { signal: ctrl.signal })
-      .then((res) => {
-        const withPhoto = (res.data?.talents || []).filter((t) => t.image);
-        // prefer a mix of different categories (Model / Actor / ...) over 5 of the same
-        const seen = new Set();
-        const mixed = [];
-        for (const t of withPhoto) {
-          const key = (t.category || '').toLowerCase();
-          if (!seen.has(key)) { seen.add(key); mixed.push(t); }
-        }
-        for (const t of withPhoto) if (mixed.length < 5 && !mixed.includes(t)) mixed.push(t);
-        setTalents(mixed.slice(0, 5));
-      })
-      .catch(() => { /* decorative only – keep illustrated fallbacks */ });
-    return () => ctrl.abort();
-  }, []);
+
 
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState(detectCountry);
@@ -353,7 +327,7 @@ const CreatorLogin = ({ isSignup = false }) => {
 
         {/* Hero collage */}
         <div className="mt-0 sm:mt-4">
-          <HeroCollage talents={talents} />
+          <HeroCollage />
         </div>
 
         {/* Title */}
