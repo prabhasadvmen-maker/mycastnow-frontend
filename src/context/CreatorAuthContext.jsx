@@ -28,27 +28,27 @@ export const CreatorAuthProvider = ({ children }) => {
     fetchCreatorUser();
   }, []);
 
-  const sendOtp = async (phone) => {
+  const sendOtp = async (phone, countryCode = '91') => {
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/creatorAuth/send-otp`, { phone });
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/creatorAuth/send-otp`, { phone, countryCode });
       return res.data;
     } catch (err) {
       return err.response?.data || { success: false, message: 'Failed to send OTP' };
     }
   };
 
-  const resendOtp = async (phone) => {
+  const resendOtp = async (phone, countryCode = '91') => {
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/creatorAuth/resend-otp`, { phone });
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/creatorAuth/resend-otp`, { phone, countryCode });
       return res.data;
     } catch (err) {
       return err.response?.data || { success: false, message: 'Failed to resend OTP' };
     }
   };
 
-  const verifyOtp = async (phone, otp) => {
+  const verifyOtp = async (phone, otp, countryCode = '91') => {
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/creatorAuth/verify-otp`, { phone, otp });
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/creatorAuth/verify-otp`, { phone, otp, countryCode });
       if (res.data.success && res.data.token) {
         localStorage.setItem('creatorToken', res.data.token);
         setCreatorUser(res.data.creator);

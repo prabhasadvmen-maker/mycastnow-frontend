@@ -173,7 +173,7 @@ const AdminCreatorDetails = () => {
           <div className="flex-1 text-sm">
             <p className="font-bold">Incomplete Registration Lead — Drop-off at Step {creator.onboardingStep || 1} of 9</p>
             <p className="text-amber-700 mt-0.5 text-xs">
-              This creator entered and verified their phone number (<strong>+91 {creator.phone}</strong>) but left the onboarding process before completing and submitting their full profile. All information entered so far is shown below.
+              This creator entered and verified their phone number (<strong>{String(creator.phone).startsWith("+") ? creator.phone : `+91 ${creator.phone}`}</strong>) but left the onboarding process before completing and submitting their full profile. All information entered so far is shown below.
             </p>
           </div>
         </div>

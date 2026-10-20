@@ -2,20 +2,9 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useCreatorAuth } from '../../context/CreatorAuthContext';
-import { ArrowRight, ArrowLeft, ShieldCheck, AlertCircle, Sparkles, ChevronDown, User, Play } from 'lucide-react';
-
-const IndiaFlag = () => (
-  <svg viewBox="0 0 30 22" className="w-7 h-5 rounded-full shrink-0" aria-hidden="true">
-    <defs><clipPath id="in-flag"><rect width="30" height="22" rx="4" /></clipPath></defs>
-    <g clipPath="url(#in-flag)">
-      <rect width="30" height="7.34" fill="#FF9933" />
-      <rect y="7.34" width="30" height="7.33" fill="#fff" />
-      <rect y="14.67" width="30" height="7.33" fill="#138808" />
-      <circle cx="15" cy="11" r="2.6" fill="none" stroke="#000080" strokeWidth="0.7" />
-      <circle cx="15" cy="11" r="0.5" fill="#000080" />
-    </g>
-  </svg>
-);
+import { ArrowRight, ArrowLeft, ShieldCheck, AlertCircle, Sparkles, User, Play } from 'lucide-react';
+import CountryPicker from '../../components/CountryPicker';
+import { detectCountry, saveCountry } from '../../utils/countries';
 
 // Stylised portrait placeholder (head + shoulders on a soft gradient)
 const Portrait = ({ from, to, skin, hair, shirt, long = false }) => (
@@ -186,6 +175,16 @@ const CreatorLogin = ({ isSignup = false }) => {
   }, []);
 
   const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState(detectCountry);
+  const phoneValid = phone.length >= country.min && phone.length <= country.max;
+
+  const handleCountryChange = (c) => {
+    setCountry(c);
+    saveCountry(c.iso);
+    setPhone((p) => p.slice(0, c.max));
+    setError('');
+    document.getElementById('creator-phone')?.focus();
+  };
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState(1);
   const [loginOverride, setLoginOverride] = useState(null);
@@ -210,15 +209,17 @@ const CreatorLogin = ({ isSignup = false }) => {
 
   const handleSendOtp = async (e) => {
     if (e) e.preventDefault();
-    if (phone.length !== 10) {
-      setError('Please enter a valid 10-digit phone number');
+    if (!phoneValid) {
+      setError(country.min === country.max
+        ? `Please enter a valid ${country.max}-digit phone number`
+        : `Please enter a valid phone number for ${country.name}`);
       return;
     }
 
     setLoading(true);
     setError('');
     try {
-      const res = await sendOtp(phone);
+      const res = await sendOtp(phone, country.dial);
       if (res.success) {
         setStep(2);
         setResendTimer(30);
@@ -237,7 +238,7 @@ const CreatorLogin = ({ isSignup = false }) => {
     setError('');
     setOtp('');
     try {
-      const res = await resendOtp(phone);
+      const res = await resendOtp(phone, country.dial);
       if (res.success) {
         setResendTimer(30);
         if (res.devOtp) autoFillDevOtp(res.devOtp);
@@ -294,7 +295,7 @@ const CreatorLogin = ({ isSignup = false }) => {
     setLoading(true);
     setError('');
     try {
-      const res = await verifyOtp(phone, currentOtp);
+      const res = await verifyOtp(phone, currentOtp, country.dial);
       if (res.success) {
         if (res.isNewUser || !res.creator.isProfileComplete) {
           navigate('/creator/onboarding');
@@ -310,16 +311,16 @@ const CreatorLogin = ({ isSignup = false }) => {
     setLoading(false);
   };
 
-  // Auto-send OTP when 10 digits are entered
+  // Auto-send OTP once a fixed-length number is complete (variable-length countries use the button)
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (phone.length === 10 && step === 1 && !loading) {
+      if (country.min === country.max && phone.length === country.max && step === 1 && !loading) {
         handleSendOtp();
       }
     }, 300);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phone, step, loading]);
+  }, [phone, country, step, loading]);
 
   const primaryBtn =
     'w-full h-12 sm:h-14 bg-blue-500 hover:bg-blue-600 active:scale-[0.99] text-white rounded-xl font-semibold text-base sm:text-lg shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2.5 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none';
@@ -401,26 +402,22 @@ const CreatorLogin = ({ isSignup = false }) => {
               <label htmlFor="creator-phone" className="block mt-4 sm:mt-7 mb-2 text-sm sm:text-base font-semibold text-blue-950">
                 Phone Number
               </label>
-              <div className="flex items-stretch h-12 sm:h-14 bg-white border border-slate-200 rounded-xl overflow-hidden transition-all focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/15">
-                <div className="flex items-center gap-1.5 pl-3 pr-2.5 text-blue-950 font-medium border-r border-slate-200 my-2.5 select-none" aria-label="Country code India +91">
-                  <IndiaFlag />
-                  <span>+91</span>
-                  <ChevronDown size={16} className="text-slate-500" />
-                </div>
+              <div className="relative flex items-stretch h-12 sm:h-14 bg-white border border-slate-200 rounded-xl transition-all focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/15">
+                <CountryPicker value={country} onChange={handleCountryChange} />
                 <input
                   id="creator-phone"
                   type="tel"
                   inputMode="numeric"
                   autoComplete="tel-national"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, country.max))}
                   className="flex-1 min-w-0 px-3 bg-transparent outline-none text-lg text-blue-950 font-medium tracking-wide placeholder:text-slate-400 placeholder:font-normal placeholder:tracking-normal placeholder:text-[15px]"
                   placeholder="Enter phone number"
                   autoFocus
                 />
               </div>
 
-              <button type="submit" disabled={loading || phone.length !== 10} className={`${primaryBtn} mt-4 sm:mt-6`}>
+              <button type="submit" disabled={loading || !phoneValid} className={`${primaryBtn} mt-4 sm:mt-6`}>
                 {loading ? 'Sending OTP...' : 'Continue with OTP'}
                 {!loading && <ArrowRight size={20} />}
               </button>
@@ -448,7 +445,7 @@ const CreatorLogin = ({ isSignup = false }) => {
 
               <h2 className="text-2xl sm:text-3xl font-extrabold text-blue-950 tracking-tight">Verify OTP</h2>
               <p className="mt-3 text-slate-500 text-base">
-                We've sent a 6-digit code to <strong className="text-blue-950">+91 {phone}</strong>
+                We've sent a 6-digit code to <strong className="text-blue-950">+{country.dial} {phone}</strong>
               </p>
 
               <div className="mt-5 sm:mt-7 flex gap-2 sm:gap-2.5 justify-center">
@@ -499,8 +496,8 @@ const CreatorLogin = ({ isSignup = false }) => {
           <div className="mt-4 sm:mt-6 pt-3 sm:pt-5 border-t border-slate-100 text-center">
             <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
               By continuing, you agree to MyCastNow's<br />
-              <Link to="#" className="text-blue-600 hover:underline font-medium">Terms of Service</Link> and{' '}
-              <Link to="#" className="text-blue-600 hover:underline font-medium">Privacy Policy</Link>
+              <Link to="/terms" target="_blank" className="text-blue-600 hover:underline font-medium">Terms of Service</Link> and{' '}
+              <Link to="/privacy" target="_blank" className="text-blue-600 hover:underline font-medium">Privacy Policy</Link>
             </p>
             <Link
               to="/home"

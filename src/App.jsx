@@ -68,6 +68,7 @@ const PricingPage = lazy(() => import('./pages/public/PricingPage'));
 const AuditionGuidelinesPage = lazy(() => import('./pages/public/AuditionGuidelinesPage'));
 const FAQPage = lazy(() => import('./pages/public/FAQPage'));
 const PublicInfoPage = lazy(() => import('./pages/public/PublicInfoPage'));
+const LegalPage = lazy(() => import('./pages/public/LegalPage'));
 
 function App() {
   return (
@@ -95,8 +96,8 @@ function App() {
                 <Route path="/safety" element={<PublicInfoPage page="safety" />} />
                 <Route path="/support" element={<PublicInfoPage page="support" />} />
                 <Route path="/escrow" element={<PublicInfoPage page="escrow" />} />
-                <Route path="/terms" element={<PublicInfoPage page="terms" />} />
-                <Route path="/privacy" element={<PublicInfoPage page="privacy" />} />
+                <Route path="/terms" element={<LegalPage doc="terms" />} />
+                <Route path="/privacy" element={<LegalPage doc="privacy" />} />
                 <Route path="/fraud-prevention" element={<PublicInfoPage page="fraud" />} />
                 <Route path="/post-casting" element={<CompanySignup />} />
 
