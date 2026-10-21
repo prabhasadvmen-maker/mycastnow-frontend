@@ -337,7 +337,7 @@ const CreatorSignupFlow = () => {
       await updateProfile(payload);
       setLastSaved(true);
     } catch (err) {
-      console.warn('Auto-save notice:', err);
+      console.warn('Auto-save notice:', err.response?.data?.message || err);
     } finally {
       setAutoSaving(false);
     }
