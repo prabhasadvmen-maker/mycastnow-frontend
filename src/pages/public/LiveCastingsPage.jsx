@@ -17,7 +17,7 @@ if (typeof window !== 'undefined') {
   const host = window.location.hostname;
   if (host !== 'localhost' && host !== '127.0.0.1') {
     if (!import.meta.env.VITE_API_URL || import.meta.env.VITE_API_URL.includes('localhost') || import.meta.env.VITE_API_URL.includes('127.0.0.1')) {
-      API = 'https://mycastnow-backend.onrender.com/api';
+      API = 'https://api.mycastnow.com/api';
     }
   }
 }
